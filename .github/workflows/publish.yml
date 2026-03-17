@@ -59,7 +59,7 @@ jobs:
         GITHUB_STEP: upload
 
     - name: "Archive Submitted Drafts"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       if: always() && steps.build.outcome == 'success'
       with:
         name: published
