@@ -1,0 +1,66 @@
+name: Feature Request
+description: Suggest a new feature or improvement to the specification or tooling.
+title: "feat: "
+labels: [enhancement]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Feature Request
+        Please describe your idea clearly to help us evaluate and prioritize it.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: A short title or summary of the feature.
+    validations:
+      required: true
+
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Use Case / Problem
+      description: What problem does this feature solve? Why is it needed?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the project does this relate to?
+      options:
+        - Protocol specification
+        - Appraisal specification
+        - CDDL schema
+        - Integration (C2PA / CAWG / DIF)
+        - Build tooling / CI
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Suggested Solution
+      description: How would you propose solving this?
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Any other approaches you considered?
+    validations:
+      required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Add references, diagrams, or related RFCs if available.

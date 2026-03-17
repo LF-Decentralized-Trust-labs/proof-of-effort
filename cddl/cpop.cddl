@@ -1,0 +1,439 @@
+; Cryptographic Proof of Process (CPoP) Evidence and Writers Authenticity Report Schema
+; draft-condrey-cpop-protocol / draft-condrey-cpop-appraisal
+;
+; This schema defines the CBOR-encoded data structures for the
+; Cryptographic Proof of Process framework. Evidence Packets are identified by
+; CBOR tag 1129336656 ("CPOP") and Writers Authenticity Reports by
+; CBOR tag 1129791826 ("CWAR").
+;
+; All map keys use integer encoding per IETF CBOR conventions.
+; All temporal and entropy measurements use unsigned integers (uint).
+; Timestamps and durations are in milliseconds. Entropy estimates
+; are in centibits (1/100th of a bit).
+
+; ============================================================
+; CBOR Tag Wrappers
+; ============================================================
+
+pop-evidence = #6.1129336656(evidence-packet)
+pop-war = #6.1129791826(attestation-result)
+
+; ============================================================
+; Evidence Packet (Protocol)
+; ============================================================
+
+evidence-packet = {
+    1 => uint,                    ; version (MUST be 1)
+    2 => tstr,                    ; profile-uri
+    3 => uuid,                    ; packet-id
+    4 => pop-timestamp,           ; created
+    5 => document-ref,            ; document
+    6 => [3* checkpoint],         ; checkpoints (min 3)
+    ? 7 => attestation-tier,      ; T1-T4
+    ? 8 => [* tstr],              ; limitations
+    ? 9 => profile-declaration,   ; profile
+    ? 10 => [+ presence-challenge], ; QR/OOB proofs
+    ? 11 => channel-binding,      ; TLS EKM binding
+    ; key 12 reserved for future use
+    ? 13 => content-tier,         ; Evidence Content Tier
+    ? 14 => hash-value,           ; previous-packet-ref
+    ? 15 => uint,                 ; packet-sequence (1-based)
+    ; keys 16-17 reserved for future use
+    ? 18 => physical-liveness,    ; physical-liveness markers
+    ? 19 => baseline-verification, ; behavioral baseline verification
+    * int => any,                 ; extension fields
+}
+
+checkpoint = {
+    1 => uint,                    ; sequence (monotonic)
+    2 => uuid,                    ; checkpoint-id
+    3 => pop-timestamp,           ; timestamp (local)
+    4 => hash-value,              ; content-hash
+    5 => uint,                    ; char-count
+    6 => edit-delta,              ; delta
+    7 => hash-value,              ; prev-hash
+    8 => hash-value,              ; checkpoint-hash
+    9 => process-proof,           ; SWF proof
+    ? 10 => jitter-binding,       ; behavioral-entropy (ENHANCED+)
+    ? 11 => physical-state,       ; physical-state binding (ENHANCED+)
+    ? 12 => hash-digest,          ; entangled-binding (ENHANCED+)
+    ? 13 => [+ receipt],          ; receipts (self or tool)
+    ? 14 => [+ active-probe],    ; active liveness probes
+    ? 15 => hat-proof,               ; HAT temporal proof (T3/T4)
+    ? 16 => beacon-anchor,           ; public randomness anchor (optional)
+    ? 17 => bstr .size 32,           ; verifier-nonce (interactive mode)
+    * int => any,                 ; extension fields
+}
+
+document-ref = {
+    1 => hash-value,              ; content-hash
+    ? 2 => tstr,                  ; filename
+    3 => uint,                    ; byte-length
+    4 => uint,                    ; char-count
+    ? 5 => hash-salt-mode,        ; salting mode
+    ? 6 => hash-digest,           ; salt-commitment
+}
+
+; ============================================================
+; Sequential Work Function (SWF)
+; ============================================================
+
+process-proof = {
+    1 => proof-algorithm,         ; algorithm id
+    2 => proof-params,            ; SWF params
+    3 => hash-digest,             ; input (seed)
+    4 => hash-digest,             ; merkle-root
+    5 => [+ merkle-proof],        ; sampled proofs
+    6 => uint,                    ; claimed-duration (milliseconds)
+}
+
+proof-params = {
+    1 => uint,                    ; time-cost (t)
+    2 => uint,                    ; memory-cost (m, KiB)
+    3 => uint,                    ; parallelism (p)
+    4 => uint,                    ; steps
+    ? 5 => uint,                  ; waypoint-interval (Mode 10 only)
+    ? 6 => uint,                  ; waypoint-memory (KiB, Mode 10 only)
+}
+
+merkle-proof = {
+    1 => uint,                    ; leaf-index
+    2 => [+ hash-digest],        ; sibling-path
+    3 => hash-digest,             ; leaf-value
+}
+
+; ============================================================
+; Behavioral Entropy and Physical State
+; ============================================================
+
+jitter-binding = {
+    1 => [+ uint],                ; intervals (milliseconds)
+    2 => uint,                    ; entropy-estimate (centibits)
+    3 => hash-digest,             ; jitter-tag (keyed consistency tag)
+}
+
+edit-delta = {
+    1 => uint,                    ; chars-added
+    2 => uint,                    ; chars-deleted
+    3 => uint,                    ; op-count
+    ? 4 => [* edit-position],     ; positions
+    ? 5 => hash-digest,           ; edit-graph-hash (ENHANCED+)
+    ; keys 6-8 reserved for future use
+    ? 9 => [8*8 uint],             ; cursor-trajectory-histogram (MAXIMUM)
+    ? 10 => [8*8 uint],            ; revision-depth-histogram (MAXIMUM)
+    ? 11 => [8*8 uint],            ; pause-duration-histogram (MAXIMUM)
+}
+
+edit-position = [
+    uint,                         ; offset
+    int,                          ; change (+/-), MUST be non-zero
+]
+
+physical-state = {
+    1 => [+ int],                 ; thermal (relative, millidegrees)
+    2 => int,                     ; entropy-delta (signed)
+    ? 3 => bstr .size 32,         ; kernel-commitment
+}
+
+physical-liveness = {
+    1 => [+ thermal-sample],      ; thermal trajectory
+    2 => bstr .size 32,           ; entropy-anchor
+}
+
+thermal-sample = [
+    pop-timestamp,                ; sample time
+    int,                          ; temperature delta (millidegrees)
+]
+
+; ============================================================
+; Hardware-Anchored Time (HAT)
+; ============================================================
+
+hat-proof = {
+    1 => bstr,                    ; time-before (TPMS_TIME_ATTEST_INFO)
+    2 => bstr,                    ; time-after (TPMS_TIME_ATTEST_INFO)
+    3 => bstr,                    ; sig-before (AIK signature)
+    4 => bstr,                    ; sig-after (AIK signature)
+}
+
+; ============================================================
+; Beacon-Anchored Binding (Optional)
+; ============================================================
+
+beacon-anchor = {
+    1 => tstr,                    ; beacon-source (URI of beacon service)
+    2 => uint,                    ; beacon-round (round number)
+    3 => bstr .size 32,           ; beacon-value (randomness output)
+}
+
+; ============================================================
+; Behavioral Baseline Verification
+; ============================================================
+
+baseline-verification = {
+    ? 1 => baseline-digest,       ; omitted during enrollment
+    2 => session-behavioral-summary, ; current session metrics
+    ? 3 => bstr .cbor COSE_Sign1,  ; digest-signature
+}
+
+baseline-digest = {
+    1 => uint,                    ; version (MUST be 1)
+    2 => uint,                    ; session-count
+    3 => uint,                    ; total-keystrokes
+    4 => streaming-stats,         ; iki-stats
+    5 => streaming-stats,         ; cv-stats
+    6 => streaming-stats,         ; hurst-stats
+    7 => [9* float32],            ; aggregate-iki-histogram
+    8 => streaming-stats,         ; pause-stats
+    9 => bstr .size 32,           ; session-merkle-root (MMR)
+    10 => confidence-tier,        ; baseline maturity
+    11 => pop-timestamp,          ; computed-at
+    12 => bstr .size 32,          ; identity-fingerprint
+}
+
+session-behavioral-summary = {
+    1 => [9* float32],            ; iki-histogram
+    2 => float32,                 ; iki-cv
+    3 => float32,                 ; hurst
+    4 => float32,                 ; pause-frequency
+    5 => uint,                    ; duration-secs
+    6 => uint,                    ; keystroke-count
+}
+
+streaming-stats = {
+    1 => uint,                    ; count
+    2 => float32,                 ; mean
+    3 => float32,                 ; m2 (Welford's sum of squared diffs)
+    4 => float32,                 ; min
+    5 => float32,                 ; max
+}
+
+confidence-tier = &(
+    population-reference: 1,      ; 0-4 sessions
+    emerging: 2,                  ; 5-9 sessions
+    established: 3,               ; 10-19 sessions
+    mature: 4,                    ; 20+ sessions
+)
+
+; ============================================================
+; Presence Challenges and Profiles
+; ============================================================
+
+presence-challenge = {
+    1 => bstr .size (16..256),    ; challenge-nonce (128+ bits)
+    2 => bstr,                    ; device-signature (MUST be COSE_Sign1)
+    3 => pop-timestamp,           ; response-time
+}
+
+profile-declaration = {
+    1 => tstr,                    ; profile-id
+    2 => [+ uint],                ; feature-flags
+}
+
+binding-type = &(
+    tls-exporter: 1,
+)
+
+channel-binding = {
+    1 => binding-type,            ; binding-type
+    2 => bstr .size 32,           ; binding-value (EKM output)
+}
+
+; ============================================================
+; Receipts (Composition and Tool Attribution)
+; ============================================================
+
+receipt = self-receipt / tool-receipt
+
+self-receipt = {
+    1 => tstr,                    ; tool-id (source environment)
+    2 => hash-value / compact-ref, ; output-commit
+    3 => hash-value / compact-ref, ; evidence-ref (source packet)
+    4 => pop-timestamp,           ; transfer-time
+}
+
+tool-receipt = {
+    1 => tstr,                    ; tool-id (provider URI)
+    2 => hash-value,              ; output-commit
+    ? 3 => hash-value,            ; input-ref (prompt hash)
+    4 => pop-timestamp,           ; issued-at
+    5 => bstr .cbor COSE_Sign1,   ; tool-signature
+    ? 6 => uint,                  ; output-char-count
+}
+
+; ============================================================
+; Active Probes (Liveness Challenges)
+; ============================================================
+
+active-probe = {
+    1 => probe-type,              ; challenge category
+    2 => pop-timestamp,           ; stimulus-time
+    3 => pop-timestamp,           ; response-time
+    4 => bstr,                    ; stimulus-data (challenge payload)
+    5 => bstr,                    ; response-data (captured response)
+    ? 6 => uint,                  ; response-latency (milliseconds)
+}
+
+probe-type = &(
+    galton-board: 1,              ; Galton invariant challenge
+    reflex-gate: 2,               ; motor reflex timing gate
+    spatial-target: 3,            ; spatial accuracy challenge
+)
+
+; ============================================================
+; Writers Authenticity Report / WAR (Appraisal)
+; CBOR tag 1129791826
+; ============================================================
+
+attestation-result = {
+    1 => uint,                    ; version (MUST be 1)
+    2 => hash-value,              ; evidence-ref
+    3 => verdict,                 ; appraisal verdict
+    4 => attestation-tier,        ; assessed assurance level
+    5 => uint,                    ; chain-length
+    6 => uint,                    ; chain-duration (seconds)
+    ? 7 => entropy-report,        ; entropy assessment (omit for CORE)
+    ? 8 => forgery-cost-estimate, ; quantified forgery cost
+    ? 9 => [+ absence-claim],     ; absence claims (1+ when present)
+    ? 10 => [* tstr],             ; warnings
+    11 => bstr .cbor COSE_Sign1,   ; verifier-signature
+    12 => pop-timestamp,          ; created (appraisal timestamp)
+    ? 13 => forensic-summary,     ; forensic assessment summary
+    ? 14 => confidence-tier,      ; baseline confidence level
+    ? 15 => effort-attribution,   ; human-to-tool attribution
+    * int => any,                 ; extension fields
+}
+
+verdict = &(
+    authentic: 1,                 ; consistent with human authorship
+    inconclusive: 2,              ; insufficient evidence
+    suspicious: 3,                ; anomalies detected
+    invalid: 4,                   ; chain broken or forged
+)
+
+forensic-summary = {
+    1 => uint,                    ; flags-triggered
+    2 => uint,                    ; flags-evaluated
+    3 => uint,                    ; affected-checkpoints
+    4 => uint,                    ; total-checkpoints
+    ? 5 => [+ forensic-flag],    ; per-flag detail
+}
+
+forensic-flag = {
+    1 => tstr,                    ; mechanism (e.g., "SNR", "CLC")
+    2 => bool,                    ; triggered
+    3 => uint,                    ; affected-windows
+    4 => uint,                    ; total-windows
+}
+
+entropy-report = {
+    1 => float32,                 ; timing-entropy (bits/sample)
+    2 => float32,                 ; revision-entropy (bits)
+    3 => float32,                 ; pause-entropy (bits)
+    4 => bool,                    ; meets-threshold
+}
+
+; ============================================================
+; Forgery Cost Bound (Appraisal)
+; ============================================================
+
+forgery-cost-estimate = {
+    1 => float32,                 ; c-swf
+    2 => float32,                 ; c-entropy
+    3 => float32,                 ; c-hardware
+    4 => float32,                 ; c-total
+    5 => cost-unit,               ; currency
+}
+
+cost-unit = &(
+    usd: 1,
+    cpu-hours: 2,
+)
+
+; ============================================================
+; Effort Attribution (Appraisal)
+; ============================================================
+
+effort-attribution = {
+    1 => float32,                 ; human-fraction (0.0 to 1.0)
+    2 => uint,                    ; human-checkpoints
+    3 => uint,                    ; receipt-checkpoints
+    ? 4 => uint,                  ; tool-attributed-chars
+    ? 5 => uint,                  ; total-chars
+}
+
+; ============================================================
+; Absence Claims (Appraisal)
+; ============================================================
+
+absence-claim = {
+    1 => absence-type,            ; proof category
+    2 => time-window,             ; claimed window
+    3 => tstr,                    ; claim-id
+    ? 4 => any,                   ; threshold/parameter
+    5 => bool,                    ; assertion
+}
+
+absence-type = &(
+    computationally-bound: 1,     ; verifiable from Evidence alone
+    monitoring-dependent: 2,      ; requires trust in AE monitoring
+    environmental: 3,             ; environmental assertions
+)
+
+time-window = {
+    1 => pop-timestamp,           ; start
+    2 => pop-timestamp,           ; end
+}
+
+; ============================================================
+; Enumerations
+; ============================================================
+
+attestation-tier = &(
+    software-only: 1,             ; T1: AAL1
+    attested-software: 2,         ; T2: AAL2
+    hardware-bound: 3,            ; T3: AAL3
+    hardware-hardened: 4,         ; T4: LoA4
+)
+
+content-tier = &(
+    core: 1,
+    enhanced: 2,
+    maximum: 3,
+)
+
+proof-algorithm = &(
+    swf-sha256: 10,               ; SHA-256 iterative (no memory-hard)
+    swf-argon2id: 20,
+    swf-argon2id-entangled: 21,   ; Entangled VDF Mode
+)
+
+hash-salt-mode = &(
+    unsalted: 0,
+    author-salted: 1,
+)
+
+hash-algorithm = &(
+    sha256: 1,
+    sha384: 2,
+    sha512: 3,
+)
+
+; ============================================================
+; Base Types
+; ============================================================
+
+uuid = bstr .size 16
+pop-timestamp = uint              ; epoch milliseconds (no tag 1; see protocol §6.7)
+hash-digest = bstr .size 32 /     ; SHA-256
+              bstr .size 48 /     ; SHA-384
+              bstr .size 64       ; SHA-512
+hash-value = {
+    1 => hash-algorithm,
+    2 => hash-digest,              ; length MUST match algorithm output
+}
+compact-ref = {
+    1 => hash-algorithm,          ; algorithm used for full hash
+    2 => bstr .size (8..32),      ; truncated-digest (8-32 bytes)
+    3 => uint,                    ; prefix-length (bytes in digest)
+}
