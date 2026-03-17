@@ -23,3 +23,5 @@ report.xml
 !requirements.txt
 /lib
 *.DS_Store
+/target
+Cargo.lock
