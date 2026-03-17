@@ -41,9 +41,10 @@ This repository is the home of the **Proof-of-Process (CPoP) protocol specificat
   - [`draft-condrey-cpop-appraisal`](draft-condrey-cpop-appraisal.md) — The appraisal methodology: forensic evaluation, security model, and trust calibration
 - **A CDDL schema** ([`cddl/cpop.cddl`](cddl/cpop.cddl)) defining the CBOR-encoded wire format for Evidence Packets and Writers Authenticity Reports
 - **Architecture and integration documentation** mapping CPoP to [C2PA](docs/integration/c2pa.md), [CAWG](docs/integration/cawg.md), and [DID/VC](docs/integration/did.md) ecosystems
+- **Reference implementation crates** in Rust:
+  - [`cpop-jitter`](crates/cpop-jitter/) — Timing jitter entropy primitive (`no_std` compatible)
+  - [`cpop-protocol`](crates/cpop-protocol/) — Wire format, CBOR/COSE codec, evidence builder/verifier
 - **A complete build pipeline** ([`Makefile`](Makefile) + [GitHub Actions](.github/workflows/)) that compiles drafts to HTML/TXT and publishes editor's copies to GitHub Pages
-
-This is **not** a reference implementation or SDK — it is the specification that implementations are built against.
 
 ## Why This Exists
 
