@@ -1,0 +1,140 @@
+; Writers Authenticity Report (WAR) — Attestation Result (example)
+; CBOR diagnostic notation per RFC 8949 Section 8
+;
+; This WAR is the appraisal result for the companion evidence-packet example.
+; The Verifier assessed a T2 Evidence Packet and issued an "authentic" verdict
+; with entropy, forgery cost, forensic, and effort attribution details.
+;
+; ALL values are synthetic examples — not real attestation results.
+
+1129791826({                         ; CBOR tag "CWAR"
+
+  1: 1,                              ; version
+
+  ; evidence-ref — hash of the appraised Evidence Packet
+  2: {
+    1: 1,                            ; sha256
+    2: h'b94d27b9934d3e08a52e52d7da7dabfac484efe37a5380ee9088f7ace2efcde9'
+  },
+
+  ; verdict
+  3: 1,                              ; authentic — consistent with human authorship
+
+  ; assessed attestation tier
+  4: 2,                              ; attested-software (T2)
+
+  ; chain metrics
+  5: 3,                              ; chain-length (3 checkpoints)
+  6: 2700,                           ; chain-duration — 45 minutes (seconds)
+
+  ; --- entropy-report ---
+  7: {
+    1: 3.42,                         ; timing-entropy (bits/sample)
+    2: 8.91,                         ; revision-entropy (bits)
+    3: 5.67,                         ; pause-entropy (bits)
+    4: true                          ; meets-threshold
+  },
+
+  ; --- forgery-cost-estimate ---
+  8: {
+    1: 12.50,                        ; c-swf — SWF replay cost
+    2: 8.75,                         ; c-entropy — behavioral simulation cost
+    3: 0.0,                          ; c-hardware — no hardware anchor at T2
+    4: 21.25,                        ; c-total
+    5: 2                             ; cost-unit = cpu-hours
+  },
+
+  ; --- absence-claims ---
+  9: [
+    {
+      1: 1,                          ; computationally-bound
+      2: {                           ; time-window
+        1: 1773854200000,            ; start (14:30:00 UTC)
+        2: 1773856000000             ; end (15:00:00 UTC)
+      },
+      3: "swf-temporal-bound",       ; claim-id
+      4: 900000,                     ; threshold — 15 min per checkpoint (ms)
+      5: true                        ; assertion holds
+    },
+    {
+      1: 2,                          ; monitoring-dependent
+      2: {
+        1: 1773854200000,
+        2: 1773856000000
+      },
+      3: "behavioral-continuity",
+      5: true
+    }
+  ],
+
+  ; warnings
+  10: [
+    "Behavioral baseline has < 5 sessions; confidence-tier is population-reference"
+  ],
+
+  ; verifier-signature (COSE_Sign1 placeholder — 128 bytes)
+  11: h'deadbeef' ; placeholder — real value is a full COSE_Sign1 structure
+      ; In production this is bstr .cbor COSE_Sign1 containing the
+      ; Verifier's signature over the attestation-result map (keys 1-10, 12-15).
+
+  ; created — appraisal timestamp (2026-03-15T15:05:00Z)
+  12: 1773856300000,
+
+  ; --- forensic-summary ---
+  13: {
+    1: 0,                            ; flags-triggered — none triggered
+    2: 6,                            ; flags-evaluated
+    3: 0,                            ; affected-checkpoints
+    4: 3,                            ; total-checkpoints
+    5: [
+      {
+        1: "SNR",                    ; signal-to-noise ratio check
+        2: false,                    ; not triggered
+        3: 0,                        ; affected-windows
+        4: 3                         ; total-windows
+      },
+      {
+        1: "CLC",                    ; checkpoint-level consistency
+        2: false,
+        3: 0,
+        4: 3
+      },
+      {
+        1: "TMG",                    ; timing-gap analysis
+        2: false,
+        3: 0,
+        4: 2                         ; 2 inter-checkpoint gaps
+      },
+      {
+        1: "EDT",                    ; edit-delta trajectory
+        2: false,
+        3: 0,
+        4: 3
+      },
+      {
+        1: "JIT",                    ; jitter distribution
+        2: false,
+        3: 0,
+        4: 3
+      },
+      {
+        1: "PHY",                    ; physical-state continuity
+        2: false,
+        3: 0,
+        4: 3
+      }
+    ]
+  },
+
+  ; baseline confidence
+  14: 1,                             ; population-reference (< 5 sessions)
+
+  ; --- effort-attribution ---
+  15: {
+    1: 1.0,                          ; human-fraction — 100% human authored
+    2: 3,                            ; human-checkpoints
+    3: 0,                            ; receipt-checkpoints (no tool use)
+    4: 0,                            ; tool-attributed-chars
+    5: 2437                          ; total-chars
+  }
+})

@@ -115,6 +115,14 @@ CPoP sits beneath existing provenance and identity frameworks, adding an "eviden
 | [W3C VC](https://www.w3.org/TR/vc-data-model-2.0/) / [DIF](https://identity.foundation/) | Attestation results as verifiable credentials bound to DIDs | [Guide](docs/integration/did.md) |
 | [IETF SECDISPATCH](https://datatracker.ietf.org/wg/secdispatch/about/) | Venue for routing new security protocol work within the IETF | [Mailing list](https://mailarchive.ietf.org/arch/browse/secdispatch/) |
 
+### Integration Status
+
+| Integration | Stage | Status | External Dependencies |
+| ----------- | ----- | ------ | --------------------- |
+| [C2PA](docs/integration/c2pa.md) | Proposed | PR pending | [c2pa-org/specs-core#2009](https://github.com/c2pa-org/specs-core/pull/2009) |
+| [CAWG](docs/integration/cawg.md) | Proposal | Not yet submitted | — |
+| [DID/VC](docs/integration/did.md) | Under development | Schema in progress | — |
+
 ## Building Locally
 
 <details>

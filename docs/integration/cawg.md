@@ -2,6 +2,8 @@
 
 # CAWG Integration
 
+> **Stage**: Proposal — not yet submitted to CAWG
+
 This document describes how Proof-of-Process (CPoP) attestation aligns with
 the [Creator Assertions Working Group (CAWG)](https://cawg.io/) specifications.
 

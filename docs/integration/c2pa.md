@@ -2,6 +2,8 @@
 
 # C2PA Integration
 
+> **Stage**: Proposed — PR pending at [c2pa-org/specs-core#2009](https://github.com/c2pa-org/specs-core/pull/2009)
+
 This document describes how Proof-of-Process (CPoP) attestation evidence
 integrates with the [Coalition for Content Provenance and Authenticity
 (C2PA)](https://c2pa.org/) content credentials framework.
