@@ -2029,7 +2029,7 @@ adjust them within the ranges specified.
 * Entropy: 3.0 to 5.0 bits/sample; entropy trajectory
   standard deviation MUST exceed 0.1 bits across the
   session. Entropy trajectory standard deviation is computed
-  as: SD = standard_deviation([H_1, H_2, ..., H_n]) where
+  as: SD = standard_deviation(\[H_1, H_2, ..., H_n\]) where
   H_i is the timing-entropy computed independently for
   checkpoint i. A constant-entropy session (SD < 0.1 bits)
   indicates that behavioral entropy does not vary naturally
