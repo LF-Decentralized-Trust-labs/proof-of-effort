@@ -1,0 +1,254 @@
+; Cryptographic Proof of Process — Evidence Packet (example)
+; CBOR diagnostic notation per RFC 8949 Section 8
+;
+; This is a T2 (attested-software) Evidence Packet with ENHANCED content tier.
+; It contains 3 checkpoints capturing a ~45-minute writing session of roughly
+; 2400 characters, with jitter proof, behavioral metrics, and physical state
+; at each checkpoint.
+;
+; ALL values are synthetic examples — not real evidence.
+
+1129336656({                         ; CBOR tag "CPOP"
+
+  1: 1,                              ; version
+  2: "urn:ietf:params:cpop:profile:enhanced-v1",  ; profile-uri
+
+  ; packet-id (UUID v4, 16 bytes)
+  3: h'a1b2c3d4e5f6071889abcdef01234567',
+
+  ; created — 2026-03-15T14:30:00.000Z as epoch milliseconds
+  4: 1773854200000,
+
+  ; --- document ---
+  5: {
+    1: {                             ; content-hash
+      1: 1,                          ; sha256
+      2: h'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
+    },
+    2: "chapter-draft.md",           ; filename
+    3: 4821,                         ; byte-length
+    4: 2437,                         ; char-count
+    5: 1,                            ; hash-salt-mode = author-salted
+    6: h'9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08'
+  },
+
+  ; --- checkpoints (3 required) ---
+  6: [
+
+    ; ========== Checkpoint 1 — session start ==========
+    {
+      1: 1,                          ; sequence
+      2: h'11111111111111111111111111111111',  ; checkpoint-id
+      3: 1773854200000,              ; timestamp — 14:30:00 UTC
+
+      ; content-hash at this checkpoint
+      4: {
+        1: 1,
+        2: h'ca978112ca1bbdcafac231b39a23dc4da786eff8147c4e72b9807785afee48bb'
+      },
+
+      5: 823,                        ; char-count at checkpoint
+
+      ; edit-delta
+      6: {
+        1: 823,                      ; chars-added
+        2: 0,                        ; chars-deleted
+        3: 47,                       ; op-count
+        4: [[0, 823]],               ; positions (single insertion)
+        5: h'2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824'
+      },
+
+      ; prev-hash (genesis — hash of empty string)
+      7: {
+        1: 1,
+        2: h'0000000000000000000000000000000000000000000000000000000000000000'
+      },
+
+      ; checkpoint-hash
+      8: {
+        1: 1,
+        2: h'aabbccdd00112233445566778899aabbccddeeff00112233445566778899aabb'
+      },
+
+      ; --- process-proof (SWF) ---
+      9: {
+        1: 20,                       ; swf-argon2id
+        2: {                         ; proof-params
+          1: 3,                      ; time-cost
+          2: 65536,                  ; memory-cost (64 MiB)
+          3: 1,                      ; parallelism
+          4: 1024                    ; steps
+        },
+        3: h'1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+        4: h'fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321',
+        5: [                         ; merkle proofs (sampled)
+          {
+            1: 42,                   ; leaf-index
+            2: [                     ; sibling-path
+              h'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+              h'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
+            ],
+            3: h'cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc'
+          }
+        ],
+        6: 900000                    ; claimed-duration — 15 minutes (ms)
+      },
+
+      ; --- jitter-binding (behavioral entropy) ---
+      10: {
+        1: [123, 89, 211, 67, 145, 312, 98, 176, 54, 203,
+            91, 267, 78, 134, 189, 56, 301, 112, 88, 247],  ; 20 inter-key intervals (ms)
+        2: 3200,                     ; entropy-estimate — 32.00 bits (centibits)
+        3: h'dd00112233445566778899aabbccddeeff00112233445566778899aabbccddee'
+      },
+
+      ; --- physical-state ---
+      11: {
+        1: [150, 200, -50, 100],     ; thermal readings (millidegrees, relative)
+        2: 35                        ; entropy-delta (signed)
+      }
+    },
+
+    ; ========== Checkpoint 2 — mid-session ==========
+    {
+      1: 2,                          ; sequence
+      2: h'22222222222222222222222222222222',  ; checkpoint-id
+      3: 1773855100000,              ; timestamp — 14:45:00 UTC (15 min later)
+
+      4: {
+        1: 1,
+        2: h'dbc1b4c900ffe48d575b5da5c638040125f65db0fe3e24494b76ea986457d986'
+      },
+
+      5: 1612,                       ; char-count
+
+      6: {
+        1: 847,                      ; chars-added
+        2: 58,                       ; chars-deleted
+        3: 112,                      ; op-count
+        4: [[823, 512], [1200, 335], [1100, -58]],  ; mixed inserts and delete
+        5: h'3a7bd3e2360a3d29eea436fcfb7e44c735d117c42d1c1835420b6b9942dd4f1b'
+      },
+
+      7: {                           ; prev-hash = checkpoint 1 hash
+        1: 1,
+        2: h'aabbccdd00112233445566778899aabbccddeeff00112233445566778899aabb'
+      },
+
+      8: {
+        1: 1,
+        2: h'11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff'
+      },
+
+      9: {
+        1: 20,
+        2: { 1: 3, 2: 65536, 3: 1, 4: 1024 },
+        3: h'abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+        4: h'0987654321fedcba0987654321fedcba0987654321fedcba0987654321fedcba',
+        5: [
+          {
+            1: 117,
+            2: [
+              h'1111111111111111111111111111111111111111111111111111111111111111',
+              h'2222222222222222222222222222222222222222222222222222222222222222',
+              h'3333333333333333333333333333333333333333333333333333333333333333'
+            ],
+            3: h'4444444444444444444444444444444444444444444444444444444444444444'
+          }
+        ],
+        6: 900000                    ; 15 minutes
+      },
+
+      10: {
+        1: [98, 143, 67, 278, 112, 56, 189, 234, 71, 156,
+            93, 201, 84, 167, 255, 73, 128, 192, 61, 310],
+        2: 3450,                     ; 34.50 bits
+        3: h'ee00112233445566778899aabbccddeeff00112233445566778899aabbccddee'
+      },
+
+      11: {
+        1: [300, 350, 280, 310, -20],
+        2: 42
+      },
+
+      ; entangled-binding (cross-checkpoint hash)
+      12: h'5566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344'
+    },
+
+    ; ========== Checkpoint 3 — session end ==========
+    {
+      1: 3,                          ; sequence
+      2: h'33333333333333333333333333333333',  ; checkpoint-id
+      3: 1773856000000,              ; timestamp — 15:00:00 UTC (15 min later)
+
+      4: {
+        1: 1,
+        2: h'ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564afe39d'
+      },
+
+      5: 2437,                       ; char-count (final)
+
+      6: {
+        1: 912,                      ; chars-added
+        2: 87,                       ; chars-deleted
+        3: 156,                      ; op-count
+        4: [[1612, 600], [1900, 312], [1700, -87]],
+        5: h'7d793037a0760186574b0282f2f435e7'
+            'c04f889f0b1a3cac28a72c2e5d5ef3d8'
+      },
+
+      7: {                           ; prev-hash = checkpoint 2 hash
+        1: 1,
+        2: h'11223344556677889900aabbccddeeff11223344556677889900aabbccddeeff'
+      },
+
+      8: {
+        1: 1,
+        2: h'ffeeddccbbaa99887766554433221100ffeeddccbbaa99887766554433221100'
+      },
+
+      9: {
+        1: 20,
+        2: { 1: 3, 2: 65536, 3: 1, 4: 1024 },
+        3: h'567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234',
+        4: h'4321fedcba09876543210fedcba09876543210fedcba09876543210fedcba098',
+        5: [
+          {
+            1: 501,
+            2: [
+              h'5555555555555555555555555555555555555555555555555555555555555555',
+              h'6666666666666666666666666666666666666666666666666666666666666666'
+            ],
+            3: h'7777777777777777777777777777777777777777777777777777777777777777'
+          }
+        ],
+        6: 900000                    ; 15 minutes
+      },
+
+      10: {
+        1: [105, 178, 92, 245, 63, 199, 87, 154, 296, 71,
+            118, 213, 79, 141, 267, 55, 183, 102, 229, 68],
+        2: 3580,                     ; 35.80 bits
+        3: h'ff00112233445566778899aabbccddeeff00112233445566778899aabbccddee'
+      },
+
+      11: {
+        1: [450, 480, 420, 460, 440, -10],
+        2: 51
+      },
+
+      12: h'99aabbccddeeff00112233445566778899aabbccddeeff001122334455667788'
+    }
+  ],
+
+  7: 2,                             ; attestation-tier = attested-software (T2)
+
+  ; limitations
+  8: [
+    "Software-controlled signing key; hardware binding not available",
+    "Behavioral baseline in enrollment phase (< 5 sessions)"
+  ],
+
+  13: 2,                            ; content-tier = enhanced
+  15: 1                             ; packet-sequence (first packet)
+})

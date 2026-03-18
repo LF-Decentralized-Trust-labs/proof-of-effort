@@ -2,6 +2,8 @@
 
 # Decentralized Identity Integration
 
+> **Stage**: Under development — credential schema and presentation format in progress
+
 This document describes how Proof-of-Process (CPoP) attestation results
 integrate with decentralized identity and verifiable credential ecosystems,
 including [DIF](https://identity.foundation/) specifications and

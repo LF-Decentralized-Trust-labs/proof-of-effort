@@ -34,10 +34,23 @@ The current Proof-of-Process security team is:
 | David Condrey   | david@writerslogic.com | condreydavid | Protocol, CDDL schema |
 
 > **Note:** The LFDT security policy recommends at least three security team
-> members. Additional maintainers will be added to the security team as the
-> project grows. Until then, the full security team responsibilities are carried
-> by the project maintainer with support from the
-> [LF Decentralized Trust Community Architects].
+> members. The team is currently below the recommended size and is actively
+> seeking additional members. Until the team reaches full capacity, security
+> team responsibilities are carried by the project maintainer with support
+> from the [LF Decentralized Trust Community Architects].
+
+### Joining the Security Team
+
+The project welcomes contributors who are interested in joining the security
+team. Candidates should have familiarity with the CPoP protocol and its CDDL
+schema, and a willingness to participate in vulnerability triage and
+coordinated disclosure. Prior experience with security response processes is
+valued but not required.
+
+To volunteer, contact the project maintainer (David Condrey,
+david@writerslogic.com) or open an issue on this repository expressing your
+interest. All additions to the security team are made via approved Pull
+Requests to this file.
 
 The security team for Proof-of-Process carries out the following duties and responsibilities.
 Members are added and removed from the team via approved Pull Requests to this
