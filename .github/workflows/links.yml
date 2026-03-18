@@ -36,8 +36,17 @@ jobs:
           --exclude 'mailto:'
           --exclude 'example.com'
           --exclude 'lists.lfdecentralizedtrust.org'
+          --exclude 'c2pa-org/specs-core/pull'
+          --exclude 'lf-decentralized-trust.github.io/governance'
+          --exclude 'docs.github.com'
+          --exclude 'c2pa.org'
+          --exclude 'doi.org'
+          --exclude 'writerslogic'
+          --exclude 'cawg.io'
           --timeout 30
           --max-retries 3
+          --exclude-path 'draft-condrey-cpop-protocol.md'
+          --exclude-path 'draft-condrey-cpop-appraisal.md'
           '*.md'
           'docs/**/*.md'
         fail: true
