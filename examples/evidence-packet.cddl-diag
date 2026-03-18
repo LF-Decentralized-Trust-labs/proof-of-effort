@@ -249,6 +249,14 @@
     "Behavioral baseline in enrollment phase (< 5 sessions)"
   ],
 
+  ; profile-declaration
+  9: {
+    1: "urn:ietf:params:cpop:profile:enhanced-v1",  ; profile-id
+    2: [2, 3]                       ; feature-flags (jitter-binding, physical-state)
+  },
+
   13: 2,                            ; content-tier = enhanced
+  ; previous-packet-ref — absent because this is the first packet in the chain
+  ; 14: <hash-value>,
   15: 1                             ; packet-sequence (first packet)
 })

@@ -72,8 +72,11 @@
     "Behavioral baseline has < 5 sessions; confidence-tier is population-reference"
   ],
 
-  ; verifier-signature (COSE_Sign1 placeholder — 128 bytes)
-  11: h'deadbeef' ; placeholder — real value is a full COSE_Sign1 structure
+  ; verifier-signature (COSE_Sign1 placeholder)
+  11: h'deadbeefdeadbeefdeadbeefdeadbeef'
+      h'deadbeefdeadbeefdeadbeefdeadbeef'
+      h'deadbeefdeadbeefdeadbeefdeadbeef'
+      h'deadbeefdeadbeefdeadbeefdeadbeef', ; placeholder (NOT valid COSE_Sign1 — real value is ~150+ bytes)
       ; In production this is bstr .cbor COSE_Sign1 containing the
       ; Verifier's signature over the attestation-result map (keys 1-10, 12-15).
 

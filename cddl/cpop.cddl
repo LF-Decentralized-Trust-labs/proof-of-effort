@@ -6,6 +6,8 @@
 ; CBOR tag 1129336656 ("CPOP") and Writers Authenticity Reports by
 ; CBOR tag 1129791826 ("CWAR").
 ;
+; External types (see RFC 9052 for COSE_Sign1)
+;
 ; All map keys use integer encoding per IETF CBOR conventions.
 ; All temporal and entropy measurements use unsigned integers (uint).
 ; Timestamps and durations are in milliseconds. Entropy estimates
@@ -221,7 +223,7 @@ confidence-tier = &(
 
 presence-challenge = {
     1 => bstr .size (16..256),    ; challenge-nonce (128+ bits)
-    2 => bstr,                    ; device-signature (MUST be COSE_Sign1)
+    2 => bstr .cbor COSE_Sign1,   ; device-signature
     3 => pop-timestamp,           ; response-time
 }
 
