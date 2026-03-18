@@ -1,0 +1,4 @@
+# Lychee link checker configuration
+exclude_path = ["lib/", "node_modules/", ".git/"]
+timeout = 30
+max_retries = 3
