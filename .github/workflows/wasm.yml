@@ -1,23 +1,27 @@
-name: "CDDL Validation"
+name: "WASM Build"
 
 on:
   push:
     paths:
-    - "cddl/**"
+    - "crates/cpop-protocol/**"
+    - "Cargo.toml"
+    - "Cargo.lock"
   pull_request:
     paths:
-    - "cddl/**"
+    - "crates/cpop-protocol/**"
+    - "Cargo.toml"
+    - "Cargo.lock"
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-
 jobs:
-  validate:
-    name: "Validate CDDL Schema"
+  wasm:
+    name: "Build WASM Target"
     runs-on: ubuntu-latest
     steps:
     - name: "Checkout"
@@ -25,6 +29,8 @@ jobs:
 
     - name: "Install Rust"
       uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
+      with:
+        targets: wasm32-unknown-unknown
 
     - name: "Cache"
       uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
@@ -32,12 +38,10 @@ jobs:
         path: |
           ~/.cargo/registry
           ~/.cargo/git
-          ~/.cargo/bin
-        key: cddl-${{ hashFiles('cddl/**') }}
-        restore-keys: cddl-
+          target
+        key: wasm-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          wasm-
 
-    - name: "Install cddl"
-      run: cargo install cddl --locked
-
-    - name: "Validate"
-      run: cddl compile-cddl --cddl cddl/cpop.cddl
+    - name: "Build (wasm32)"
+      run: cargo build -p cpop-protocol --target wasm32-unknown-unknown --features wasm

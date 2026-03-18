@@ -12,20 +12,28 @@ on:
     - "Cargo.toml"
     - "rust-toolchain.toml"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
 jobs:
   check:
-    name: "Build, Test, Lint"
+    name: "Build, Test, Lint (${{ matrix.rust }})"
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust: [stable, "1.70.0"]
     steps:
     - name: "Checkout"
       uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
     - name: "Install Rust"
-      uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7 # stable
+      uses: dtolnay/rust-toolchain@631a55b12751854ce901bb631d5902ceb48146f7
       with:
+        toolchain: ${{ matrix.rust }}
         components: clippy, rustfmt
 
     - name: "Cache"
@@ -35,8 +43,10 @@ jobs:
           ~/.cargo/registry
           ~/.cargo/git
           target
-        key: rust-${{ hashFiles('**/Cargo.toml') }}
-        restore-keys: rust-
+        key: rust-${{ matrix.rust }}-${{ hashFiles('**/Cargo.lock') }}
+        restore-keys: |
+          rust-${{ matrix.rust }}-${{ hashFiles('**/Cargo.toml') }}-
+          rust-${{ matrix.rust }}-
 
     - name: "Check"
       run: cargo check --workspace
@@ -45,7 +55,13 @@ jobs:
       run: cargo test --workspace
 
     - name: "Clippy"
+      if: matrix.rust == 'stable'
       run: cargo clippy --workspace -- -D warnings
 
     - name: "Format"
+      if: matrix.rust == 'stable'
       run: cargo fmt --all -- --check
+
+    - name: "Doctest"
+      if: matrix.rust == 'stable'
+      run: cargo test --workspace --doc

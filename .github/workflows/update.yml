@@ -18,6 +18,10 @@ name: "Update Generated Files"
 # the affected files.
 on: workflow_dispatch
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     name: "Update Files"
