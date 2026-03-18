@@ -13,8 +13,8 @@ Both are independent submissions to the IETF under the Security area, aligned wi
 
 The repository contains a formal CDDL schema, architecture documentation, integration proposals for three ecosystems, and two published Rust crates on crates.io:
 
-- [`cpop-jitter`](https://crates.io/crates/cpop-jitter) v0.2.0 -- Timing jitter entropy primitive (`no_std` compatible)
-- [`cpop-protocol`](https://crates.io/crates/cpop-protocol) v0.1.0 -- Wire format, CBOR/COSE codec, evidence builder/verifier
+- [`cpop-jitter`](https://crates.io/crates/cpop-jitter) v0.2.1 -- Timing jitter entropy primitive (`no_std` compatible)
+- [`cpop-protocol`](https://crates.io/crates/cpop-protocol) v0.1.1 -- Wire format, CBOR/COSE codec, evidence builder/verifier
 
 ## Near-Term Milestones
 
@@ -29,7 +29,7 @@ The repository contains a formal CDDL schema, architecture documentation, integr
 
 ### Specification
 
-- [ ] CDDL schema validation tooling integrated into CI
+- [x] CDDL schema validation tooling integrated into CI
 - [ ] Test vectors for Evidence Packet and Writers Authenticity Report encoding
 - [ ] IANA registration requests drafted (CBOR tags, media types)
 

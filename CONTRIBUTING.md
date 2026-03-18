@@ -56,6 +56,11 @@ all pull requests.
 4. Commit with DCO sign-off (`git commit -s`).
 5. Open a pull request against `main`.
 
+### Rust Toolchain
+
+Working on the reference implementation crates (`crates/`) requires a Rust
+toolchain. Install via [rustup](https://rustup.rs/) and use the stable channel.
+
 ### What to Contribute
 
 Contributions are welcome across the following areas:
