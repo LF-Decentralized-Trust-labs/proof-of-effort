@@ -36,4 +36,4 @@ jobs:
       run: cargo install cddl --locked
 
     - name: "Validate"
-      run: cddl validate cddl/cpop.cddl
+      run: cddl compile-cddl --cddl cddl/cpop.cddl
