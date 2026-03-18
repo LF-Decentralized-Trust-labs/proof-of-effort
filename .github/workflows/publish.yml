@@ -11,13 +11,16 @@ on:
         default: ""
         type: string
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: "Publish New Draft Version"
     runs-on: ubuntu-latest
     steps:
     - name: "Checkout"
-      uses: actions/checkout@v6
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       with:
         # Needed for tracing file history for replacement status
         fetch-depth: 0
@@ -25,14 +28,14 @@ jobs:
 
     # See https://github.com/actions/checkout/issues/290
     - name: "Get Tag Annotations"
-      run: git fetch -f origin ${{ github.ref }}:${{ github.ref }}
+      run: git fetch -f origin "${{ github.ref }}":"${{ github.ref }}"
 
     - name: "Setup"
       id: setup
       run: date -u "+date=%FT%T" >>"$GITHUB_OUTPUT"
 
     - name: "Caching"
-      uses: actions/cache@v5
+      uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5
       with:
         path: |
           .refcache
@@ -59,7 +62,7 @@ jobs:
         GITHUB_STEP: upload
 
     - name: "Archive Submitted Drafts"
-      uses: actions/upload-artifact@v7
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7
       if: always() && steps.build.outcome == 'success'
       with:
         name: published

@@ -1,0 +1,36 @@
+name: "CDDL Validation"
+
+on:
+  push:
+    paths:
+    - "cddl/**"
+  pull_request:
+    paths:
+    - "cddl/**"
+
+jobs:
+  validate:
+    name: "Validate CDDL Schema"
+    runs-on: ubuntu-latest
+    steps:
+    - name: "Checkout"
+      uses: actions/checkout@v6
+
+    - name: "Install Rust"
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: "Cache"
+      uses: actions/cache@v5
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          ~/.cargo/bin
+        key: cddl-${{ hashFiles('cddl/**') }}
+        restore-keys: cddl-
+
+    - name: "Install cddl"
+      run: cargo install cddl --locked
+
+    - name: "Validate"
+      run: cddl cddl/cpop.cddl
