@@ -8,8 +8,8 @@ Drafts: kramdown-rfc · Schemas: CDDL (RFC 8610) · Build: `make` via martinthom
 ## Layout
 
 ```
-draft-condrey-rats-pop-protocol.md   # Protocol spec
-draft-condrey-rats-pop-appraisal.md  # Appraisal spec
+draft-condrey-cpop-protocol.md   # Protocol spec
+draft-condrey-cpop-appraisal.md  # Appraisal spec
 cddl/cpop.cddl              # CBOR schema (tags: CPOP=1129336656, CWAR=1129791826)
 docs/architecture.md                 # RATS role mapping
 docs/integration/{c2pa,cawg,did}.md  # Ecosystem integration
