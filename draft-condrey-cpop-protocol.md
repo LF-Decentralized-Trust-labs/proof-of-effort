@@ -867,7 +867,7 @@ The following sequence illustrates the end-to-end lifecycle of a CPoP attestatio
 ~~~
 {: #fig-evidence-lifecycle title="Evidence Packet Lifecycle"}
 
-Each checkpoint interval (default 30 seconds, SHOULD be between 10 and 120 seconds) produces one link in the hash chain. The SWF computation runs continuously during the interval, binding the author's behavioral entropy and the platform's physical state to the elapsed wall-clock time. At session end or rollover boundary, the Attester seals the chain into a .cpop Evidence Packet. For long-running authoring projects, the Session Continuation mechanism ({{session-continuation}}) allows a series of Evidence Packets to be cryptographically linked.
+Attesters SHOULD use checkpoint intervals between 10 and 120 seconds (default 30 seconds). Verifiers MUST accept Evidence with any positive checkpoint interval but MAY flag intervals outside this range in warnings. Each checkpoint interval produces one link in the hash chain. The SWF computation runs continuously during the interval, binding the author's behavioral entropy and the platform's physical state to the elapsed wall-clock time. At session end or rollover boundary, the Attester seals the chain into a .cpop Evidence Packet. For long-running authoring projects, the Session Continuation mechanism ({{session-continuation}}) allows a series of Evidence Packets to be cryptographically linked.
 
 ## Session Continuation {#session-continuation}
 
@@ -878,10 +878,13 @@ workflows, the Attester MAY partition the authoring process
 into a series of Evidence Packets linked by the
 previous-packet-ref field (evidence-packet key 14).
 
-Attesters SHOULD roll over to a new Evidence Packet when the
-checkpoint count within the current packet approaches the
-implementation's resource limits. A maximum of 10,000
-checkpoints per Evidence Packet is RECOMMENDED.
+Attesters MUST begin a new Evidence Packet when the checkpoint
+count exceeds 1000 or the serialized packet size exceeds 10 MiB,
+whichever occurs first. Attesters SHOULD roll over to a new
+Evidence Packet when the checkpoint count within the current
+packet approaches these limits. A maximum of 10,000 checkpoints
+per Evidence Packet is RECOMMENDED as an upper bound for
+implementations that do not enforce the 1000-checkpoint trigger.
 
 The following rules govern session continuation:
 
@@ -936,14 +939,24 @@ typing metrics (IKI histogram, coefficient of variation,
 Hurst exponent, cognitive pause frequency, duration, and
 keystroke count). Optionally, it includes a baseline-digest
 summarizing the author's historical behavioral profile and
-a COSE_Sign1 signature over the CBOR-encoded digest.
+a COSE_Sign1 signature over the CBOR-encoded digest. When
+baseline-verification is present, the identity-fingerprint
+within the baseline MUST match the Evidence Packet's
+identity-fingerprint. Verifiers MUST reject Evidence where
+these values differ.
 
 The baseline-digest aggregates per-session statistics using
 Welford's online algorithm (streaming-stats) for numerically
 stable incremental computation of mean and variance. The
 identity-fingerprint field MUST equal SHA-256 of the author's
 Ed25519 public key, binding the digest to the signing
-identity. The session-merkle-root field contains the root of
+identity. The identity-fingerprint MUST be computed as
+SHA-256(canonical-identity) where canonical-identity is the
+UTF-8 encoded author identifier used for signing. For
+COSE_Sign1-wrapped Evidence, this is the Subject field of the
+signing certificate or the COSE Key ID (kid). The exact
+identifier form MUST be consistent across all Evidence Packets
+from the same author. The session-merkle-root field contains the root of
 a Merkle Mountain Range over hashes of all sessions
 incorporated into the digest, enabling efficient append-only
 proof of session inclusion. Attesters that have not yet
@@ -1149,12 +1162,27 @@ SWF:
 
 # Attester State Machine {#attester-state-machine}
 
-The Attesting Environment (AE) MUST implement the following formal state machine:
+The Attesting Environment (AE) MUST implement the following formal state machine governing the Evidence Packet lifecycle:
 
-* RECORDING: AE captures semantic events and physical telemetry into a hash-linked buffer. Events are appended and the block hash is updated.
-* PENDING_CHECK: The current event block is frozen to prepare for a checkpoint. No new events are accepted into this block.
-* CHECKPOINT: AE computes the SWF over the entangled seed (previous hash + current jitter + physical markers).
-* SEALING: The Attester generates a final snapshot, signs the transcript root with the Attester's signing key (hardware-bound for T3/T4; software-managed for T1/T2), and prepares the transport container (.cpop).
+~~~ ascii-art
+          session start          checkpoint trigger
+  IDLE ─────────────────> CAPTURING ─────────────────> CHECKPOINTING
+   ^                          ^                             |
+   |    session end           |    checkpoint complete      |
+   +──── FINALIZING <─────────+<────────────────────────────+
+~~~
+
+IDLE:
+: The AE is inactive. No Evidence collection is in progress. Transition to CAPTURING occurs on session start (author initiates evidence collection).
+
+CAPTURING:
+: The AE captures semantic events (keystrokes, edits, pauses) and physical telemetry into a hash-linked buffer. Events are appended and the block hash is updated. Transition to CHECKPOINTING occurs on checkpoint trigger (interval elapsed or rollover threshold reached). Transition to FINALIZING occurs on session end.
+
+CHECKPOINTING:
+: The current event block is frozen and the AE computes the SWF over the entangled seed (previous hash, current jitter, physical markers). No new events are accepted into the current block during SWF computation. On successful completion, the checkpoint is appended to the chain and the AE transitions back to CAPTURING. If checkpoint computation fails, the Attester MUST discard the failed checkpoint and return to CAPTURING from the last successful checkpoint state. The Attester SHOULD record the failure in the limitations field (evidence-packet key 8).
+
+FINALIZING:
+: The Attester generates a final checkpoint, signs the transcript root with the Attester's signing key (hardware-bound for T3/T4; software-managed for T1/T2), and prepares the transport container (.cpop). On completion, the AE transitions to IDLE. If finalization fails, the Attester MUST retry or emit a partial Evidence Packet with a "finalization-incomplete" limitation.
 
 # Evidence Content Tiers {#evidence-tiers}
 
@@ -1247,7 +1275,7 @@ Feature IDs 1-9 are reserved for core protocol features. IDs 50-99 are reserved 
 
 ## Conformance Requirements {#conformance}
 
-A conforming Attester MUST implement at least the CORE profile. A conforming Verifier MUST be capable of validating all three profiles. Verifiers encountering unknown fields MUST ignore them and proceed with validation of known fields. Verifiers receiving an Evidence Packet with version greater than 1 MUST reject the packet unless they implement the corresponding protocol version.
+A conforming Attester MUST implement at least the CORE profile. A conforming Verifier MUST be capable of validating all three profiles. Verifiers MUST reject Evidence containing unrecognized integer keys in the range 0-99 (reserved for this specification). Verifiers MUST ignore unrecognized keys with values 100 or greater. Verifiers receiving an Evidence Packet with version greater than 1 MUST reject the packet unless they implement the corresponding protocol version.
 
 The profile-uri field in an Evidence Packet MUST be set to "urn:ietf:params:ccpop:profile:1.0" for Evidence conforming to this specification. This URI identifies the CPoP Evidence format and is distinct from the EAT profile URI "urn:ietf:params:rats:eat:profile:pop:1.0", which identifies CPoP Attestation Results (see {{evidence-eat-relationship}}).
 
@@ -1257,7 +1285,12 @@ If the Evidence Packet omits the attestation-tier field, the Verifier
 MUST assess the tier from the evidence content: T1 if no hardware
 attestation is present, T2 if platform attestation hooks are
 detected, T3 if TPM key binding is verified, T4 if anti-tamper
-evidence and PUF binding are confirmed.
+evidence and PUF binding are confirmed. When attestation-tier is
+absent, the Verifier MUST derive the tier from evidence content:
+T1 if no COSE_Sign1 wrapper is present, T2 if software-signed,
+T3/T4 based on HAT proof presence. The attestation-tier field is
+informational; Verifiers MUST NOT rely on it as authoritative
+when contradicted by the evidence content.
 
 # Evidence Format and CDDL {#wire-format}
 
@@ -1544,7 +1577,8 @@ the Unix epoch (1970-01-01T00:00:00Z). CBOR tag 1 is not used because
 RFC 8949 Section 3.4.2 defines it as epoch seconds; CPoP requires
 millisecond precision for IKI measurements and jitter-binding
 timestamps. pop-timestamp values MUST be positive (greater than zero).
-Verifiers MUST reject Evidence containing zero timestamps.
+A pop-timestamp value of zero is invalid. Verifiers MUST reject
+Evidence Packets containing any zero-valued timestamp.
 
 When hash-salt-mode is author-salted (1), the author generates a
 random salt of at least 16 bytes. The salt-commitment field MUST
@@ -1629,7 +1663,11 @@ above.
 
 The mechanism by which tool providers generate and sign receipts,
 including key discovery and trust establishment, will be specified
-in a companion document.
+in a companion document. Until a companion specification defines
+tool provider key discovery, Verifiers MUST treat tool-receipts
+with unresolvable tool-id URIs as unverified. Unverified
+tool-receipts MUST NOT contribute to an authentic verdict but MAY
+be included in the Evidence Packet for informational purposes.
 
 Extension keys in evidence-packet and checkpoint structures MUST
 use integer values 100 or greater. Keys 0-99 are reserved for use
@@ -1675,8 +1713,8 @@ position samples at minimum 100ms intervals. The
 revision-depths array MUST record the number of prior edits
 at each cursor position at the same sample rate. The
 pause-durations array MUST record all inter-keystroke intervals
-exceeding 500ms. Arrays MUST be truncated to the most recent
-10,000 samples when longer.
+exceeding 500ms. Arrays MUST be truncated to the 10,000 most
+recent samples measured from the current checkpoint boundary.
 
 When the edit-graph-hash is present, it is entangled into the
 SWF seed derivation ({{swf-seed-derivation}}).
@@ -2087,10 +2125,11 @@ When a verifier-nonce is present ({{verifier-nonce-binding}}),
 the nonce MUST be inserted into the seed derivation after
 prev-swf-output (for Mode 21) or after prev-hash (for Modes
 10/20), before any behavioral data. When both verifier-nonce and
-beacon-anchor are used, the verifier-nonce MUST precede the
-beacon value in the seed derivation. When edit-graph-hash is
-present, it MUST be the final term in the seed derivation,
-after all behavioral data and any beacon-anchor value.
+beacon-anchor are present in the seed, the concatenation order
+MUST be: prev-hash \|\| verifier-nonce \|\| beacon-anchor \|\|
+jitter-sample. When edit-graph-hash is present, it MUST be the
+final term in the seed derivation, after all behavioral data
+and any beacon-anchor value.
 
 For the first checkpoint (sequence = 1), all modes use:
 
@@ -2313,9 +2352,12 @@ beacon-anchor = {
 
 The Verifier MUST independently fetch the beacon value for the
 declared round from the beacon-source and verify it matches
-beacon-anchor.beacon-value. The Verifier MUST verify that the
-beacon round is consistent with the checkpoint timestamp plus the
-protocol-defined delay.
+beacon-anchor.beacon-value. Verifiers MUST apply a timeout of no
+more than 30 seconds when fetching beacon values. If the beacon
+service is unavailable, the Verifier MUST treat the Evidence as
+non-beacon-anchored and proceed with remaining verification steps.
+The Verifier MUST verify that the beacon round is consistent with
+the checkpoint timestamp plus the protocol-defined delay.
 
 This mechanism transforms T1 temporal ordering from self-reported
 timestamps to externally verifiable time commitments {{HaberStornetta1991}}. The beacon
@@ -2382,7 +2424,7 @@ the beacon provides publicly verifiable temporal ordering.
 
 ## Security Bound {#swf-security}
 
-An adversary who skips fraction f of steps will be detected with probability 1-(1-f)^k where k is the number of sampled proofs. With k=20 and f=0.1, detection probability exceeds 0.878. With k=100 and f=0.05, detection probability exceeds 0.994.
+An adversary who skips fraction f of steps will be detected with probability 1-(1-f)^k where k is the number of sampled proofs. With k=20 and f=0.1, detection probability exceeds 0.878. With k=100 and f=0.05, detection probability exceeds 0.994. This detection probability applies independently to each checkpoint. For a session of N checkpoints, the probability that at least one forged checkpoint is detected is 1 - (1 - p\_detect)^N.
 
 This bound holds under the random oracle model for the selected
 hash function H. The Attester commits to the Merkle root before
@@ -2791,6 +2833,8 @@ to enable interoperable extension.
 
 This section provides security analysis following {{RFC3552}} guidelines. The threat model is defined in {{threat-model}} with the adversarial Attester as the primary threat actor. Detailed forensic security analysis is provided in {{CPoP-Appraisal}}.
 
+The CPoP adversary model assumes an attacker with: (a) polynomial-time computation, (b) access to the same SWF parameters as honest Attesters, (c) ability to generate arbitrary behavioral telemetry, but (d) inability to violate the hardness assumptions of the selected hash function or memory-hard function. The attacker's goal is to produce Evidence that passes Verifier appraisal without genuine human cognitive involvement in content creation.
+
 ## Security Layer Model {#sec-layer-model}
 
 CPoP security guarantees operate at three distinct layers with different assurance properties. Verifiers MUST NOT treat lower layers as providing the formal guarantees of higher layers.
@@ -3013,8 +3057,9 @@ apply:
    history document (format out of scope) linking retired
    public keys to their validity periods. Verifiers MUST
    accept Evidence signed with a retired key if the Evidence
-   Packet's created timestamp falls within the key's validity
-   period.
+   creation timestamp falls within the key's validity period.
+   Verifiers SHOULD maintain signing key history for at least
+   365 days.
 4. *Compromise response:* If a signing key is
    suspected compromised, the Attester MUST immediately cease
    using it and SHOULD publish a revocation. Evidence Packets
@@ -3043,7 +3088,7 @@ Jitter sequences in ENHANCED and MAXIMUM profiles constitute behavioral biometri
 * Avoid correlating jitter across multiple Evidence Packets to prevent author deanonymization
 * Use jitter data solely for authenticity verification
 
-Attesters SHOULD quantize jitter values to reduce fingerprinting precision while preserving statistical validity. A minimum quantization of 5ms is RECOMMENDED.
+Attesters MUST apply a minimum quantization step of 5 milliseconds to all inter-keystroke interval values before encoding in jitter-binding. Finer resolution MUST NOT be used without explicit operator configuration and documented consent.
 
 ## Physical State Leakage {#priv-physical-leakage}
 

@@ -19,7 +19,7 @@ DON'T: `must include` / `needs to` / `has to`
 
 ## Build
 
-`make` (all) · `make draft-condrey-rats-pop-protocol.html` (one) · `make clean`
+`make` (all) · `make draft-condrey-cpop-protocol.html` (one) · `make clean`
 
 ## Accuracy
 

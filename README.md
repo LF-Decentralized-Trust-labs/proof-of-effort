@@ -3,19 +3,20 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/branding/production/white/png/cpop.png" width="420">
-  <source media="(prefers-color-scheme: light)" srcset="assets/branding/production/dark/png/cpop.png" width="420">
-  <img alt="Cryptographic Proof of Process" src="assets/branding/production/dark/png/cpop.png" width="420">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/branding/production/png/pop-logo-white.png" width="420">
+  <source media="(prefers-color-scheme: light)" srcset="assets/branding/production/png/pop-logo-black.png" width="420">
+  <img alt="Cryptographic Proof of Process" src="assets/branding/production/png/pop-logo-black.png" width="420">
 </picture>
 
 ### Cryptographic attestation of human cognitive involvement in digital content creation
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge)](LICENSE)
 [![IETF Drafts](https://img.shields.io/badge/IETF-Internet--Drafts-blue?style=for-the-badge&logo=ietf)](https://lf-decentralized-trust-labs.github.io/proof-of-process/)
-[![OpenSSF Scorecard](https://img.shields.io/ossf-scorecard/github.com/LF-Decentralized-Trust-labs/proof-of-process?style=for-the-badge&label=scorecard)](https://scorecard.dev/viewer/?uri=github.com/LF-Decentralized-Trust-labs/proof-of-process)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/LF-Decentralized-Trust-labs/proof-of-process/badge?style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/LF-Decentralized-Trust-labs/proof-of-process)
 
 [![cpop-protocol](https://img.shields.io/crates/d/cpop-protocol?style=flat-square&label=cpop-protocol)](https://crates.io/crates/cpop-protocol)
 [![cpop-jitter](https://img.shields.io/crates/d/cpop-jitter?style=flat-square&label=cpop-jitter)](https://crates.io/crates/cpop-jitter)
+[![C2PA](https://img.shields.io/badge/C2PA-integration_proposed-orange?style=flat-square)](docs/integration/c2pa.md)
 [![RATS WG](https://img.shields.io/badge/IETF-RATS_WG-informational?style=flat-square)](https://datatracker.ietf.org/wg/rats/about/)
 [![RFC 9334](https://img.shields.io/badge/RFC-9334-informational?style=flat-square)](https://www.rfc-editor.org/rfc/rfc9334)
 
@@ -160,4 +161,4 @@ This project follows the [LF Decentralized Trust Code of Conduct](CODE_OF_CONDUC
 
 This project is licensed under the [Apache License, Version 2.0](LICENSE).
 
-IETF draft content is additionally subject to the [IETF Trust Legal Provisions](https://trustee.ietf.org/trust-legal-provisions.html). See [LICENSE.md](LICENSE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+IETF draft content is additionally subject to the [IETF Trust Legal Provisions](https://trustee.ietf.org/trust-legal-provisions.html). See [LICENSE.md](LICENSE.md) for details on how the Apache-2.0 license and IETF TLP interact, and [CONTRIBUTING.md](CONTRIBUTING.md) for contributor obligations.
