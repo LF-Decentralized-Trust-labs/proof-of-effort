@@ -120,9 +120,26 @@ CPoP sits beneath existing provenance and identity frameworks, adding an "eviden
 
 | Integration | Stage | Status | External Dependencies |
 | ----------- | ----- | ------ | --------------------- |
-| [C2PA](docs/integration/c2pa.md) | Proposed | PR pending | [c2pa-org/specs-core#2009](https://github.com/c2pa-org/specs-core/pull/2009) |
+| [C2PA](docs/integration/c2pa.md) | Proposed | Soft binding registered | [c2pa-org/softbinding-algorithm-list#45](https://github.com/c2pa-org/softbinding-algorithm-list/pull/45) |
 | [CAWG](docs/integration/cawg.md) | Proposal | Not yet submitted | — |
 | [DID/VC](docs/integration/did.md) | Under development | Schema in progress | — |
+
+## Standards Conformance
+
+CPoP is designed to interoperate with existing provenance, identity, and governance frameworks. Detailed conformance documentation is in [`docs/conformance/`](docs/conformance/).
+
+| Standard | Status | Documentation |
+| -------- | ------ | :-----------: |
+| IETF RATS (RFC 9334, EAT, EAR, AR4SI) | **Normative** | [rats.md](docs/conformance/rats.md) |
+| CBOR / COSE (RFC 8949, RFC 9052) | **Normative** | [cbor-cose.md](docs/conformance/cbor-cose.md) |
+| C2PA Content Credentials | Proposed | [c2pa.md](docs/integration/c2pa.md) |
+| W3C DID Core 1.0 | Implemented | [did.md](docs/conformance/did.md) |
+| W3C VC Data Model 2.0 | Implemented | [vc.md](docs/conformance/vc.md) |
+| IPTC Digital Source Type | Implemented | [iptc.md](docs/conformance/iptc.md) |
+| NIST AI RMF 1.0 / AI 100-4 | Mapped | [nist.md](docs/conformance/nist.md) |
+| ISO/IEC 42001 (AIMS) | Mapped | [iso42001.md](docs/conformance/iso42001.md) |
+| EU AI Act Article 50 | Aligned | [eu-ai-act.md](docs/conformance/eu-ai-act.md) |
+| WGA MBA / SAG-AFTRA | Mapped | [creative-rights.md](docs/conformance/creative-rights.md) |
 
 ## Building Locally
 
