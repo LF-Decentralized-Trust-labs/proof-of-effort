@@ -4,8 +4,8 @@
 
 Individual Submission                                         D. Condrey
 Internet-Draft                                              WritersLogic
-Intended status: Experimental                              23 March 2026
-Expires: 24 September 2026
+Intended status: Experimental                              25 March 2026
+Expires: 26 September 2026
 
 
  Cryptographic Proof of Process (CPoP): Forensic Appraisal and Security
@@ -44,7 +44,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 September 2026.
+   This Internet-Draft will expire on 26 September 2026.
 
 Copyright Notice
 
