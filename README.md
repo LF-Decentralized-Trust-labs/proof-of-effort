@@ -40,7 +40,7 @@ This repository is the home of the **Proof-of-Process (CPoP) protocol specificat
 - **Two IETF Internet-Drafts** in [kramdown-rfc](https://github.com/cabo/kramdown-rfc) format, built and published automatically via GitHub Actions:
   - [`draft-condrey-cpop-protocol`](draft-condrey-cpop-protocol.md) — The core protocol: architecture, evidence format, and wire encoding
   - [`draft-condrey-cpop-appraisal`](draft-condrey-cpop-appraisal.md) — The appraisal methodology: forensic evaluation, security model, and trust calibration
-- **A CDDL schema** ([`cddl/cpop.cddl`](cddl/cpop.cddl)) defining the CBOR-encoded wire format for Evidence Packets and Writers Authenticity Reports
+- **A CDDL schema** ([`cddl/cpop.cddl`](cddl/cpop.cddl)) defining the CBOR-encoded wire format for Evidence Packets and Written Authorship Reports
 - **Architecture and integration documentation** mapping CPoP to [C2PA](docs/integration/c2pa.md), [CAWG](docs/integration/cawg.md), and [DID/VC](docs/integration/did.md) ecosystems
 - **Reference implementation crates** in Rust:
   - [`cpop-jitter`](crates/cpop-jitter/) — Timing jitter entropy primitive (`no_std` compatible)
@@ -76,7 +76,7 @@ CPoP is built on the [IETF RATS architecture (RFC 9334)](https://www.rfc-editor.
 ```
 
 1. **Attester** — Captures behavioral evidence during content creation and packages it into CBOR-encoded Evidence Packets (tag `1129336656` / `CPOP`).
-2. **Verifier** — Evaluates evidence against human-process baselines and produces Writers Authenticity Reports (tag `1129791826` / `CWAR`).
+2. **Verifier** — Evaluates evidence against human-process baselines and produces Written Authorship Reports (tag `1129791826` / `CWAR`).
 3. **Relying Party** — Consumes attestation results to make trust decisions about content provenance.
 
 See [`docs/architecture.md`](docs/architecture.md) for the full RATS role mapping with Endorser and Reference Value Provider flows.
@@ -100,7 +100,7 @@ The wire format is formally defined in [`cddl/cpop.cddl`](cddl/cpop.cddl) using 
 | Structure | CBOR Tag | Mnemonic | Description |
 | --------- | -------- | -------- | ----------- |
 | `evidence-packet` | `1129336656` | `CPOP` | Behavioral telemetry, document refs, session context, crypto bindings |
-| `attestation-result` | `1129791826` | `CWAR` | Writers Authenticity Report: appraisal verdict, entropy scores, confidence, forensic metadata |
+| `attestation-result` | `1129791826` | `CWAR` | Written Authorship Report: appraisal verdict, entropy scores, confidence, forensic metadata |
 
 All structures use CBOR integer-keyed maps. Timestamps are in milliseconds; entropy estimates are in centibits (1/100th of a bit).
 
@@ -120,9 +120,26 @@ CPoP sits beneath existing provenance and identity frameworks, adding an "eviden
 
 | Integration | Stage | Status | External Dependencies |
 | ----------- | ----- | ------ | --------------------- |
-| [C2PA](docs/integration/c2pa.md) | Proposed | PR pending | [c2pa-org/specs-core#2009](https://github.com/c2pa-org/specs-core/pull/2009) |
+| [C2PA](docs/integration/c2pa.md) | Proposed | Soft binding registered | [c2pa-org/softbinding-algorithm-list#45](https://github.com/c2pa-org/softbinding-algorithm-list/pull/45) |
 | [CAWG](docs/integration/cawg.md) | Proposal | Not yet submitted | — |
 | [DID/VC](docs/integration/did.md) | Under development | Schema in progress | — |
+
+## Standards Conformance
+
+CPoP is designed to interoperate with existing provenance, identity, and governance frameworks. Detailed conformance documentation is in [`docs/conformance/`](docs/conformance/).
+
+| Standard | Status | Documentation |
+| -------- | ------ | :-----------: |
+| IETF RATS (RFC 9334, EAT, EAR, AR4SI) | **Normative** | [rats.md](docs/conformance/rats.md) |
+| CBOR / COSE (RFC 8949, RFC 9052) | **Normative** | [cbor-cose.md](docs/conformance/cbor-cose.md) |
+| C2PA Content Credentials | Proposed | [c2pa.md](docs/integration/c2pa.md) |
+| W3C DID Core 1.0 | Implemented | [did.md](docs/conformance/did.md) |
+| W3C VC Data Model 2.0 | Implemented | [vc.md](docs/conformance/vc.md) |
+| IPTC Digital Source Type | Implemented | [iptc.md](docs/conformance/iptc.md) |
+| NIST AI RMF 1.0 / AI 100-4 | Mapped | [nist.md](docs/conformance/nist.md) |
+| ISO/IEC 42001 (AIMS) | Mapped | [iso42001.md](docs/conformance/iso42001.md) |
+| EU AI Act Article 50 | Aligned | [eu-ai-act.md](docs/conformance/eu-ai-act.md) |
+| WGA MBA / SAG-AFTRA | Mapped | [creative-rights.md](docs/conformance/creative-rights.md) |
 
 ## Building Locally
 
@@ -153,6 +170,7 @@ This project follows the [LF Decentralized Trust Code of Conduct](CODE_OF_CONDUC
 
 | Document | Purpose |
 | -------- | ------- |
+| [GOVERNANCE.md](GOVERNANCE.md) | Decision-making, roles, and conflict resolution |
 | [MAINTAINERS.md](MAINTAINERS.md) | Active maintainers and governance process |
 | [SECURITY.md](SECURITY.md) | Vulnerability disclosure policy |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes |
