@@ -62,8 +62,36 @@ CPoP uses private-use CWT keys 70001–70009 for protocol-specific claims:
 | 70008 | Absence         | Absence claim (editing gaps)           |
 | 70009 | Warnings        | Appraisal warnings array               |
 
+## CWT-Encoded EAT Tokens
+
+CPoP Attestation Results (Written Authorship Reports) are encoded as
+CWT (CBOR Web Token) EAT tokens per draft-ietf-rats-eat. The token
+carries standard EAT claims (`eat_profile`, `iat`, `eat_nonce`) alongside
+CPoP-specific private-use claims (keys 70001-70009). The CWT is wrapped
+in a COSE_Sign1 envelope for integrity and authenticity.
+
+## CoRIM Reference Values
+
+CPoP Verifiers can consume Concise Reference Integrity Manifests (CoRIM,
+draft-ietf-rats-corim) to obtain reference values for appraisal. Reference
+values include expected behavioral entropy thresholds, SWF difficulty
+parameters, and approved hardware endorsement keys. The CoRIM environment
+map identifies the CPoP attestation tier (T1-T4) and platform.
+
+## SCITT Signed Statement Compatibility
+
+CPoP Evidence Packets and Written Authorship Reports can be registered as
+SCITT (Supply Chain Integrity, Transparency, and Trust) Signed Statements
+per draft-ietf-scitt-architecture. Registration in a SCITT Transparency
+Service provides an independent, append-only receipt that the attestation
+existed at a given time, complementing CPoP's internal VDF-based temporal
+proofs.
+
 ## References
 
-- [RFC 9334 — Remote ATtestation procedureS (RATS) Architecture](https://www.rfc-editor.org/rfc/rfc9334)
+- [RFC 9334 -- Remote ATtestation procedureS (RATS) Architecture](https://www.rfc-editor.org/rfc/rfc9334)
+- [draft-ietf-rats-eat -- Entity Attestation Token](https://datatracker.ietf.org/doc/draft-ietf-rats-eat/)
+- [draft-ietf-rats-corim -- Concise Reference Integrity Manifest](https://datatracker.ietf.org/doc/draft-ietf-rats-corim/)
+- [draft-ietf-scitt-architecture -- SCITT Architecture](https://datatracker.ietf.org/doc/draft-ietf-scitt-architecture/)
 - [draft-condrey-cpop-protocol](https://lf-decentralized-trust-labs.github.io/proof-of-process/draft-condrey-cpop-protocol.html)
 - [draft-condrey-cpop-appraisal](https://lf-decentralized-trust-labs.github.io/proof-of-process/draft-condrey-cpop-appraisal.html)

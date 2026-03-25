@@ -58,6 +58,44 @@ The C2PA trust chain extends naturally:
 - **Code repositories** — Attaching CPoP evidence to commits via C2PA
   manifests on repository artifacts.
 
+## Process Timeline Support
+
+The `c2pa.process-evidence` assertion supports `processStart` and
+`processEnd` timestamps (proposed in
+[PR #2009](https://github.com/c2pa-org/specs-core/pull/2009)), allowing
+Relying Parties to verify that the creation process spanned a plausible
+duration. These map directly to the first and last checkpoint timestamps
+in the CPoP Evidence Packet.
+
+## Multi-Asset MIME Type Detection
+
+The `C2paManifestBuilder` supports a `format()` setter for specifying the
+`dc:format` field in the C2PA claim. This enables proper MIME type metadata
+for multi-asset workflows:
+
+- `image/jpeg`, `image/png` for photo assets
+- `video/mp4`, `video/quicktime` for video assets
+- `application/pdf` for document assets
+- Omitting `format()` preserves backward compatibility (field is optional)
+
+## AI Disclosure
+
+CPoP's AI declaration maps to IPTC `digitalSourceType` values within C2PA
+manifests:
+
+| CPoP Declaration         | IPTC digitalSourceType                          |
+| ------------------------ | ----------------------------------------------- |
+| Human-authored           | `http://cv.iptc.org/newscodes/digitalsourcetype/humanWritten` |
+| AI-assisted              | `http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia` |
+| AI-generated             | `http://cv.iptc.org/newscodes/digitalsourcetype/trainedAlgorithmicMedia` |
+
+## CAWG Identity and TDM Assertions
+
+CPoP manifests can include Creator Assertions Working Group (CAWG) identity
+assertions, binding the creator's DID or X.509 certificate to the C2PA
+manifest. Text and Data Mining (TDM) assertions can also be included to
+express the creator's preferences regarding AI training use of their content.
+
 ## Status
 
 The `c2pa.process-evidence` assertion is proposed but not yet part of the
