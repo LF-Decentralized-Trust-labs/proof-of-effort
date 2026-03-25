@@ -40,7 +40,7 @@ This repository is the home of the **Proof-of-Process (CPoP) protocol specificat
 - **Two IETF Internet-Drafts** in [kramdown-rfc](https://github.com/cabo/kramdown-rfc) format, built and published automatically via GitHub Actions:
   - [`draft-condrey-cpop-protocol`](draft-condrey-cpop-protocol.md) — The core protocol: architecture, evidence format, and wire encoding
   - [`draft-condrey-cpop-appraisal`](draft-condrey-cpop-appraisal.md) — The appraisal methodology: forensic evaluation, security model, and trust calibration
-- **A CDDL schema** ([`cddl/cpop.cddl`](cddl/cpop.cddl)) defining the CBOR-encoded wire format for Evidence Packets and Writers Authenticity Reports
+- **A CDDL schema** ([`cddl/cpop.cddl`](cddl/cpop.cddl)) defining the CBOR-encoded wire format for Evidence Packets and Written Authorship Reports
 - **Architecture and integration documentation** mapping CPoP to [C2PA](docs/integration/c2pa.md), [CAWG](docs/integration/cawg.md), and [DID/VC](docs/integration/did.md) ecosystems
 - **Reference implementation crates** in Rust:
   - [`cpop-jitter`](crates/cpop-jitter/) — Timing jitter entropy primitive (`no_std` compatible)
@@ -76,7 +76,7 @@ CPoP is built on the [IETF RATS architecture (RFC 9334)](https://www.rfc-editor.
 ```
 
 1. **Attester** — Captures behavioral evidence during content creation and packages it into CBOR-encoded Evidence Packets (tag `1129336656` / `CPOP`).
-2. **Verifier** — Evaluates evidence against human-process baselines and produces Writers Authenticity Reports (tag `1129791826` / `CWAR`).
+2. **Verifier** — Evaluates evidence against human-process baselines and produces Written Authorship Reports (tag `1129791826` / `CWAR`).
 3. **Relying Party** — Consumes attestation results to make trust decisions about content provenance.
 
 See [`docs/architecture.md`](docs/architecture.md) for the full RATS role mapping with Endorser and Reference Value Provider flows.
@@ -100,7 +100,7 @@ The wire format is formally defined in [`cddl/cpop.cddl`](cddl/cpop.cddl) using 
 | Structure | CBOR Tag | Mnemonic | Description |
 | --------- | -------- | -------- | ----------- |
 | `evidence-packet` | `1129336656` | `CPOP` | Behavioral telemetry, document refs, session context, crypto bindings |
-| `attestation-result` | `1129791826` | `CWAR` | Writers Authenticity Report: appraisal verdict, entropy scores, confidence, forensic metadata |
+| `attestation-result` | `1129791826` | `CWAR` | Written Authorship Report: appraisal verdict, entropy scores, confidence, forensic metadata |
 
 All structures use CBOR integer-keyed maps. Timestamps are in milliseconds; entropy estimates are in centibits (1/100th of a bit).
 
@@ -170,6 +170,7 @@ This project follows the [LF Decentralized Trust Code of Conduct](CODE_OF_CONDUC
 
 | Document | Purpose |
 | -------- | ------- |
+| [GOVERNANCE.md](GOVERNANCE.md) | Decision-making, roles, and conflict resolution |
 | [MAINTAINERS.md](MAINTAINERS.md) | Active maintainers and governance process |
 | [SECURITY.md](SECURITY.md) | Vulnerability disclosure policy |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes |
