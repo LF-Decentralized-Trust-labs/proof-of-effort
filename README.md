@@ -173,6 +173,7 @@ This project follows the [LF Decentralized Trust Code of Conduct](CODE_OF_CONDUC
 | [GOVERNANCE.md](GOVERNANCE.md) | Decision-making, roles, and conflict resolution |
 | [MAINTAINERS.md](MAINTAINERS.md) | Active maintainers and governance process |
 | [SECURITY.md](SECURITY.md) | Vulnerability disclosure policy |
+| [LIFECYCLE.md](LIFECYCLE.md) | LFDT lifecycle stage and graduation progress |
 | [CHANGELOG.md](CHANGELOG.md) | Notable changes |
 
 ## License

@@ -22,7 +22,7 @@ The repository contains a formal CDDL schema, architecture documentation, integr
 
 - [x] `cpop-jitter` crate: timing jitter entropy collection, SWF proof generation
 - [x] `cpop-protocol` crate: CBOR wire format, COSE signing, evidence builder/verifier
-- [ ] End-to-end attestation flow: Attester produces Evidence Packet, Verifier produces Writers Authenticity Report
+- [ ] End-to-end attestation flow: Attester produces Evidence Packet, Verifier produces Written Authorship Report
 - [ ] Wasm build target for `cpop-protocol` (feature-flagged, dependencies in place)
 - [ ] Example Attester integration (editor plugin or CLI tool capturing keystroke dynamics)
 - [ ] Example Verifier service consuming Evidence Packets and producing WARs
@@ -30,7 +30,7 @@ The repository contains a formal CDDL schema, architecture documentation, integr
 ### Specification
 
 - [x] CDDL schema validation tooling integrated into CI
-- [ ] Test vectors for Evidence Packet and Writers Authenticity Report encoding
+- [ ] Test vectors for Evidence Packet and Written Authorship Report encoding
 - [ ] IANA registration requests drafted (CBOR tags, media types)
 
 ### Interoperability
@@ -56,14 +56,7 @@ The repository contains a formal CDDL schema, architecture documentation, integr
 
 ### LFDT Project Graduation
 
-LFDT labs graduate to full projects by demonstrating community, code maturity, and governance readiness. Requirements include:
-
-- [ ] Diverse maintainer base (multiple organizations)
-- [ ] Active contributor community
-- [ ] Stable release of reference implementation crates (1.0)
-- [ ] Documented governance beyond single-maintainer model
-- [ ] Quarterly reporting to LFDT Technical Advisory Council
-- [ ] Security audit or review of the reference implementation
+See [LIFECYCLE.md](LIFECYCLE.md) for the full checklist of incubation and graduation criteria with current status.
 
 ## Long-Term Vision
 
@@ -72,7 +65,7 @@ LFDT labs graduate to full projects by demonstrating community, code maturity, a
 - [ ] CPoP protocol draft advanced to RFC (experimental or standards-track, depending on WG consensus)
 - [ ] CPoP appraisal draft advanced to RFC
 - [ ] IANA registrations finalized for CBOR tags (`1129336656` / CPOP, `1129791826` / CWAR) and media types
-- [ ] EAR (EAT Attestation Result) compatibility confirmed with RATS tooling for Writers Authenticity Reports
+- [ ] EAR (EAT Attestation Result) compatibility confirmed with RATS tooling for Written Authorship Reports
 
 ### Ecosystem Adoption
 
