@@ -87,7 +87,7 @@ The process to move a maintainer from active to emeritus status is comparable to
 resignation, the Pull Request can be merged following a maintainer PR approval. If the removal is for any other reason, the following steps **SHOULD** be followed:
 
 - A PR is created to update this file to move the maintainer to the list of emeritus maintainers.
-- The PR is authored by, or has a comment supporting the proposal from, an existing maintainer or a member of the project's Technical Steering Committee (TSC).
+- The PR is authored by, or has a comment supporting the proposal from, an existing maintainer or the LF Decentralized Trust Technical Advisory Council (TAC). See [GOVERNANCE.md](GOVERNANCE.md) for the project's governance model.
 - Once the PR and necessary comments have been received, the approval timeframe begins.
 - The PR **MAY** be communicated on appropriate communication channels, including relevant community calls, chat channels and mailing lists.
 - The PR is merged and the maintainer transitions to maintainer emeritus if:
