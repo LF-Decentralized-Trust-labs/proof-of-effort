@@ -811,7 +811,7 @@ The CPoP-specific message flow is:
 
 1. The Attester (authoring application running in the Attesting Environment) collects behavioral telemetry during content creation and generates an Evidence Packet (.cpop) containing SWF proofs, jitter bindings, and physical state markers.
 2. The Evidence Packet is conveyed to a Verifier, which appraises chain integrity, temporal ordering, behavioral entropy, and content binding per the procedures defined in {{CPoP-Appraisal}}.
-3. The Verifier produces a Cryptographic Writers Authenticity Report (.cwar) containing EAT claims, forensic assessment scores, and forgery cost estimates.
+3. The Verifier produces a Cryptographic Written Authorship Report (.cwar) containing EAT claims, forensic assessment scores, and forgery cost estimates.
 4. The Relying Party (publisher, reader, or automated platform) consumes the WAR to make trust decisions about the claimed authorship provenance.
 
 Endorsers (hardware manufacturers) supply TPM endorsement certificates and Secure Element attestations that Verifiers use to validate hardware-bound claims in T3/T4 Evidence. Reference Value Providers supply the expected behavioral patterns, SWF difficulty parameters, and profile specifications that Verifiers use as appraisal baselines.
@@ -2759,7 +2759,7 @@ Published specification:
 Applications that use this media type:
 : Authorship verification systems, content trust platforms,
   and relying party applications that consume CPoP Attestation
-  Results (Cryptographic Writers Authenticity Reports).
+  Results (Cryptographic Written Authorship Reports).
 
 Fragment identifier considerations:
 : N/A; this media type does not define fragment identifiers.

@@ -1,4 +1,4 @@
-; Writers Authenticity Report (WAR) — Attestation Result (example)
+; Written Authorship Report (WAR) — Attestation Result (example)
 ; CBOR diagnostic notation per RFC 8949 Section 8
 ;
 ; This WAR is the appraisal result for the companion evidence-packet example.

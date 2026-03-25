@@ -86,7 +86,7 @@ travels with the content as a self-contained credential:
    bindings, and physical state markers.
 2. The Verifier appraises chain integrity, temporal ordering, behavioral
    entropy, and content binding.
-3. The Verifier produces a Writers Authenticity Report (`.cwar`) with forensic
+3. The Verifier produces a Written Authorship Report (`.cwar`) with forensic
    scores and forgery cost estimates.
 4. The Relying Party consumes the result for trust decisions.
 
@@ -110,7 +110,7 @@ CPoP Evidence Packets use a domain-specific CBOR structure (tag `1129336656` /
 - Wrapping each checkpoint as a separate EAT would break the cryptographic
   chain integrity that is central to CPoP's security properties.
 
-The Writers Authenticity Report (tag `1129791826` / `CWAR`) *is* EAT-compatible. It
+The Written Authorship Report (tag `1129791826` / `CWAR`) *is* EAT-compatible. It
 carries standard EAT claims (verdict, tier, forensic assessments) and
 implements the EAR compatibility mapping defined in the appraisal draft.
 Generic EAT tooling can consume WARs but cannot parse Evidence Packets

@@ -411,7 +411,7 @@ informative:
 
 --- abstract
 
-This document specifies the forensic appraisal methodology and quantitative security model for the Cryptographic Proof of Process (CPoP) framework defined in the companion protocol document. It defines the Verifier's evaluation of behavioral entropy, forgery cost bounds, and the Cryptographic Writers Authenticity Report (WAR) wire format. It is intended for implementers of CPoP Verifier components.
+This document specifies the forensic appraisal methodology and quantitative security model for the Cryptographic Proof of Process (CPoP) framework defined in the companion protocol document. It defines the Verifier's evaluation of behavioral entropy, forgery cost bounds, and the Cryptographic Written Authorship Report (WAR) wire format. It is intended for implementers of CPoP Verifier components.
 
 --- to_be_removed_note_Discussion_Venues
 
@@ -422,7 +422,7 @@ Source for this draft and an issue tracker can be found at
 
 # Introduction {#introduction}
 
-The value of Cryptographic Proof of Process (CPoP) evidence lies in the Verifier's ability to distinguish biological effort from algorithmic simulation. While traditional RATS {{RFC9334}} appraisals verify system state, CPoP appraisal verifies a continuous physical process. This document provides the normative framework for forensic appraisal, defining the logic required to generate a Cryptographic Writers Authenticity Report (WAR).
+The value of Cryptographic Proof of Process (CPoP) evidence lies in the Verifier's ability to distinguish biological effort from algorithmic simulation. While traditional RATS {{RFC9334}} appraisals verify system state, CPoP appraisal verifies a continuous physical process. This document provides the normative framework for forensic appraisal, defining the logic required to generate a Cryptographic Written Authorship Report (WAR).
 
 This document is a companion to {{CPoP-Protocol}},
 which defines the Evidence Packet wire format and Attester
@@ -978,7 +978,7 @@ physical-state is absent.
 
 # Attestation Result Wire Format {#war-wire-format}
 
-The Cryptographic Writers Authenticity Report (WAR) is a CBOR-encoded
+The Cryptographic Written Authorship Report (WAR) is a CBOR-encoded
 {{RFC8949}} Attestation Result identified by semantic
 tag 1129791826 (encoding ASCII "CWAR"). The CDDL notation
 {{RFC8610}} defines the wire format:
@@ -1315,7 +1315,7 @@ baseline has fewer than 5 sessions (population-reference
 tier), variance estimates are unreliable and z-score
 comparisons SHOULD be treated as informational only.
 
-Baseline comparison does not constitute a forensic flag. Baseline deviations are reported in the warnings field (key 10) of the Writers Authenticity Report but do not contribute to flags-triggered in forensic-summary. This separation allows Relying Parties to weight baseline context independently from forensic mechanism anomalies. A mature baseline match strengthens an authentic
+Baseline comparison does not constitute a forensic flag. Baseline deviations are reported in the warnings field (key 10) of the Written Authorship Report but do not contribute to flags-triggered in forensic-summary. This separation allows Relying Parties to weight baseline context independently from forensic mechanism anomalies. A mature baseline match strengthens an authentic
 verdict; a significant baseline deviation SHOULD be
 reported as a warning but does not by itself trigger a
 suspicious verdict.
@@ -1480,7 +1480,7 @@ Verifier MUST perform the following steps:
    an authentic verdict to Evidence containing tool-receipts
    whose tool-id URIs cannot be resolved to a trusted public
    key. Unresolvable tool-receipts MUST be flagged in the
-   warnings field of the Writers Authenticity Report. The
+   warnings field of the Written Authorship Report. The
    Verifier MAY still evaluate all other forensic mechanisms
    and assign a verdict based on non-receipt evidence.
 

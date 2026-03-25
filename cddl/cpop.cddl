@@ -1,9 +1,9 @@
-; Cryptographic Proof of Process (CPoP) Evidence and Writers Authenticity Report Schema
+; Cryptographic Proof of Process (CPoP) Evidence and Written Authorship Report Schema
 ; draft-condrey-cpop-protocol / draft-condrey-cpop-appraisal
 ;
 ; This schema defines the CBOR-encoded data structures for the
 ; Cryptographic Proof of Process framework. Evidence Packets are identified by
-; CBOR tag 1129336656 ("CPOP") and Writers Authenticity Reports by
+; CBOR tag 1129336656 ("CPOP") and Written Authorship Reports by
 ; CBOR tag 1129791826 ("CWAR").
 ;
 ; External types (see RFC 9052 for COSE_Sign1)
@@ -283,7 +283,7 @@ probe-type = &(
 )
 
 ; ============================================================
-; Writers Authenticity Report / WAR (Appraisal)
+; Written Authorship Report / WAR (Appraisal)
 ; CBOR tag 1129791826
 ; ============================================================
 

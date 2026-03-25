@@ -17,7 +17,7 @@ The protocol uses RATS roles, message flows, and data formats.
 | Attester                   | CPOP client (CLI, native app, browser extension)             |
 | Evidence                   | Evidence Packet (CBOR tag `1129336656` / `CPOP`)             |
 | Verifier                   | WritersProof API or local `cpop verify` command              |
-| Attestation Result         | Writers Authenticity Report (CBOR tag `1129791826` / `CWAR`) |
+| Attestation Result         | Written Authorship Report (CBOR tag `1129791826` / `CWAR`) |
 | Relying Party              | Publisher, institution, or platform consuming the WAR        |
 | Reference Value Provider   | Behavioral baselines (typing cadence, entropy thresholds)    |
 | Endorser                   | Hardware attestation (TPM/Secure Enclave quote)              |

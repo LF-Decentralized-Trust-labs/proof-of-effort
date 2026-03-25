@@ -11,7 +11,7 @@ including [DIF](https://identity.foundation/) specifications and
 
 ## Overview
 
-A CPoP Writers Authenticity Report can be wrapped as a W3C Verifiable Credential and
+A CPoP Written Authorship Report can be wrapped as a W3C Verifiable Credential and
 bound to a DID, producing a portable, privacy-preserving claim that a human
 process was involved — verifiable by anyone, without a central authority.
 
@@ -21,13 +21,13 @@ process was involved — verifiable by anyone, without a central authority.
 | --------------------------- | -------------------------------------------- |
 | DID Subject                 | Content creator (Attester)                   |
 | Issuer                      | CPoP Verifier                                 |
-| Verifiable Credential       | Writers Authenticity Report (WAR) as VC     |
+| Verifiable Credential       | Written Authorship Report (WAR) as VC     |
 | Credential Subject          | Process attestation claims                   |
 | Verifiable Presentation     | Selective disclosure of CPoP evidence         |
 
 ## Verifiable Credential Structure
 
-A CPoP Writers Authenticity Report expressed as a verifiable credential contains:
+A CPoP Written Authorship Report expressed as a verifiable credential contains:
 
 - **Issuer** — The DID of the CPoP Verifier that performed the appraisal.
 - **Credential Subject** — The DID of the content creator, with claims
@@ -44,7 +44,7 @@ A CPoP Writers Authenticity Report expressed as a verifiable credential contains
 - **Unlinkability** — Attestation results for the same author don't need
   to be linkable across sessions unless the author opts in.
 - **Data minimization** — Evidence Packets capture behavioral patterns, not
-  biometric identifiers. The Writers Authenticity Report abstracts away the raw
+  biometric identifiers. The Written Authorship Report abstracts away the raw
   evidence entirely.
 
 ## Ecosystem Alignment

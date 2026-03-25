@@ -6,7 +6,7 @@
 
 ## Credential Structure
 
-CPoP Writers Authenticity Reports can be expressed as W3C Verifiable
+CPoP Written Authorship Reports can be expressed as W3C Verifiable
 Credentials 2.0:
 
 ```json

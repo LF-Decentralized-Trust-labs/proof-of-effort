@@ -32,7 +32,7 @@ CPoP integrates with C2PA via a `c2pa.process-evidence` assertion (see
 that references externally-stored creation-process evidence using a hashed
 URI. This approach:
 
-- References the Evidence Packet or Writers Authenticity Report by content-addressed
+- References the Evidence Packet or Written Authorship Report by content-addressed
   hash, rather than embedding it inline.
 - Supports multiple evidence types: `attestation-record` (CPoP WAR),
   `commitment-chain`, `audit-log`, `version-history`.
@@ -44,7 +44,7 @@ The C2PA trust chain extends naturally:
 
 1. The C2PA manifest is signed by the content creator's certificate.
 2. The `c2pa.process-evidence` assertion within the manifest contains a
-   hashed URI referencing the CPoP Writers Authenticity Report.
+   hashed URI referencing the CPoP Written Authorship Report.
 3. The Attestation Result is independently verifiable and traces back to
    hardware-backed Evidence Packets from the Attester.
 
