@@ -17,15 +17,15 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 
 ### HIGH
 
-- [ ] [HIGH] crates/cpop-protocol/src/rfc/vdf.rs:102 - `validate()` skips duration consistency and spec bounds checks when iterations_per_second is zero; attacker can set it to 0 to bypass VDF timing validation entirely
-- [ ] [HIGH] crates/cpop-protocol/src/rfc/wire_types/attestation.rs:228 - AttestationResultWire CDDL doc comment omits key 14 (confidence-tier) but the struct implements it; spec/code divergence
+- [x] [HIGH] crates/cpop-protocol/src/rfc/vdf.rs:102 - `validate()` skips duration consistency and spec bounds checks when iterations_per_second is zero; attacker can set it to 0 to bypass VDF timing validation entirely
+- [x] [HIGH] crates/cpop-protocol/src/rfc/wire_types/attestation.rs:228 - AttestationResultWire CDDL doc comment omits key 14 (confidence-tier) but the struct implements it; spec/code divergence
 
 ### MEDIUM — Security
 
 - [ ] [MEDIUM] crates/cpop-jitter/src/traits.rs:23 - `inputs.len() as u32` silently truncates on inputs longer than 4 GiB, causing different inputs to produce the same HMAC length-prefix (collision)
 - [ ] [MEDIUM] crates/cpop-jitter/src/lib.rs:230 - `EvidenceChain::with_secret` takes secret by value; the plaintext `[u8; 32]` copy remains on the caller's stack and is not zeroized
-- [ ] [MEDIUM] crates/cpop-protocol/src/crypto.rs:65 - `compute_causality_lock_v2` silently falls back to v1 behavior when `phys_entropy` is empty; no warning or error
-- [ ] [MEDIUM] crates/cpop-protocol/src/crypto.rs:116 - COSE sign error smuggling: empty `Vec<u8>` stored as signature before error is checked; fragile if panic-unwind occurs
+- [x] [MEDIUM] crates/cpop-protocol/src/crypto.rs:65 - `compute_causality_lock_v2` silently falls back to v1 behavior when `phys_entropy` is empty; no warning or error
+- [x] [MEDIUM] crates/cpop-protocol/src/crypto.rs:116 - COSE sign error smuggling: empty `Vec<u8>` stored as signature before error is checked; fragile if panic-unwind occurs
 - [ ] [MEDIUM] crates/cpop-protocol/src/evidence.rs:98 - `packet_id` (16 bytes) used as HMAC key is below 32-byte recommended minimum for HMAC-SHA256
 - [ ] [MEDIUM] crates/cpop-protocol/src/identity.rs:150 - `IdentityManager` does not implement `Drop` with zeroization; key material in `SigningKey` may persist in memory
 - [ ] [MEDIUM] crates/cpop-protocol/src/codec/cbor.rs:20 - `decode`/`decode_from` accept unbounded input with no size limit; malicious CBOR can cause OOM (DoS)
@@ -40,10 +40,10 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 - [ ] [MEDIUM] crates/cpop-jitter/src/phys.rs:143 - `estimate_entropy` uses variance proxy (`log2(std_dev)`), not min-entropy; can overestimate entropy for non-uniform distributions
 - [ ] [MEDIUM] crates/cpop-jitter/src/evidence.rs:152 - `EvidenceChain.records` is `pub`; direct mutation bypasses append-only HMAC integrity
 - [ ] [MEDIUM] crates/cpop-protocol/src/compact_ref.rs:90 - `signable_payload` relies on `serde_json` BTreeMap key ordering, which is an undocumented implementation detail
-- [ ] [MEDIUM] crates/cpop-protocol/src/forensics/engine.rs:116 - `chain_duration_secs` field receives millisecond values (intervals are ms), not seconds; unit confusion
+- [x] [MEDIUM] crates/cpop-protocol/src/forensics/engine.rs:116 - `chain_duration_secs` field receives millisecond values (intervals are ms), not seconds; unit confusion
 - [ ] [MEDIUM] crates/cpop-protocol/src/war/encoding.rs:148 - `signed` derived by comparing signature to all-zeros; a valid all-zero sig would be marked unsigned
-- [ ] [MEDIUM] crates/cpop-protocol/src/war/profiles/c2pa.rs:140 - Hardware tier comparison uses raw i8 without `from_i8` normalization; non-standard values 3-31 incorrectly map to "hardware_bound"
-- [ ] [MEDIUM] crates/cpop-protocol/src/war/profiles/vc.rs:131 - Same raw i8 comparison issue as c2pa.rs tier logic
+- [x] [MEDIUM] crates/cpop-protocol/src/war/profiles/c2pa.rs:140 - Hardware tier comparison uses raw i8 without `from_i8` normalization; non-standard values 3-31 incorrectly map to "hardware_bound"
+- [x] [MEDIUM] crates/cpop-protocol/src/war/profiles/vc.rs:131 - Same raw i8 comparison issue as c2pa.rs tier logic
 
 ### MEDIUM — CDDL Conformance
 
@@ -56,8 +56,8 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:781 - `BaselineDigest.aggregate_iki_histogram` uses [f64; 9] but CDDL says [9* float32]
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:786 - `BaselineDigest.session_merkle_root` is Vec<u8> but CDDL says bstr .size 32
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:796 - `BaselineDigest.identity_fingerprint` is Vec<u8> but CDDL says bstr .size 32
-- [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/attestation.rs:288 - `confidence_tier` at key 14 is not in the CDDL doc comment; spec/code divergence
-- [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/attestation.rs:330 - validate() does not check `created != 0` or `chain_length != 0`
+- [x] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/attestation.rs:288 - `confidence_tier` at key 14 is not in the CDDL doc comment; spec/code divergence
+- [x] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/attestation.rs:330 - validate() does not check `created != 0` or `chain_length != 0`
 
 ### MEDIUM — Validation & Bounds
 
@@ -68,8 +68,8 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/checkpoint.rs:121 - `compute_hash` hardcodes SHA-256 but does not verify content_hash/prev_hash use same algorithm
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/jitter_binding.rs:458 - validate() does not check for NaN/infinity in float fields
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/time_evidence.rs:63 - TimeBindingTier::compute grants Enhanced for Roughtime alone; may not match CDDL intent
-- [ ] [MEDIUM] crates/cpop-protocol/src/rfc/biology.rs:377 - Hurst scoring formula can yield negative values; not clamped to [0, 1]
-- [ ] [MEDIUM] crates/cpop-protocol/src/rfc/biology.rs:401 - `error_topology.score` used in scoring without clamping to [0, 1]
+- [x] [MEDIUM] crates/cpop-protocol/src/rfc/biology.rs:377 - Hurst scoring formula can yield negative values; not clamped to [0, 1]
+- [x] [MEDIUM] crates/cpop-protocol/src/rfc/biology.rs:401 - `error_topology.score` used in scoring without clamping to [0, 1]
 - [ ] [MEDIUM] crates/cpop-protocol/src/c2pa.rs:671 - verify_jumbf_structure does not handle extended size boxes (box_len == 1)
 
 ### MEDIUM — Build & Dependencies
