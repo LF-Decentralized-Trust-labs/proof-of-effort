@@ -1,11 +1,11 @@
 [package]
 name = "cpop-protocol"
 version = "0.1.1"
-edition = "2021"
-authors = ["David Condrey <david@writerslogic.com>"]
-license = "Apache-2.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 description = "Reference implementation of the Cryptographic Proof of Process (CPoP) protocol"
-repository = "https://github.com/LF-Decentralized-Trust-labs/proof-of-process"
 readme = "README.md"
 keywords = ["cryptography", "authentication", "cpop", "ietf", "rats"]
 categories = ["cryptography", "authentication"]

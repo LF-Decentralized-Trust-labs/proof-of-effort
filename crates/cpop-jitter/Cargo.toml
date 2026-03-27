@@ -1,12 +1,11 @@
 [package]
 name = "cpop-jitter"
 version = "0.2.1"
-edition = "2021"
-rust-version = "1.70.0"
-authors = ["David Condrey <david@writerslogic.com>"]
-license = "Apache-2.0"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
 description = "Timing jitter entropy primitive for Cryptographic Proof of Process (CPoP) human authorship attestation"
-repository = "https://github.com/LF-Decentralized-Trust-labs/proof-of-process"
 keywords = ["cryptography", "authentication", "timing", "entropy", "authorship"]
 categories = ["cryptography", "authentication"]
 readme = "README.md"
