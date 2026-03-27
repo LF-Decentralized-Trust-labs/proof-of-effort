@@ -72,7 +72,7 @@ impl From<[u8; 32]> for PhysHash {
 /// Microseconds.
 pub type Jitter = u32;
 
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 #[cfg_attr(feature = "std", derive(thiserror::Error))]
 pub enum Error {
     #[cfg_attr(

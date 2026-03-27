@@ -1,15 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
-
 use thiserror::Error;
 
 /// Alias for `std::result::Result` with the protocol `Error` type.
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Debug, Error)]
+#[derive(Debug, Clone, PartialEq, Error)]
 pub enum Error {
-    /// Wrap a `std::io::Error`.
+    /// Wrap a `std::io::Error` - stored as String for Clone/PartialEq support.
     #[error("i/o error: {0}")]
-    Io(#[from] std::io::Error),
+    Io(String),
 
     /// CBOR/JSON serialization or deserialization failure.
     #[error("serialization error: {0}")]
@@ -28,4 +27,10 @@ pub enum Error {
 
     #[error("unknown error: {0}")]
     Unknown(String),
+}
+
+impl From<std::io::Error> for Error {
+    fn from(err: std::io::Error) -> Self {
+        Error::Io(err.to_string())
+    }
 }
