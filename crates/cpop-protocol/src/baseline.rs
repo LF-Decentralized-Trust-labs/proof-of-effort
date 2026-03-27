@@ -1,19 +1,31 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use serde::{Deserialize, Serialize};
+use std::fmt;
 
 /// Progressive confidence tier based on session count:
 /// - PopulationReference (0-4): Human vs machine only
 /// - Emerging (5-9): Meaningful author consistency
 /// - Established (10-19): Author identity distinguishable
 /// - Mature (20+): Full authorship attribution
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u64)]
 pub enum ConfidenceTier {
     PopulationReference = 1,
     Emerging = 2,
     Established = 3,
     Mature = 4,
+}
+
+impl fmt::Display for ConfidenceTier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ConfidenceTier::PopulationReference => write!(f, "Population Reference"),
+            ConfidenceTier::Emerging => write!(f, "Emerging"),
+            ConfidenceTier::Established => write!(f, "Established"),
+            ConfidenceTier::Mature => write!(f, "Mature"),
+        }
+    }
 }
 
 impl ConfidenceTier {

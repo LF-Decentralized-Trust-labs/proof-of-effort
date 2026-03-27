@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use subtle::ConstantTimeEq;
 
 /// CBOR tag for CPoP evidence packets (0x43504F50 = "CPOP").
@@ -12,7 +13,7 @@ pub const CBOR_TAG_ATTESTATION_RESULT: u64 = 1129791826;
 /// Registered under SMI Network Management Private Enterprise Codes.
 pub const IANA_PEN: u32 = 65074;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u64)]
 pub enum HashAlgorithm {
     /// SHA-256 (32-byte digest).
@@ -23,8 +24,18 @@ pub enum HashAlgorithm {
     Sha512 = 3,
 }
 
+impl fmt::Display for HashAlgorithm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HashAlgorithm::Sha256 => write!(f, "SHA-256"),
+            HashAlgorithm::Sha384 => write!(f, "SHA-384"),
+            HashAlgorithm::Sha512 => write!(f, "SHA-512"),
+        }
+    }
+}
+
 /// Hardware attestation strength tier per draft-condrey-rats-pop.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u64)]
 pub enum AttestationTier {
     /// Pure software signing, no hardware root of trust.
@@ -37,7 +48,18 @@ pub enum AttestationTier {
     HardwareHardened = 4,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+impl fmt::Display for AttestationTier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AttestationTier::SoftwareOnly => write!(f, "Software Only"),
+            AttestationTier::AttestedSoftware => write!(f, "Attested Software"),
+            AttestationTier::HardwareBound => write!(f, "Hardware Bound"),
+            AttestationTier::HardwareHardened => write!(f, "Hardware Hardened"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u64)]
 pub enum ContentTier {
     /// Minimal evidence (checkpoints and hashes only).
@@ -48,7 +70,17 @@ pub enum ContentTier {
     Maximum = 3,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+impl fmt::Display for ContentTier {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ContentTier::Core => write!(f, "Core"),
+            ContentTier::Enhanced => write!(f, "Enhanced"),
+            ContentTier::Maximum => write!(f, "Maximum"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u64)]
 pub enum ProofAlgorithm {
     SwfSha256 = 10,
@@ -57,7 +89,17 @@ pub enum ProofAlgorithm {
     SwfArgon2idEntangled = 21,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+impl fmt::Display for ProofAlgorithm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ProofAlgorithm::SwfSha256 => write!(f, "SWF-SHA256"),
+            ProofAlgorithm::SwfArgon2id => write!(f, "SWF-Argon2id"),
+            ProofAlgorithm::SwfArgon2idEntangled => write!(f, "SWF-Argon2id-Entangled"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[repr(u64)]
 pub enum Verdict {
     /// Evidence verified as authentic human authorship.
@@ -68,6 +110,17 @@ pub enum Verdict {
     Suspicious = 3,
     /// Evidence is structurally or cryptographically invalid.
     Invalid = 4,
+}
+
+impl fmt::Display for Verdict {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Verdict::Authentic => write!(f, "Authentic"),
+            Verdict::Inconclusive => write!(f, "Inconclusive"),
+            Verdict::Suspicious => write!(f, "Suspicious"),
+            Verdict::Invalid => write!(f, "Invalid"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
