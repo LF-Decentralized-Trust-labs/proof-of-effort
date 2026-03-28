@@ -602,6 +602,9 @@ Perplexity Scoring:
 Biological Cadence Analysis:
 : Verifiers MUST compute the Coefficient of Variation (CoV = standard deviation / mean) of inter-keystroke intervals within each checkpoint. Human typing exhibits characteristic CoV values reflecting biological motor variance. Evidence with per-checkpoint CoV consistently below 0.15 (mechanically regular) MUST be flagged as potentially non-biological.{{Monrose2000}}{{Dhakal2018}} Evidence with per-checkpoint CoV consistently above 0.90 (chaotically irregular) SHOULD be flagged as potentially injected random noise. The session-wide CoV trend SHOULD exhibit gradual drift consistent with fatigue and warm-up effects {{Adams1961}}.
 
+Inertial Coherence Analysis:
+: When the Evidence Packet contains inertial-sample data (physical-state key 4), Verifiers MUST compute the magnitude-squared coherence between the inter-keystroke interval (IKI) series and the inertial impulse magnitude series. The IKI series is resampled to a uniform time grid matching the inertial sample rate. The inertial impulse magnitude at each sample is computed as sqrt(x^2 + y^2 + z^2). The magnitude-squared coherence is: C_xy(f) = |P_xy(f)|^2 / (P_xx(f) * P_yy(f)), where P_xx and P_yy are the power spectral densities of the IKI and inertial series respectively, and P_xy is the cross-spectral density. PSD and CSD MUST be estimated using Welch's method with a minimum window of 64 samples and 50% overlap, consistent with the SNR analysis PSD estimator. Human keystroke biomechanics produce coherence peaks in the 2-8 Hz band corresponding to finger strike and recoil dynamics. Evidence with mean coherence below 0.2 in the 2-8 Hz band while the IKI series contains non-zero activity MUST be flagged as a potential IKI injection, indicating that digital timestamps claim keystrokes occurred without corresponding physical impulses. Evidence with mean coherence above 0.6 in the 2-8 Hz band is consistent with authentic physical typing. Coherence values between 0.2 and 0.6 are inconclusive and MUST NOT trigger a flag. In T1/T2 tiers, inertial data is software-reported and this mechanism provides dimensionality rather than proof; Verifiers MUST NOT treat passing inertial coherence as equivalent to hardware attestation. When inertial-sample data is absent, Verifiers MUST skip this mechanism and MUST NOT treat its absence as a verification failure.
+
 A conforming Verifier MUST evaluate all forensic mechanisms for
 which the Evidence Packet contains sufficient data. Verifiers
 MAY implement additional analysis mechanisms beyond those
@@ -1029,7 +1032,7 @@ forensic-summary = {
 }
 
 forensic-flag = {
-    1 => tstr,                    ; mechanism (e.g., "SNR", "CLC")
+    1 => tstr,                    ; mechanism (e.g., "SNR", "CLC", "ICA")
     2 => bool,                    ; triggered
     3 => uint,                    ; affected-windows
     4 => uint,                    ; total-windows

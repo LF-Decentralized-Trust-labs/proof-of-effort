@@ -1433,7 +1433,15 @@ physical-state = {
     1 => [+ int],                 ; thermal (relative, millidegrees)
     2 => int,                     ; entropy-delta (signed)
     ? 3 => bstr .size 32,         ; kernel-commitment
+    ? 4 => [+ inertial-sample],   ; accelerometer/vibration (ENHANCED+)
 }
+
+inertial-sample = [
+    pop-timestamp,                ; sample time (microseconds)
+    int,                          ; x-axis (micro-g)
+    int,                          ; y-axis (micro-g)
+    int,                          ; z-axis (micro-g)
+]
 
 physical-liveness = {
     1 => [+ thermal-sample],      ; thermal trajectory
@@ -1777,6 +1785,23 @@ for replay detection. physical-liveness SHOULD be included in ENHANCED
 and MAXIMUM profiles. When both are present, Verifiers MUST verify
 that per-checkpoint thermal values are consistent with the session-wide
 trajectory.
+
+When available, the Attester MAY include inertial-sample data
+(physical-state key 4) containing tri-axis accelerometer readings
+sampled during the checkpoint interval. Each sample records the
+timestamp (microseconds) and acceleration in micro-g (1e-6 * 9.81
+m/s^2) on three orthogonal axes. Inertial data captures mechanical
+shockwaves from physical keystrokes, enabling cross-modal
+verification: the Verifier can assess whether the digital IKI
+signal is consistent with physical keystroke impulses by computing
+cross-spectral coherence (see {{CPoP-Appraisal}}). In T1/T2 tiers,
+inertial data is software-reported and MUST NOT be treated as
+unforgeable; its value is limited to increasing the dimensionality
+of data an adversary must fabricate consistently. In T3/T4 tiers
+where a hardware-isolated sensor provides the readings, inertial
+coherence provides meaningful anti-injection protection. Inertial
+samples MUST be normalized to relative deltas from a session
+baseline to prevent device fingerprinting.
 
 The baseline-verification structure (evidence-packet key 19)
 carries per-session behavioral metrics and, when available, a
@@ -3093,6 +3118,8 @@ Attesters MUST apply a minimum quantization step of 5 milliseconds to all inter-
 ## Physical State Leakage {#priv-physical-leakage}
 
 Thermal trajectories and kernel entropy deltas in the physical-state field may reveal information about the Attester's hardware configuration. Implementations SHOULD normalize thermal data to relative deltas rather than absolute values to prevent device fingerprinting.
+
+Inertial samples, when present, carry additional fingerprinting risk: accelerometer frequency response and noise floor characteristics can identify specific device models. Implementations MUST normalize inertial data to relative deltas from a per-session baseline and SHOULD apply the same quantization and privacy budget constraints as jitter data.
 
 ## Unlinkability {#priv-unlinkability}
 
