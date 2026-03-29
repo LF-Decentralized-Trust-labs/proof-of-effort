@@ -5,7 +5,7 @@
 | Severity | Open | Fixed | Skipped | Possibly Fixed |
 |----------|------|-------|---------|----------------|
 | CRITICAL | 0    | 8     | 0       | 0              |
-| HIGH     | 1    | 25    | 0       | 0              |
+| HIGH     | 0    | 26    | 0       | 0              |
 | MEDIUM   | 50   | 25    | 0       | 0              |
 | LOW      | 68   | 0     | 0       | 0              |
 
@@ -444,7 +444,7 @@ Full re-scan of 56 .rs files, 2 spec docs, 1 CDDL, 10 CI workflows. New findings
   Impact: Hard to audit, test, or extend forensic analysis. Threshold values (0.15, 0.80, 0.45, 0.90, 0.92, 15.0) undocumented.
   Fix: Extract named constants; break into verdict_from_cv(), verdict_from_hurst(), etc. Effort: medium
 
-- [ ] **H-021** `[code_quality]` `crates/cpop-protocol/src/rfc/jitter_binding.rs:429` -- validate() returns Vec<String> with no severity levels
+- [x] **H-021** `[code_quality]` `crates/cpop-protocol/src/rfc/jitter_binding.rs:429` -- validate() returns Vec<String> with no severity levels
   <!-- pid:unstructured_errors | verified:true | first:2026-03-28 | last:2026-03-28 -->
   Impact: Callers cannot prioritize critical vs informational validation errors.
   Fix: Return Result<(), ValidationError> with structured enum variants. Effort: medium
