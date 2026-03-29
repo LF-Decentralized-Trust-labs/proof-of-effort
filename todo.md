@@ -6,7 +6,7 @@
 |----------|------|-------|---------|----------------|
 | CRITICAL | 0    | 8     | 0       | 0              |
 | HIGH     | 0    | 26    | 0       | 0              |
-| MEDIUM   | 50   | 25    | 0       | 0              |
+| MEDIUM   | 44   | 31    | 0       | 0              |
 | LOW      | 68   | 0     | 0       | 0              |
 
 ---
@@ -28,8 +28,8 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 - [x] [MEDIUM] crates/cpop-protocol/src/crypto.rs:116 - COSE sign error smuggling: empty `Vec<u8>` stored as signature before error is checked; fragile if panic-unwind occurs
 - [ ] [MEDIUM] crates/cpop-protocol/src/evidence.rs:98 - `packet_id` (16 bytes) used as HMAC key is below 32-byte recommended minimum for HMAC-SHA256
 - [ ] [MEDIUM] crates/cpop-protocol/src/identity.rs:150 - `IdentityManager` does not implement `Drop` with zeroization; key material in `SigningKey` may persist in memory
-- [ ] [MEDIUM] crates/cpop-protocol/src/codec/cbor.rs:20 - `decode`/`decode_from` accept unbounded input with no size limit; malicious CBOR can cause OOM (DoS)
-- [ ] [MEDIUM] crates/cpop-protocol/src/codec/json.rs:38 - `decode_from` via `serde_json::from_reader` accepts unbounded input; DoS vector
+- [x] [MEDIUM] crates/cpop-protocol/src/codec/cbor.rs:20 - `decode`/`decode_from` accept unbounded input with no size limit; malicious CBOR can cause OOM (DoS)
+- [x] [MEDIUM] crates/cpop-protocol/src/codec/json.rs:38 - `decode_from` via `serde_json::from_reader` accepts unbounded input; DoS vector
 - [ ] [MEDIUM] crates/cpop-protocol/src/c2pa.rs:218 - COSE header label -1 is for algorithm params per RFC 9052, not for embedding public keys; should use x5chain (label 33) per C2PA spec
 - [ ] [MEDIUM] crates/cpop-protocol/src/c2pa.rs:519 - Claim serialized to CBOR for signing, then re-serialized for manifest; re-serialization may differ, breaking signature verification
 
@@ -51,7 +51,7 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/packet.rs:102 - `extensions` uses `serde_json::Value`; fails or produces wrong output when encoding to CBOR
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/packet.rs:162 - `entropy_millibits` is u32 but CDDL specifies uint (u64)
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/checkpoint.rs:59 - VDF proof, jitter binding, chain MAC are Option but CDDL says required
-- [ ] [MEDIUM] crates/cpop-protocol/src/rfc/fixed_point.rs:48 - `from_float` casts to i32 before clamping; NaN/Infinity produce surprising results (0 or MAX)
+- [x] [MEDIUM] crates/cpop-protocol/src/rfc/fixed_point.rs:48 - `from_float` casts to i32 before clamping; NaN/Infinity produce surprising results (0 or MAX)
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:730 - `StreamingStats` uses f64 but CDDL specifies float32; CBOR encoding mismatch
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:781 - `BaselineDigest.aggregate_iki_histogram` uses [f64; 9] but CDDL says [9* float32]
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:786 - `BaselineDigest.session_merkle_root` is Vec<u8> but CDDL says bstr .size 32
@@ -66,7 +66,7 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:710 - `ProfileDeclarationWire.feature_flags` unbounded Vec; DoS
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:231 - `MerkleProof.sibling_path` elements not validated for digest length
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/checkpoint.rs:121 - `compute_hash` hardcodes SHA-256 but does not verify content_hash/prev_hash use same algorithm
-- [ ] [MEDIUM] crates/cpop-protocol/src/rfc/jitter_binding.rs:458 - validate() does not check for NaN/infinity in float fields
+- [x] [MEDIUM] crates/cpop-protocol/src/rfc/jitter_binding.rs:458 - validate() does not check for NaN/infinity in float fields
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/time_evidence.rs:63 - TimeBindingTier::compute grants Enhanced for Roughtime alone; may not match CDDL intent
 - [x] [MEDIUM] crates/cpop-protocol/src/rfc/biology.rs:377 - Hurst scoring formula can yield negative values; not clamped to [0, 1]
 - [x] [MEDIUM] crates/cpop-protocol/src/rfc/biology.rs:401 - `error_topology.score` used in scoring without clamping to [0, 1]
@@ -451,11 +451,11 @@ Full re-scan of 56 .rs files, 2 spec docs, 1 CDDL, 10 CI workflows. New findings
 
 ### Medium (new)
 
-- [ ] [MEDIUM] `draft-condrey-cpop-protocol.md:2266` -- ENHANCED/MAXIMUM rejection of proof-algorithm 20 missing verdict value
+- [x] [MEDIUM] `draft-condrey-cpop-protocol.md:2266` -- ENHANCED/MAXIMUM rejection of proof-algorithm 20 missing verdict value
   <!-- pid:missing_verdict_value | first:2026-03-28 -->
   Fix: Specify "verdict invalid (4)" for this rejection. Effort: small
 
-- [ ] [MEDIUM] `draft-condrey-cpop-appraisal.md:606` -- ICA missing content-tier normative text (which tiers require evaluation)
+- [x] [MEDIUM] `draft-condrey-cpop-appraisal.md:606` -- ICA missing content-tier normative text (which tiers require evaluation)
   <!-- pid:ica_tier_unspecified | first:2026-03-28 -->
   Fix: Add "Verifiers MUST evaluate for ENHANCED/MAXIMUM when present; optional for CORE." Effort: small
 
