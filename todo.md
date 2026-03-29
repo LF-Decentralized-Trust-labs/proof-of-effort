@@ -6,7 +6,7 @@
 |----------|------|-------|---------|----------------|
 | CRITICAL | 0    | 8     | 0       | 0              |
 | HIGH     | 0    | 26    | 0       | 0              |
-| MEDIUM   | 44   | 31    | 0       | 0              |
+| MEDIUM   | 36   | 39    | 0       | 0              |
 | LOW      | 68   | 0     | 0       | 0              |
 
 ---
@@ -22,7 +22,7 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 
 ### MEDIUM — Security
 
-- [ ] [MEDIUM] crates/cpop-jitter/src/traits.rs:23 - `inputs.len() as u32` silently truncates on inputs longer than 4 GiB, causing different inputs to produce the same HMAC length-prefix (collision)
+- [x] [MEDIUM] crates/cpop-jitter/src/traits.rs:23 - `inputs.len() as u32` silently truncates on inputs longer than 4 GiB, causing different inputs to produce the same HMAC length-prefix (collision)
 - [ ] [MEDIUM] crates/cpop-jitter/src/lib.rs:230 - `EvidenceChain::with_secret` takes secret by value; the plaintext `[u8; 32]` copy remains on the caller's stack and is not zeroized
 - [x] [MEDIUM] crates/cpop-protocol/src/crypto.rs:65 - `compute_causality_lock_v2` silently falls back to v1 behavior when `phys_entropy` is empty; no warning or error
 - [x] [MEDIUM] crates/cpop-protocol/src/crypto.rs:116 - COSE sign error smuggling: empty `Vec<u8>` stored as signature before error is checked; fragile if panic-unwind occurs
@@ -35,8 +35,8 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 
 ### MEDIUM — API & Correctness
 
-- [ ] [MEDIUM] crates/cpop-jitter/src/pure.rs:8 - `PureJitter` fields `jmin` and `range` are `pub`; direct mutation can set `range = 0` bypassing constructor validation
-- [ ] [MEDIUM] crates/cpop-jitter/src/phys.rs:11 - `PhysJitter` fields `min_entropy_bits`, `jmin`, `range` are `pub`; same bypass risk
+- [x] [MEDIUM] crates/cpop-jitter/src/pure.rs:8 - `PureJitter` fields `jmin` and `range` are `pub`; direct mutation can set `range = 0` bypassing constructor validation
+- [x] [MEDIUM] crates/cpop-jitter/src/phys.rs:11 - `PhysJitter` fields `min_entropy_bits`, `jmin`, `range` are `pub`; same bypass risk
 - [ ] [MEDIUM] crates/cpop-jitter/src/phys.rs:143 - `estimate_entropy` uses variance proxy (`log2(std_dev)`), not min-entropy; can overestimate entropy for non-uniform distributions
 - [ ] [MEDIUM] crates/cpop-jitter/src/evidence.rs:152 - `EvidenceChain.records` is `pub`; direct mutation bypasses append-only HMAC integrity
 - [ ] [MEDIUM] crates/cpop-protocol/src/compact_ref.rs:90 - `signable_payload` relies on `serde_json` BTreeMap key ordering, which is an undocumented implementation detail
@@ -49,13 +49,13 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/packet.rs:72 - `error_topology`, `enclave_vise`, `zk_verdict` are Option but CDDL shows them as required (no ? prefix)
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/packet.rs:102 - `extensions` uses `serde_json::Value`; fails or produces wrong output when encoding to CBOR
-- [ ] [MEDIUM] crates/cpop-protocol/src/rfc/packet.rs:162 - `entropy_millibits` is u32 but CDDL specifies uint (u64)
+- [x] [MEDIUM] crates/cpop-protocol/src/rfc/packet.rs:162 - `entropy_millibits` is u32 but CDDL specifies uint (u64)
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/checkpoint.rs:59 - VDF proof, jitter binding, chain MAC are Option but CDDL says required
 - [x] [MEDIUM] crates/cpop-protocol/src/rfc/fixed_point.rs:48 - `from_float` casts to i32 before clamping; NaN/Infinity produce surprising results (0 or MAX)
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:730 - `StreamingStats` uses f64 but CDDL specifies float32; CBOR encoding mismatch
 - [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:781 - `BaselineDigest.aggregate_iki_histogram` uses [f64; 9] but CDDL says [9* float32]
-- [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:786 - `BaselineDigest.session_merkle_root` is Vec<u8> but CDDL says bstr .size 32
-- [ ] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:796 - `BaselineDigest.identity_fingerprint` is Vec<u8> but CDDL says bstr .size 32
+- [x] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:786 - `BaselineDigest.session_merkle_root` is Vec<u8> but CDDL says bstr .size 32
+- [x] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/components.rs:796 - `BaselineDigest.identity_fingerprint` is Vec<u8> but CDDL says bstr .size 32
 - [x] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/attestation.rs:288 - `confidence_tier` at key 14 is not in the CDDL doc comment; spec/code divergence
 - [x] [MEDIUM] crates/cpop-protocol/src/rfc/wire_types/attestation.rs:330 - validate() does not check `created != 0` or `chain_length != 0`
 
@@ -76,8 +76,8 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 
 - [ ] [MEDIUM] crates/cpop-protocol/Cargo.toml:31 - getrandom "0.2" vs cpop-jitter "0.3"; inconsistent major versions
 - [ ] [MEDIUM] crates/cpop-protocol/Cargo.toml:48 - cpop-jitter version "0.2.0" but Cargo.toml declares "0.2.1"
-- [ ] [MEDIUM] ROADMAP.md:17 - cpop-protocol listed as v0.1.1 but Cargo.toml says v0.3.0; stale
-- [ ] [MEDIUM] crates/cpop-protocol/src/codec/cbor.rs:14 - doc comment claims "deterministic CBOR" but ciborium does not guarantee RFC 8949 S4.2 key ordering
+- [x] [MEDIUM] ROADMAP.md:17 - cpop-protocol listed as v0.1.1 but Cargo.toml says v0.3.0; stale
+- [x] [MEDIUM] crates/cpop-protocol/src/codec/cbor.rs:14 - doc comment claims "deterministic CBOR" but ciborium does not guarantee RFC 8949 S4.2 key ordering
 - [ ] [MEDIUM] crates/cpop-protocol/src/codec/mod.rs:69 - Format::detect does not recognize CBOR arrays (0x80-0x9F) or single-byte tags (0xC0-0xD8)
 - [ ] [MEDIUM] crates/cpop-protocol/src/codec/mod.rs:103 - encode treats Cbor and CborWar identically; CborWar produces untagged CBOR
 
@@ -467,7 +467,7 @@ Full re-scan of 56 .rs files, 2 spec docs, 1 CDDL, 10 CI workflows. New findings
   <!-- pid:missing_retention | first:2026-03-28 -->
   Fix: Add `retention-days: 90`. Effort: small
 
-- [ ] [MEDIUM] `crates/cpop-protocol/src/rfc/biology.rs:488` -- total_weight can be 0.0 when all optional fields are None; division by zero in compute_score
+- [x] [MEDIUM] `crates/cpop-protocol/src/rfc/biology.rs:488` -- total_weight can be 0.0 when all optional fields are None; division by zero in compute_score (verified: existing guard at line 430 prevents division)
   <!-- pid:weight_div_zero | first:2026-03-28 -->
   Fix: Return early if total_weight <= 0.0. Effort: small
 
