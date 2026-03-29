@@ -44,5 +44,13 @@ jobs:
           wasm-
 
     - name: "Check (wasm32)"
+      id: wasm-check
       run: cargo check -p cpop-protocol --target wasm32-unknown-unknown --features wasm
-      continue-on-error: true  # TODO: fix getrandom 0.3 wasm compat, then remove
+      # continue-on-error: getrandom 0.2 "js" feature is required for wasm but
+      # transitive getrandom 0.3 (via cpop-jitter) lacks it. Remove once all
+      # crates align on getrandom 0.3 with wasm-bindgen backend.
+      continue-on-error: true
+
+    - name: "Warn on WASM build failure"
+      if: steps.wasm-check.outcome == 'failure'
+      run: echo "::warning::WASM build failed; getrandom 0.3 wasm compatibility is unresolved"
