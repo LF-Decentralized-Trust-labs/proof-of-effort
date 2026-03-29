@@ -2263,7 +2263,7 @@ approximately 50-100ms; subsequent SHA-256 steps add approximately
 
 ## Entangled Mode Requirement {#entangled-mode-requirement}
 
-Attesters claiming ENHANCED or MAXIMUM content tier with `swf-argon2id` MUST use `swf-argon2id-entangled` (21) instead of `swf-argon2id` (20). This ensures that each checkpoint's SWF computation depends on the previous checkpoint's final state, creating a strict inter-checkpoint sequential dependency that eliminates parallel pre-computation. Verifiers MUST reject ENHANCED or MAXIMUM Evidence that uses proof-algorithm 20 instead of 21.
+Attesters claiming ENHANCED or MAXIMUM content tier with `swf-argon2id` MUST use `swf-argon2id-entangled` (21) instead of `swf-argon2id` (20). This ensures that each checkpoint's SWF computation depends on the previous checkpoint's final state, creating a strict inter-checkpoint sequential dependency that eliminates parallel pre-computation. Verifiers MUST reject ENHANCED or MAXIMUM Evidence that uses proof-algorithm 20 instead of 21, assigning verdict invalid (4).
 
 ## Entangled Binding Computation {#entangled-binding-computation}
 
