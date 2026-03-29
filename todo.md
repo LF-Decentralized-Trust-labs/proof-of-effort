@@ -5,7 +5,7 @@
 | Severity | Open | Fixed | Skipped | Possibly Fixed |
 |----------|------|-------|---------|----------------|
 | CRITICAL | 0    | 8     | 0       | 0              |
-| HIGH     | 9    | 17    | 0       | 0              |
+| HIGH     | 3    | 23    | 0       | 0              |
 | MEDIUM   | 50   | 25    | 0       | 0              |
 | LOW      | 68   | 0     | 0       | 0              |
 
@@ -404,27 +404,27 @@ Full re-scan of 56 .rs files, 2 spec docs, 1 CDDL, 10 CI workflows. New findings
 
 ### High
 
-- [ ] **H-013** `[correctness]` `draft-condrey-cpop-appraisal.md:1035` -- Forensic mechanism identifiers not canonically defined
+- [x] **H-013** `[correctness]` `draft-condrey-cpop-appraisal.md:1035` -- Forensic mechanism identifiers not canonically defined
   <!-- pid:forensic_mechanism_ids | verified:true | first:2026-03-28 | last:2026-03-28 -->
   Impact: forensic-flag.mechanism is tstr with no normative list. Verifiers will use inconsistent strings ("SNR" vs "snr" vs "Signal-to-Noise"), breaking multi-flag verdict logic.
   Fix: Add normative table of canonical mechanism identifiers (SNR, CLC, Mechanical-Turk, Error-Topology, OOB-PC, Session-Consistency, Perplexity, Biological-Cadence, Inertial-Coherence). Effort: medium
 
-- [ ] **H-014** `[completeness]` `draft-condrey-cpop-appraisal.md:606` -- Inertial Coherence Analysis missing sampling parameters
+- [x] **H-014** `[completeness]` `draft-condrey-cpop-appraisal.md:606` -- Inertial Coherence Analysis missing sampling parameters
   <!-- pid:ica_sampling_undefined | verified:true | first:2026-03-28 | last:2026-03-28 -->
   Impact: No defined sample rate, minimum sample count, or variable-rate handling. Verifiers cannot compute comparable coherence values.
   Fix: Add normative text: minimum 50 samples, uniform sample rate required, reject non-uniform arrays. Effort: medium
 
-- [ ] **H-015** `[completeness]` `draft-condrey-cpop-appraisal.md:625` -- Forensic mechanism "independence" undefined for multi-flag threshold
+- [x] **H-015** `[completeness]` `draft-condrey-cpop-appraisal.md:625` -- Forensic mechanism "independence" undefined for multi-flag threshold
   <!-- pid:mechanism_independence_undefined | verified:true | first:2026-03-28 | last:2026-03-28 -->
   Impact: Verdict logic requires "two or more independent mechanisms" but independence criteria unspecified. SNR and Biological Cadence both analyze jitter-binding; are they independent?
   Fix: Define feature-space independence classes (spectral, distributional, temporal, hardware, OOB). Effort: medium
 
-- [ ] **H-016** `[error_handling]` `crates/cpop-jitter/src/model.rs:131` -- HumanModel::baseline() uses expect() on embedded JSON parse
+- [x] **H-016** `[error_handling]` `crates/cpop-jitter/src/model.rs:131` -- HumanModel::baseline() uses expect() on embedded JSON parse
   <!-- pid:unwrap_on_io | verified:true | first:2026-03-28 | last:2026-03-28 -->
   Impact: Panics in library code if baseline.json is malformed. No fallback.
   Fix: Return Result<HumanModel> or provide default with warning. Effort: small
 
-- [ ] **H-017** `[security]` `crates/cpop-jitter/src/lib.rs:54` -- derive_session_secret() allows None salt, enabling salt reuse across sessions
+- [x] **H-017** `[security]` `crates/cpop-jitter/src/lib.rs:54` -- derive_session_secret() allows None salt, enabling salt reuse across sessions
   <!-- pid:hkdf_salt_reuse | verified:true | first:2026-03-28 | last:2026-03-28 -->
   Impact: Two sessions with identical master_key and context derive identical secrets; breaks forward secrecy.
   Fix: Enforce non-empty salt or use random salt when None. Effort: small
@@ -434,7 +434,7 @@ Full re-scan of 56 .rs files, 2 spec docs, 1 CDDL, 10 CI workflows. New findings
   Impact: Accepts arbitrary strings ("keyboard_usb", "keyboardUsb", "KEYBOARD_USB") as distinct types; data quality degradation.
   Fix: Replace with enum SourceType { Keyboard, Mouse, ... } with From<&str>. Effort: medium
 
-- [ ] **H-019** `[error_handling]` `crates/cpop-protocol/src/evidence.rs:100` -- causality_lock_v2 accepts zero entropy_hash from low-entropy PhysHash
+- [x] **H-019** `[error_handling]` `crates/cpop-protocol/src/evidence.rs:100` -- causality_lock_v2 accepts zero entropy_hash from low-entropy PhysHash
   <!-- pid:zero_entropy_accepted | verified:true | first:2026-03-28 | last:2026-03-28 -->
   Impact: If PhysJitter returns entropy_bits=0, HMAC uses all-zero entropy hash; collisions across low-entropy systems.
   Fix: Validate entropy_bits > min_entropy before using hash. Effort: medium
