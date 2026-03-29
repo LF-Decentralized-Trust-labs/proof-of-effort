@@ -1437,7 +1437,7 @@ physical-state = {
 }
 
 inertial-sample = [
-    pop-timestamp,                ; sample time (microseconds)
+    pop-timestamp,                ; sample time (milliseconds)
     int,                          ; x-axis (micro-g)
     int,                          ; y-axis (micro-g)
     int,                          ; z-axis (micro-g)
@@ -1789,7 +1789,7 @@ trajectory.
 When available, the Attester MAY include inertial-sample data
 (physical-state key 4) containing tri-axis accelerometer readings
 sampled during the checkpoint interval. Each sample records the
-timestamp (microseconds) and acceleration in micro-g (1e-6 * 9.81
+timestamp (milliseconds) and acceleration in micro-g (1e-6 * 9.81
 m/s^2) on three orthogonal axes. Inertial data captures mechanical
 shockwaves from physical keystrokes, enabling cross-modal
 verification: the Verifier can assess whether the digital IKI

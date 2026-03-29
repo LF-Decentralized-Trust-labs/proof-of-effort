@@ -139,7 +139,7 @@ physical-state = {
 }
 
 inertial-sample = [
-    pop-timestamp,                ; sample time (microseconds)
+    pop-timestamp,                ; sample time (milliseconds)
     int,                          ; x-axis (micro-g)
     int,                          ; y-axis (micro-g)
     int,                          ; z-axis (micro-g)
