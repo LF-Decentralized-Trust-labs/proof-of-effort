@@ -5,7 +5,7 @@
 | Severity | Open | Fixed | Skipped | Possibly Fixed |
 |----------|------|-------|---------|----------------|
 | CRITICAL | 0    | 8     | 0       | 0              |
-| HIGH     | 3    | 23    | 0       | 0              |
+| HIGH     | 2    | 24    | 0       | 0              |
 | MEDIUM   | 50   | 25    | 0       | 0              |
 | LOW      | 68   | 0     | 0       | 0              |
 
@@ -429,7 +429,7 @@ Full re-scan of 56 .rs files, 2 spec docs, 1 CDDL, 10 CI workflows. New findings
   Impact: Two sessions with identical master_key and context derive identical secrets; breaks forward secrecy.
   Fix: Enforce non-empty salt or use random salt when None. Effort: small
 
-- [ ] **H-018** `[code_quality]` `crates/cpop-protocol/src/rfc/jitter_binding.rs:85` -- SourceDescriptor.source_type is String; no enum normalization
+- [x] **H-018** `[code_quality]` `crates/cpop-protocol/src/rfc/jitter_binding.rs:85` -- SourceDescriptor.source_type is String; no enum normalization
   <!-- pid:stringly_typed | verified:true | first:2026-03-28 | last:2026-03-28 -->
   Impact: Accepts arbitrary strings ("keyboard_usb", "keyboardUsb", "KEYBOARD_USB") as distinct types; data quality degradation.
   Fix: Replace with enum SourceType { Keyboard, Mouse, ... } with From<&str>. Effort: medium
