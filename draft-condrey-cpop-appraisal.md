@@ -603,12 +603,37 @@ Biological Cadence Analysis:
 : Verifiers MUST compute the Coefficient of Variation (CoV = standard deviation / mean) of inter-keystroke intervals within each checkpoint. Human typing exhibits characteristic CoV values reflecting biological motor variance. Evidence with per-checkpoint CoV consistently below 0.15 (mechanically regular) MUST be flagged as potentially non-biological.{{Monrose2000}}{{Dhakal2018}} Evidence with per-checkpoint CoV consistently above 0.90 (chaotically irregular) SHOULD be flagged as potentially injected random noise. The session-wide CoV trend SHOULD exhibit gradual drift consistent with fatigue and warm-up effects {{Adams1961}}.
 
 Inertial Coherence Analysis:
-: When the Evidence Packet contains inertial-sample data (physical-state key 4), Verifiers MUST compute the magnitude-squared coherence between the inter-keystroke interval (IKI) series and the inertial impulse magnitude series. The IKI series is resampled to a uniform time grid matching the inertial sample rate. The inertial impulse magnitude at each sample is computed as sqrt(x^2 + y^2 + z^2). The magnitude-squared coherence is: C_xy(f) = |P_xy(f)|^2 / (P_xx(f) * P_yy(f)), where P_xx and P_yy are the power spectral densities of the IKI and inertial series respectively, and P_xy is the cross-spectral density. PSD and CSD MUST be estimated using Welch's method with a minimum window of 64 samples and 50% overlap, consistent with the SNR analysis PSD estimator. Human keystroke biomechanics produce coherence peaks in the 2-8 Hz band corresponding to finger strike and recoil dynamics. Evidence with mean coherence below 0.2 in the 2-8 Hz band while the IKI series contains non-zero activity MUST be flagged as a potential IKI injection, indicating that digital timestamps claim keystrokes occurred without corresponding physical impulses. Evidence with mean coherence above 0.6 in the 2-8 Hz band is consistent with authentic physical typing. Coherence values between 0.2 and 0.6 are inconclusive and MUST NOT trigger a flag. In T1/T2 tiers, inertial data is software-reported and this mechanism provides dimensionality rather than proof; Verifiers MUST NOT treat passing inertial coherence as equivalent to hardware attestation. When inertial-sample data is absent, Verifiers MUST skip this mechanism and MUST NOT treat its absence as a verification failure.
+: When the Evidence Packet contains inertial-sample data (physical-state key 4), Verifiers MUST compute the magnitude-squared coherence between the inter-keystroke interval (IKI) series and the inertial impulse magnitude series. The IKI series is resampled to a uniform time grid matching the inertial sample rate. The inertial impulse magnitude at each sample is computed as sqrt(x^2 + y^2 + z^2). The magnitude-squared coherence is: C_xy(f) = |P_xy(f)|^2 / (P_xx(f) * P_yy(f)), where P_xx and P_yy are the power spectral densities of the IKI and inertial series respectively, and P_xy is the cross-spectral density. PSD and CSD MUST be estimated using Welch's method with a minimum window of 64 samples and 50% overlap, consistent with the SNR analysis PSD estimator. Human keystroke biomechanics produce coherence peaks in the 2-8 Hz band corresponding to finger strike and recoil dynamics. Evidence with mean coherence below 0.2 in the 2-8 Hz band while the IKI series contains non-zero activity MUST be flagged as a potential IKI injection, indicating that digital timestamps claim keystrokes occurred without corresponding physical impulses. Evidence with mean coherence above 0.6 in the 2-8 Hz band is consistent with authentic physical typing. Coherence values between 0.2 and 0.6 are inconclusive and MUST NOT trigger a flag. In T1/T2 tiers, inertial data is software-reported and this mechanism provides dimensionality rather than proof; Verifiers MUST NOT treat passing inertial coherence as equivalent to hardware attestation. Inertial samples MUST be uniformly sampled at a rate documented in the source-descriptor (jitter-binding key 2). If the actual sample count is below 50, the Verifier MUST skip inertial coherence analysis for that checkpoint (insufficient data for reliable PSD estimation). If the inter-sample timestamp intervals vary by more than 20% from the declared rate, the Verifier MUST reject the inertial-sample array as non-uniform and skip this mechanism. When inertial-sample data is absent, Verifiers MUST skip this mechanism and MUST NOT treat its absence as a verification failure.
 
 A conforming Verifier MUST evaluate all forensic mechanisms for
 which the Evidence Packet contains sufficient data. Verifiers
 MAY implement additional analysis mechanisms beyond those
 defined in this specification.
+
+### Canonical Mechanism Identifiers {#mechanism-identifiers}
+
+The forensic-flag.mechanism field (forensic-summary key 1) MUST
+use exactly one of the following canonical identifiers. Verifiers
+MUST NOT use alternative spellings or abbreviations.
+
+| Identifier | Mechanism | Independence Class |
+|---|---|---|
+| SNR | SNR (Signal-to-Noise Ratio) Analysis | spectral |
+| CLC | Cognitive Load Correlation | temporal |
+| MTD | Mechanical Turk Detection | distributional |
+| ET | Error Topology Analysis | distributional |
+| OOB-PC | QR Presence Challenge | out-of-band |
+| SC | Session Consistency Analysis | temporal |
+| STD | Spatial-Temporal Divergence (Informative) | distributional |
+| PPX | Perplexity Scoring | semantic |
+| BCA | Biological Cadence Analysis | distributional |
+| ICA | Inertial Coherence Analysis | hardware |
+
+Two forensic mechanisms are considered independent for the
+purposes of the multi-flag threshold (below) if and only if
+they belong to different independence classes. Multiple
+mechanisms in the same class that trigger count as a single
+composite flag for threshold purposes.
 
 Individual forensic flags MUST be recorded in the
 forensic-summary structure and reported as warnings in the
@@ -1032,7 +1057,7 @@ forensic-summary = {
 }
 
 forensic-flag = {
-    1 => tstr,                    ; mechanism (e.g., "SNR", "CLC", "ICA")
+    1 => tstr,                    ; mechanism (canonical ID per §mechanism-identifiers)
     2 => bool,                    ; triggered
     3 => uint,                    ; affected-windows
     4 => uint,                    ; total-windows
