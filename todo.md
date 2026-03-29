@@ -1,12 +1,12 @@
 # Todo
-<!-- suggest | Updated: 2026-03-25 | Domain: mixed | Languages: rust | Content: specification, cicd, documentation, source | Files: 92 | Issues: 170+ -->
+<!-- suggest | Updated: 2026-03-28 | Domain: mixed | Languages: rust | Content: specification, cicd | Files: 56 .rs + 2 specs + 1 CDDL + 10 CI | Issues: 200+ -->
 
 ## Summary
 | Severity | Open | Fixed | Skipped | Possibly Fixed |
 |----------|------|-------|---------|----------------|
-| CRITICAL | 0    | 5     | 0       | 0              |
-| HIGH     | 2    | 17    | 0       | 0              |
-| MEDIUM   | 41   | 25    | 0       | 0              |
+| CRITICAL | 1    | 7     | 0       | 0              |
+| HIGH     | 9    | 17    | 0       | 0              |
+| MEDIUM   | 50   | 25    | 0       | 0              |
 | LOW      | 68   | 0     | 0       | 0              |
 
 ---
@@ -365,3 +365,124 @@ Audited 56 .rs files + 2 Cargo.toml + docs/config across cpop-jitter and cpop-pr
 <!-- reviewed:.github/instructions/kramdown-rfc.instructions.md:2026-03-17 -->
 <!-- reviewed:.github/instructions/cddl.instructions.md:2026-03-17 -->
 <!-- reviewed:.github/instructions/integration.instructions.md:2026-03-17 -->
+
+---
+
+## Incremental Audit (2026-03-28)
+
+Full re-scan of 56 .rs files, 2 spec docs, 1 CDDL, 10 CI workflows. New findings only (not duplicating prior audit items).
+
+### Systemic Issues
+
+- [ ] **SYS-004** `unpinned_action` -- 9 instances across 5 workflows -- HIGH
+  <!-- pid:unpinned_action | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Actions still using mutable version tags: `martinthomson/i-d-template@v1` (publish, ghpages, update), `parkerbxyz/suggest-changes@v3` (ghpages), `lycheeverse/lychee-action@v2.8.0` (links), `actions/checkout@v4` (lifecycle).
+  Fix: Pin all to commit SHAs. Effort: small
+
+- [ ] **SYS-005** `missing_job_timeout` -- 10 workflows -- MEDIUM
+  <!-- pid:missing_job_timeout | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  No `timeout-minutes` on any workflow job. Runaway builds consume resources indefinitely.
+  Files: all `.github/workflows/*.yml`
+  Fix: Add `timeout-minutes: 30` (or appropriate) to each job. Effort: small
+
+- [ ] **SYS-006** `missing_public_docs` -- 11+ public types in c2pa.rs -- HIGH
+  <!-- pid:missing_docs_public | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Public structs/methods missing doc comments: ProcessAssertion, JitterSeal, ActionParameters, C2paClaim, HashedUri, C2paManifestBuilder, AssetInfo, ValidationResult, JumbfInfo, plus undocumented builder methods.
+  Fix: Add rustdoc to all public API surface. Effort: medium
+
+### Critical
+
+- [x] **C-006** `[correctness]` `cddl/cpop.cddl:142` -- inertial-sample comment said "microseconds" but pop-timestamp is defined as milliseconds
+  <!-- pid:inertial_timestamp_units | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: Implementers would use wrong timestamp resolution; cross-spectral coherence computation fails.
+  Fix: Changed to "milliseconds" in CDDL, protocol spec, and Rust docstring. **FIXED this session.**
+
+- [ ] **C-007** `[security]` `crates/cpop-protocol/src/rfc/wire_types/packet.rs:63` -- Unbounded checkpoint vector deserialization; no MAX_CHECKPOINTS limit
+  <!-- pid:unbounded_checkpoint_deserialize | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: Malicious CBOR with huge checkpoint count causes OOM. DoS on any verifier.
+  Fix: Enforce MAX_CHECKPOINTS (e.g., 10000) before deserializing Vec<CheckpointWire>. Effort: small
+
+### High
+
+- [ ] **H-013** `[correctness]` `draft-condrey-cpop-appraisal.md:1035` -- Forensic mechanism identifiers not canonically defined
+  <!-- pid:forensic_mechanism_ids | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: forensic-flag.mechanism is tstr with no normative list. Verifiers will use inconsistent strings ("SNR" vs "snr" vs "Signal-to-Noise"), breaking multi-flag verdict logic.
+  Fix: Add normative table of canonical mechanism identifiers (SNR, CLC, Mechanical-Turk, Error-Topology, OOB-PC, Session-Consistency, Perplexity, Biological-Cadence, Inertial-Coherence). Effort: medium
+
+- [ ] **H-014** `[completeness]` `draft-condrey-cpop-appraisal.md:606` -- Inertial Coherence Analysis missing sampling parameters
+  <!-- pid:ica_sampling_undefined | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: No defined sample rate, minimum sample count, or variable-rate handling. Verifiers cannot compute comparable coherence values.
+  Fix: Add normative text: minimum 50 samples, uniform sample rate required, reject non-uniform arrays. Effort: medium
+
+- [ ] **H-015** `[completeness]` `draft-condrey-cpop-appraisal.md:625` -- Forensic mechanism "independence" undefined for multi-flag threshold
+  <!-- pid:mechanism_independence_undefined | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: Verdict logic requires "two or more independent mechanisms" but independence criteria unspecified. SNR and Biological Cadence both analyze jitter-binding; are they independent?
+  Fix: Define feature-space independence classes (spectral, distributional, temporal, hardware, OOB). Effort: medium
+
+- [ ] **H-016** `[error_handling]` `crates/cpop-jitter/src/model.rs:131` -- HumanModel::baseline() uses expect() on embedded JSON parse
+  <!-- pid:unwrap_on_io | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: Panics in library code if baseline.json is malformed. No fallback.
+  Fix: Return Result<HumanModel> or provide default with warning. Effort: small
+
+- [ ] **H-017** `[security]` `crates/cpop-jitter/src/lib.rs:54` -- derive_session_secret() allows None salt, enabling salt reuse across sessions
+  <!-- pid:hkdf_salt_reuse | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: Two sessions with identical master_key and context derive identical secrets; breaks forward secrecy.
+  Fix: Enforce non-empty salt or use random salt when None. Effort: small
+
+- [ ] **H-018** `[code_quality]` `crates/cpop-protocol/src/rfc/jitter_binding.rs:85` -- SourceDescriptor.source_type is String; no enum normalization
+  <!-- pid:stringly_typed | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: Accepts arbitrary strings ("keyboard_usb", "keyboardUsb", "KEYBOARD_USB") as distinct types; data quality degradation.
+  Fix: Replace with enum SourceType { Keyboard, Mouse, ... } with From<&str>. Effort: medium
+
+- [ ] **H-019** `[error_handling]` `crates/cpop-protocol/src/evidence.rs:100` -- causality_lock_v2 accepts zero entropy_hash from low-entropy PhysHash
+  <!-- pid:zero_entropy_accepted | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: If PhysJitter returns entropy_bits=0, HMAC uses all-zero entropy hash; collisions across low-entropy systems.
+  Fix: Validate entropy_bits > min_entropy before using hash. Effort: medium
+
+- [ ] **H-020** `[code_quality]` `crates/cpop-protocol/src/forensics/engine.rs:114` -- analyze() spans 134 lines with 4 nesting levels; magic thresholds throughout
+  <!-- pid:high_complexity | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: Hard to audit, test, or extend forensic analysis. Threshold values (0.15, 0.80, 0.45, 0.90, 0.92, 15.0) undocumented.
+  Fix: Extract named constants; break into verdict_from_cv(), verdict_from_hurst(), etc. Effort: medium
+
+- [ ] **H-021** `[code_quality]` `crates/cpop-protocol/src/rfc/jitter_binding.rs:429` -- validate() returns Vec<String> with no severity levels
+  <!-- pid:unstructured_errors | verified:true | first:2026-03-28 | last:2026-03-28 -->
+  Impact: Callers cannot prioritize critical vs informational validation errors.
+  Fix: Return Result<(), ValidationError> with structured enum variants. Effort: medium
+
+### Medium (new)
+
+- [ ] [MEDIUM] `draft-condrey-cpop-protocol.md:2266` -- ENHANCED/MAXIMUM rejection of proof-algorithm 20 missing verdict value
+  <!-- pid:missing_verdict_value | first:2026-03-28 -->
+  Fix: Specify "verdict invalid (4)" for this rejection. Effort: small
+
+- [ ] [MEDIUM] `draft-condrey-cpop-appraisal.md:606` -- ICA missing content-tier normative text (which tiers require evaluation)
+  <!-- pid:ica_tier_unspecified | first:2026-03-28 -->
+  Fix: Add "Verifiers MUST evaluate for ENHANCED/MAXIMUM when present; optional for CORE." Effort: small
+
+- [ ] [MEDIUM] `.github/workflows/wasm.yml:48` -- `continue-on-error: true` on build step without failure notification
+  <!-- pid:silent_build_failure | first:2026-03-28 -->
+  Impact: WASM compilation failures silently pass CI. Fix: Add failure notification or resolve getrandom 0.3 issue. Effort: medium
+
+- [ ] [MEDIUM] `.github/workflows/publish.yml:69` -- artifact upload missing retention-days policy
+  <!-- pid:missing_retention | first:2026-03-28 -->
+  Fix: Add `retention-days: 90`. Effort: small
+
+- [ ] [MEDIUM] `crates/cpop-protocol/src/rfc/biology.rs:488` -- total_weight can be 0.0 when all optional fields are None; division by zero in compute_score
+  <!-- pid:weight_div_zero | first:2026-03-28 -->
+  Fix: Return early if total_weight <= 0.0. Effort: small
+
+- [ ] [MEDIUM] `crates/cpop-protocol/src/forensics/engine.rs:293` -- estimate_hurst_exponent() allocates Vec per block in R/S analysis loop
+  <!-- pid:alloc_in_loop | first:2026-03-28 -->
+  Fix: Reuse single mutable Vec with reserve/clear. Effort: small
+
+- [ ] [MEDIUM] `crates/cpop-protocol/src/rfc/jitter_binding.rs:500` -- validate() is 100+ lines with deep nesting; hard to extend
+  <!-- pid:high_complexity | first:2026-03-28 -->
+  Fix: Split into validate_sources(), validate_summary(), validate_probes(). Effort: large
+
+- [ ] [MEDIUM] `crates/cpop-protocol/src/rfc/time_evidence.rs:346` -- validate() is 105 lines with repetitive per-anchor-type checks
+  <!-- pid:high_complexity | first:2026-03-28 -->
+  Fix: Extract validate_tsa_responses(), validate_blockchain_anchors(), etc. Effort: medium
+
+- [ ] [MEDIUM] `crates/cpop-protocol/src/compact_ref.rs:110` -- to_base64_uri() uses serde_json without canonical ordering guarantee
+  <!-- pid:nondeterministic_json | first:2026-03-28 -->
+  Fix: Use sorted-key serialization or document non-determinism. Effort: small
