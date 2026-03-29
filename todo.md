@@ -5,7 +5,7 @@
 | Severity | Open | Fixed | Skipped | Possibly Fixed |
 |----------|------|-------|---------|----------------|
 | CRITICAL | 0    | 8     | 0       | 0              |
-| HIGH     | 2    | 24    | 0       | 0              |
+| HIGH     | 1    | 25    | 0       | 0              |
 | MEDIUM   | 50   | 25    | 0       | 0              |
 | LOW      | 68   | 0     | 0       | 0              |
 
@@ -439,7 +439,7 @@ Full re-scan of 56 .rs files, 2 spec docs, 1 CDDL, 10 CI workflows. New findings
   Impact: If PhysJitter returns entropy_bits=0, HMAC uses all-zero entropy hash; collisions across low-entropy systems.
   Fix: Validate entropy_bits > min_entropy before using hash. Effort: medium
 
-- [ ] **H-020** `[code_quality]` `crates/cpop-protocol/src/forensics/engine.rs:114` -- analyze() spans 134 lines with 4 nesting levels; magic thresholds throughout
+- [x] **H-020** `[code_quality]` `crates/cpop-protocol/src/forensics/engine.rs:114` -- analyze() spans 134 lines with 4 nesting levels; magic thresholds throughout
   <!-- pid:high_complexity | verified:true | first:2026-03-28 | last:2026-03-28 -->
   Impact: Hard to audit, test, or extend forensic analysis. Threshold values (0.15, 0.80, 0.45, 0.90, 0.92, 15.0) undocumented.
   Fix: Extract named constants; break into verdict_from_cv(), verdict_from_hurst(), etc. Effort: medium
