@@ -4,7 +4,7 @@
 ## Summary
 | Severity | Open | Fixed | Skipped | Possibly Fixed |
 |----------|------|-------|---------|----------------|
-| CRITICAL | 1    | 7     | 0       | 0              |
+| CRITICAL | 0    | 8     | 0       | 0              |
 | HIGH     | 9    | 17    | 0       | 0              |
 | MEDIUM   | 50   | 25    | 0       | 0              |
 | LOW      | 68   | 0     | 0       | 0              |
@@ -397,10 +397,10 @@ Full re-scan of 56 .rs files, 2 spec docs, 1 CDDL, 10 CI workflows. New findings
   Impact: Implementers would use wrong timestamp resolution; cross-spectral coherence computation fails.
   Fix: Changed to "milliseconds" in CDDL, protocol spec, and Rust docstring. **FIXED this session.**
 
-- [ ] **C-007** `[security]` `crates/cpop-protocol/src/rfc/wire_types/packet.rs:63` -- Unbounded checkpoint vector deserialization; no MAX_CHECKPOINTS limit
+- [x] **C-007** `[security]` `crates/cpop-protocol/src/codec/cbor.rs` -- Unbounded CBOR payload; no size limit before deserialization
   <!-- pid:unbounded_checkpoint_deserialize | verified:true | first:2026-03-28 | last:2026-03-28 -->
-  Impact: Malicious CBOR with huge checkpoint count causes OOM. DoS on any verifier.
-  Fix: Enforce MAX_CHECKPOINTS (e.g., 10000) before deserializing Vec<CheckpointWire>. Effort: small
+  Impact: Malicious CBOR causes OOM. DoS on any verifier.
+  Fix: Added MAX_CBOR_PAYLOAD (16 MiB) check in decode(), decode_tagged(), decode_from(). Added tests.
 
 ### High
 
