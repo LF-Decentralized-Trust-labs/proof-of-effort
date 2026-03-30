@@ -81,6 +81,16 @@ CPoP is built on the [IETF RATS architecture (RFC 9334)](https://www.rfc-editor.
 
 See [`docs/architecture.md`](docs/architecture.md) for the full RATS role mapping with Endorser and Reference Value Provider flows.
 
+### Protocol Mechanics
+
+The Attester creates periodic **checkpoints** during composition. Each checkpoint captures a SHA-256 hash of the document state, the inter-keystroke timing intervals (jitter binding), and a **Sequential Work Function** (SWF) proof that forces real wall-clock time between checkpoints using memory-hard Argon2id computation. In entangled mode, each checkpoint's SWF depends on the previous checkpoint's output, preventing parallel pre-computation. Checkpoints form an HMAC-linked **causality chain** where tampering with any entry invalidates all subsequent ones.
+
+The Verifier independently estimates entropy from the jitter data and runs a battery of **forensic mechanisms**: spectral analysis (SNR) for biological noise patterns, cognitive load correlation (CLC) matching timing to semantic complexity, error topology analysis for human-like correction patterns, perplexity scoring to detect AI-generated insertions, biological cadence analysis, session consistency, and inertial coherence analysis cross-referencing keystroke timing with accelerometer impulses. Each mechanism belongs to an independence class; two or more flags from independent classes trigger a suspicious verdict.
+
+Evidence is appraised across four **assurance tiers**: T1 (software-only, honest-but-curious model), T2 (corroborated, cross-signal verification), T3 (hardware-bound via TPM/HSM), and T4 (independent external witnesses). Higher tiers provide stronger anti-forgery guarantees; the tier is reported in the attestation result so relying parties can make risk-appropriate trust decisions.
+
+For a comprehensive technical overview, see [`docs/protocol-overview.md`](docs/protocol-overview.md).
+
 ## Specification
 
 | Draft | Title | Editor's Copy | Status |
