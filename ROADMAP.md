@@ -11,21 +11,9 @@ CPoP (Cryptographic Proof of Process) is an **LF Decentralized Trust lab** with 
 
 Both are independent submissions to the IETF under the Security area, aligned with the RATS (Remote Attestation Procedures) architecture defined in RFC 9334.
 
-The repository contains a formal CDDL schema, architecture documentation, integration proposals for three ecosystems, and two published Rust crates on crates.io:
-
-- [`cpop-jitter`](https://crates.io/crates/cpop-jitter) v0.2.1 -- Timing jitter entropy primitive (`no_std` compatible)
-- [`cpop-protocol`](https://crates.io/crates/cpop-protocol) v0.3.0 -- Wire format, CBOR/COSE codec, evidence builder/verifier
+The repository contains the formal CDDL schema, architecture documentation, and integration proposals for three ecosystems. A reference implementation is maintained separately.
 
 ## Near-Term Milestones
-
-### Reference Implementations
-
-- [x] `cpop-jitter` crate: timing jitter entropy collection, SWF proof generation
-- [x] `cpop-protocol` crate: CBOR wire format, COSE signing, evidence builder/verifier
-- [ ] End-to-end attestation flow: Attester produces Evidence Packet, Verifier produces Written Authorship Report
-- [ ] Wasm build target for `cpop-protocol` (feature-flagged, dependencies in place)
-- [ ] Example Attester integration (editor plugin or CLI tool capturing keystroke dynamics)
-- [ ] Example Verifier service consuming Evidence Packets and producing WARs
 
 ### Specification
 
