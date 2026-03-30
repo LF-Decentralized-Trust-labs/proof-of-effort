@@ -50,14 +50,14 @@ jobs:
 
     - name: "Build Drafts"
       id: build
-      uses: martinthomson/i-d-template@v1
+      uses: martinthomson/i-d-template@d2ce969b54014edf5671856b6866866c258bf8f5 # v1
       with:
         token: ${{ github.token }}
 
     - name: "Fix Lints"
       id: fix-lint
       if: always() && steps.build.outcome == 'failure'
-      uses: martinthomson/i-d-template@v1
+      uses: martinthomson/i-d-template@d2ce969b54014edf5671856b6866866c258bf8f5 # v1
       with:
         make: fix-lint
 
@@ -67,12 +67,12 @@ jobs:
         steps.fix-lint.outcome != 'skipped' &&
         github.event.pull_request &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: parkerbxyz/suggest-changes@v3
+      uses: parkerbxyz/suggest-changes@1dca834e5b0f48239dd6d0ddc2df247dae4052cf # v3
       with:
         token: ${{ github.token }}
 
     - name: "Update GitHub Pages"
-      uses: martinthomson/i-d-template@v1
+      uses: martinthomson/i-d-template@d2ce969b54014edf5671856b6866866c258bf8f5 # v1
       if: ${{ github.event_name == 'push' }}
       with:
         make: gh-pages
