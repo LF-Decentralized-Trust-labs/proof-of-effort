@@ -23,6 +23,7 @@ jobs:
   check:
     name: "Build, Test, Lint (${{ matrix.rust }})"
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       matrix:
         rust: [stable, "1.70.0"]
