@@ -26,3 +26,5 @@ report.xml
 /target
 Cargo.lock
 ekr-*
+certs/
+*.pem
