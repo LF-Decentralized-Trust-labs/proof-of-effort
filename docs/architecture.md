@@ -99,7 +99,8 @@ consistent with passport model semantics.
 ## Evidence Format
 
 CPoP Evidence Packets use a domain-specific CBOR structure (tag `1129336656` /
-`CPOP`) rather than CWT/JWT-wrapped EAT tokens. The reasons are structural:
+`CPOP`, pending IANA registration) rather than CWT/JWT-wrapped EAT tokens.
+The reasons are structural:
 
 - EAT ([RFC 9711](https://www.rfc-editor.org/rfc/rfc9711)) models entity
   state as claims at a point in time. CPoP Evidence models a *continuous
