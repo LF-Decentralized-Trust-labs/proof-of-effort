@@ -83,6 +83,7 @@ intervals, and runs a battery of forensic mechanisms:
 | Distributional Conformance (KS) | KSD | IKI distribution shape deviates from empirical human reference |
 | HID Device Provenance | HDP | Generic/injection HID descriptor or polling-rate saturation |
 | Inhibition Response | IRT | Failure to cease input within human reaction time on stop signal |
+| Dynamic Latency Injection | DLI | No typing adaptation when visual feedback is artificially delayed |
 
 Each mechanism belongs to an independence class (spectral, temporal,
 distributional, semantic, hardware, or out-of-band). Two or more flags
