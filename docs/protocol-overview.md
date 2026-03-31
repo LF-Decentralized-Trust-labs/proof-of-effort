@@ -80,6 +80,9 @@ intervals, and runs a battery of forensic mechanisms:
 | Perplexity Scoring | PPX | AI-generated text insertions (low perplexity + fast typing) |
 | Biological Cadence | BCA | Mechanically regular or chaotically irregular timing |
 | Inertial Coherence | ICA | Digital keystrokes without corresponding physical impulses |
+| Distributional Conformance (KS) | KSD | IKI distribution shape deviates from empirical human reference |
+| HID Device Provenance | HDP | Generic/injection HID descriptor or polling-rate saturation |
+| Inhibition Response | IRT | Failure to cease input within human reaction time on stop signal |
 
 Each mechanism belongs to an independence class (spectral, temporal,
 distributional, semantic, hardware, or out-of-band). Two or more flags
