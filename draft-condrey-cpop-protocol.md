@@ -1324,6 +1324,7 @@ evidence-packet = {
     ; keys 16-17 reserved for future use
     ? 18 => physical-liveness,    ; physical-liveness markers
     ? 19 => baseline-verification, ; behavioral baseline verification
+    ? 20 => witness-service,      ; witness service declaration (T2+)
     * int => any,                  ; extension fields
 }
 
@@ -1345,6 +1346,7 @@ checkpoint = {
     ? 15 => hat-proof,               ; HAT temporal proof (T3/T4)
     ? 16 => beacon-anchor,           ; public randomness anchor (optional)
     ? 17 => bstr .size 32,           ; verifier-nonce (interactive mode)
+    ? 18 => witness-anchor,          ; witness-anchored nonce (T2+)
     * int => any,                    ; extension fields
 }
 
@@ -2388,6 +2390,189 @@ This mechanism transforms T1 temporal ordering from self-reported
 timestamps to externally verifiable time commitments {{HaberStornetta1991}}. The beacon
 value is not predictable at checkpoint creation time, preventing
 retroactive fabrication of Evidence with backdated timestamps.
+
+## Witness-Anchored Nonce Binding {#witness-anchor-binding}
+
+Attesters claiming T2 or higher assurance SHOULD include a
+witness-anchor (checkpoint key 18) in every checkpoint. The
+witness-anchor provides externally-verifiable real-time ordering
+by requiring the Attester to obtain a fresh, signed nonce from an
+external witness service before each checkpoint can be finalized.
+
+Unlike beacon-anchoring (which relies on passive public randomness
+with multi-second delays), the witness-anchor is interactive and
+per-session, providing tighter temporal binding with sub-second
+granularity.
+
+### Witness Service {#witness-service}
+
+A CPoP witness service is a stateless HTTPS endpoint that:
+
+1. Accepts a nonce request containing the session identifier,
+   checkpoint sequence number, previous checkpoint reference,
+   and content hash.
+2. Issues a fresh 32-byte random nonce with a timestamp and TTL.
+3. Signs the nonce and request context with its private key.
+4. Logs the issuance to an append-only transparency log (OPTIONAL
+   for Phase 1 deployments, RECOMMENDED for production).
+
+The witness service does not inspect document content, evaluate
+behavioral telemetry, or make trust decisions. It only provides
+signed temporal anchors.
+
+The evidence-packet SHOULD include a witness-service declaration
+(key 20) containing the witness URI and public key, enabling
+Verifiers to validate witness signatures without out-of-band
+key discovery.
+
+### Protocol {#witness-anchor-protocol}
+
+1. The Attester completes checkpoint N-1 and prepares the data
+   for checkpoint N (content-hash, edit-delta, SWF proof).
+2. The Attester sends a nonce request to the witness:
+
+~~~ http
+POST /v1/nonce HTTP/1.1
+Host: witness.example.com
+Content-Type: application/cbor
+
+{
+    "session_id": h'<packet-id>',
+    "seq": <N>,
+    "prev_ref": h'<SHA-256 of checkpoint N-1>',
+    "doc_hash": h'<current content-hash>'
+}
+~~~
+
+3. The witness responds with a signed nonce:
+
+~~~ http
+HTTP/1.1 200 OK
+Content-Type: application/cbor
+
+{
+    "w_nonce": h'<32 bytes random>',
+    "issued_at": <epoch milliseconds>,
+    "ttl_ms": 10000,
+    "sig": h'<Ed25519 signature>'
+}
+~~~
+
+   The witness signs the following canonical tuple using its
+   private key:
+
+~~~ pseudocode
+sig = Ed25519-Sign(witness-key,
+    "CPoP-Witness-v1" ||
+    seq ||
+    prev-checkpoint-ref ||
+    doc_hash ||
+    w_nonce ||
+    issued_at ||
+    ttl_ms
+)
+~~~
+
+4. The Attester incorporates the witness nonce into the
+   checkpoint hash and SWF seed derivation:
+
+~~~ pseudocode
+seed = H(
+    "CPoP-SWF-Seed-v1" ||
+    prev-hash ||
+    prev-swf-output ||          ; Mode 21 only
+    w_nonce ||                  ; witness nonce
+    CBOR-encode(jitter-binding.intervals) ||
+    CBOR-encode(physical-state)
+)
+~~~
+
+5. The Attester includes the witness-anchor structure in
+   checkpoint key 18.
+
+### Witness Nonce Expiry {#witness-nonce-expiry}
+
+The witness-anchor.w-ttl-ms field specifies the maximum time
+(in milliseconds) between nonce issuance and checkpoint
+finalization. The RECOMMENDED TTL is 10000 ms (10 seconds).
+
+If the Attester does not finalize the checkpoint within the TTL
+window, the nonce expires and the Attester MUST request a new one.
+The Verifier MUST reject checkpoints where the checkpoint
+timestamp exceeds issued-at + ttl-ms (subject to the clock skew
+tolerance defined in {{clock-skew-tolerance}}).
+
+### Witness Duplicate and Ordering Checks {#witness-ordering}
+
+The witness service SHOULD reject nonce requests where (session_id,
+seq) has already been issued, preventing the Attester from obtaining
+multiple nonces for the same checkpoint position. The witness
+SHOULD verify that seq is monotonically increasing per session.
+
+### Security Properties {#witness-anchor-security}
+
+The witness-anchor provides the following guarantees:
+
+* **Anti-precomputation:** The Attester cannot begin SWF
+  computation for checkpoint N until the witness issues the
+  nonce, and the nonce is unpredictable before issuance.
+
+* **Real-time ordering:** Each checkpoint is externally
+  timestamped by the witness. The Verifier can verify that
+  checkpoints were created at the times claimed by comparing
+  witness-issued timestamps rather than relying on the
+  Attester's self-reported clock.
+
+* **Anti-selective-omission:** When combined with a witness
+  transparency log, the Verifier can detect gaps in the
+  checkpoint sequence by auditing the log for the session.
+
+* **Graceful degradation:** If the witness is unavailable,
+  the Attester MAY proceed without witness anchoring, producing
+  T1 evidence. The Evidence Packet MUST NOT claim a tier higher
+  than T1 if any checkpoint lacks a valid witness-anchor.
+
+* **Complement to SWF:** The witness does not replace the
+  Sequential Work Function. The SWF ensures that forgery requires
+  real sequential computation even if the witness signing key is
+  compromised. Together, they provide both temporal freshness
+  (witness) and computational cost (SWF).
+
+### Relationship to Other Anchoring Mechanisms {#witness-anchor-relationships}
+
+The three temporal anchoring mechanisms form a hierarchy:
+
+| Mechanism | Key | Online? | Freshness | Anti-precompute |
+|-----------|-----|---------|-----------|-----------------|
+| Beacon-anchor | 16 | No (passive) | Minutes | Weak (predictable delay) |
+| Witness-anchor | 18 | Yes (1 RTT) | Seconds | Strong (unpredictable nonce) |
+| Verifier-nonce | 17 | Yes (2 RTT) | Immediate | Strongest (verifier-chosen) |
+
+An Evidence Packet MAY include any combination. When multiple
+anchoring mechanisms are present, the Verifier SHOULD use the
+strongest available: verifier-nonce > witness-anchor > beacon-anchor.
+
+### Witness Transparency Log {#witness-transparency-log}
+
+The witness service MAY publish an append-only transparency log at
+the URI specified in witness-service.log-uri. Each log entry
+contains:
+
+~~~ cddl
+witness-log-entry = {
+    1 => bstr .size 32,   ; session-id-pseudonym (H(packet-id || witness-key))
+    2 => uint,             ; seq
+    3 => bstr .size 32,   ; w-nonce
+    4 => pop-timestamp,    ; issued-at
+    5 => bstr .size 32,   ; prev-entry-hash (hash chain)
+}
+~~~
+
+The session-id-pseudonym prevents the log from leaking the raw
+packet-id while still enabling per-session sequence auditing.
+Verifiers and auditors MAY fetch inclusion proofs from the log
+to verify that the witness did not equivocate (issue conflicting
+nonces for the same session and sequence).
 
 ## Verifier-Nonce Binding (Optional) {#verifier-nonce-binding}
 

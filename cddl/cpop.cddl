@@ -43,6 +43,7 @@ evidence-packet = {
     ; keys 16-17 reserved for future use
     ? 18 => physical-liveness,    ; physical-liveness markers
     ? 19 => baseline-verification, ; behavioral baseline verification
+    ? 20 => witness-service,      ; witness service declaration (T2+)
     * int => any,                 ; extension fields
 }
 
@@ -64,6 +65,7 @@ checkpoint = {
     ? 15 => hat-proof,               ; HAT temporal proof (T3/T4)
     ? 16 => beacon-anchor,           ; public randomness anchor (optional)
     ? 17 => bstr .size 32,           ; verifier-nonce (interactive mode)
+    ? 18 => witness-anchor,          ; witness-anchored nonce (T2+)
     * int => any,                 ; extension fields
 }
 
@@ -164,6 +166,39 @@ hat-proof = {
     2 => bstr,                    ; time-after (TPMS_TIME_ATTEST_INFO)
     3 => bstr,                    ; sig-before (AIK signature)
     4 => bstr,                    ; sig-after (AIK signature)
+}
+
+; ============================================================
+; Witness-Anchored Nonce (T2+)
+; ============================================================
+;
+; Per-checkpoint anchor from an external witness service.
+; The witness issues a signed, time-bound nonce that the Attester
+; must incorporate into the checkpoint hash before the nonce expires.
+; This provides externally-verifiable temporal ordering without
+; requiring hardware attestation or an online Verifier.
+
+witness-anchor = {
+    1 => bstr .size 32,           ; w-nonce (witness-issued random nonce)
+    2 => pop-timestamp,           ; w-issued-at (witness clock, ms)
+    3 => uint,                    ; w-ttl-ms (nonce validity window)
+    4 => bstr,                    ; w-sig (Ed25519 or COSE_Sign1 over signed tuple)
+    5 => hash-value,              ; prev-checkpoint-ref (prev checkpoint hash)
+}
+
+; The witness signs the following canonical tuple:
+;   Sign(witness-key, "CPoP-Witness-v1" || seq || prev-checkpoint-ref ||
+;        content-hash || w-nonce || w-issued-at || w-ttl-ms)
+
+; Witness service declaration at the evidence-packet level.
+; Identifies the witness and provides the public key for
+; signature verification.
+
+witness-service = {
+    1 => tstr,                    ; witness-uri (HTTPS endpoint)
+    2 => bstr,                    ; witness-public-key (Ed25519 or COSE_Key)
+    ? 3 => tstr,                  ; witness-id (opaque identifier)
+    ? 4 => tstr,                  ; log-uri (transparency log endpoint)
 }
 
 ; ============================================================
