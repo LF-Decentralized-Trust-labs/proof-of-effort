@@ -1,12 +1,12 @@
 [//]: # (SPDX-License-Identifier: CC-BY-4.0)
 
-# Proof-of-Process, an LF Decentralized Trust Project Security Policy
+# Proof of Effort, an LF Decentralized Trust Project Security Policy
 
 ## About this document
 
-This document defines how security vulnerability reporting is handled in Proof-of-Process, an LF Decentralized Trust Project.
+This document defines how security vulnerability reporting is handled in Proof of Effort, an LF Decentralized Trust Project.
 The approach aligns with the [LF Decentralized Trust Security Policy]. Please
-review that document to understand the basis of the security reporting for Proof-of-Process.
+review that document to understand the basis of the security reporting for Proof of Effort.
 
 This vulnerability policy borrows heavily from the
 recommendations of the OpenSSF Vulnerability Disclosure working group. For
@@ -14,7 +14,7 @@ up-to-date information on the latest recommendations related to vulnerability
 disclosures, please visit the [GitHub of that working
 group](https://github.com/ossf/wg-vulnerability-disclosures).
 
-If you are already familiar with the security policies of Proof-of-Process, and
+If you are already familiar with the security policies of Proof of Effort, and
 ready to report a vulnerability, please jump to [Report Intakes](#report-intakes).
 
 [LF Decentralized Trust Security Policy]: https://lf-decentralized-trust.github.io/governance/governing-documents/security
@@ -22,12 +22,12 @@ ready to report a vulnerability, please jump to [Report Intakes](#report-intakes
 ## What Is a Vulnerability Disclosure Policy?
 
 This document explains how to report security vulnerabilities to the
-Proof-of-Process project and what to expect from the security team in
+Proof of Effort project and what to expect from the security team in
 response.
 
 ## Security Team
 
-The current Proof-of-Process security team is:
+The current Proof of Effort security team is:
 
 | Name            | Email ID               | Discord ID | Area/Specialty        |
 | --------------- | ---------------------- | ---------- | --------------------- |
@@ -42,7 +42,7 @@ The current Proof-of-Process security team is:
 ### Joining the Security Team
 
 The project welcomes contributors who are interested in joining the security
-team. Candidates should have familiarity with the CPoP protocol and its CDDL
+team. Candidates should have familiarity with the CCPoE protocol and its CDDL
 schema, and a willingness to participate in vulnerability triage and
 coordinated disclosure. Prior experience with security response processes is
 valued but not required.
@@ -52,7 +52,7 @@ david@writerslogic.com) or open an issue on this repository expressing your
 interest. All additions to the security team are made via approved Pull
 Requests to this file.
 
-The security team for Proof-of-Process carries out the following duties and responsibilities.
+The security team for Proof of Effort carries out the following duties and responsibilities.
 Members are added and removed from the team via approved Pull Requests to this
 repository. For additional background into the role of the security team, see
 the [People Infrastructure] section of the LF Decentralized Trust Security Policy.
@@ -107,7 +107,7 @@ with invited participants added to the discussion.
 
 ## Report Intakes
 
-Proof-of-Process has the following ways to submit security
+Proof of Effort has the following ways to submit security
 vulnerabilities. While the security team members will do their best to
 respond to bugs disclosed in all possible ways, it is encouraged for bug
 finders to report through the following approved channels:
@@ -128,18 +128,18 @@ infrastructure in GitHub.
 
 ## CNA/CVE Reporting
 
-When applicable, Proof-of-Process uses GitHub's **CVE Numbering Authority
+When applicable, Proof of Effort uses GitHub's **CVE Numbering Authority
 (CNA)** capability to request **Common Vulnerabilities and Exposures (CVE)**
 identifiers for security vulnerabilities in project tooling and
 infrastructure.
 
 ## Embargo List
 
-Proof-of-Process maintains a private embargo list. If you wish to
+Proof of Effort maintains a private embargo list. If you wish to
 be added to the embargo list, please email the [LF Decentralized Trust Foundation security
 mailing list](mailto:security@lists.lfdecentralizedtrust.org), including the project name
-(Proof-of-Process) and reason for being added to the embargo list. Requests
-will be assessed by the Proof-of-Process security team in conjunction with the
+(Proof of Effort) and reason for being added to the embargo list. Requests
+will be assessed by the Proof of Effort security team in conjunction with the
 appropriate LF Decentralized Trust Staff, and a decision will be made to accommodate or not
 the request.
 
@@ -149,13 +149,13 @@ Policy](https://lf-decentralized-trust.github.io/governance/governing-documents/
 
 ## (GitHub) Security Advisories
 
-Proof-of-Process uses GitHub Security Advisories to manage the public
+Proof of Effort uses GitHub Security Advisories to manage the public
 disclosure of security vulnerabilities.
 
 ## Private Patch Deployment Infrastructure
 
 In creating patches and new releases that address security vulnerabilities,
-Proof-of-Process uses the private development features of GitHub for security
+Proof of Effort uses the private development features of GitHub for security
 vulnerabilities. GitHub has [extensive
 documentation](https://docs.github.com/en/code-security/security-advisories/repository-security-advisories)
 about these features.

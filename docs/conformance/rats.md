@@ -2,21 +2,21 @@
 
 # IETF RATS Conformance
 
-> **Status**: Normative — CPoP implements the RATS architecture (RFC 9334)
+> **Status**: Normative — CPoE implements the RATS architecture (RFC 9334)
 
 ## Overview
 
-CPoP is built directly on the IETF Remote ATtestation procedureS (RATS)
+CPoE is built directly on the IETF Remote ATtestation procedureS (RATS)
 architecture defined in [RFC 9334](https://www.rfc-editor.org/rfc/rfc9334).
 The protocol uses RATS roles, message flows, and data formats.
 
 ## RATS Role Mapping
 
-| RATS Role                  | CPoP Implementation                                          |
+| RATS Role                  | CPoE Implementation                                          |
 | -------------------------- | ------------------------------------------------------------ |
 | Attester                   | CPOP client (CLI, native app, browser extension)             |
 | Evidence                   | Evidence Packet (CBOR tag `1129336656` / `CPOP`)             |
-| Verifier                   | WritersProof API or local `cpop verify` command              |
+| Verifier                   | WritersProof API or local `cpoe verify` command              |
 | Attestation Result         | Written Authorship Report (CBOR tag `1129791826` / `CWAR`) |
 | Relying Party              | Publisher, institution, or platform consuming the WAR        |
 | Reference Value Provider   | Behavioral baselines (typing cadence, entropy thresholds)    |
@@ -24,10 +24,10 @@ The protocol uses RATS roles, message flows, and data formats.
 
 ## EAT / EAR / AR4SI
 
-CPoP uses Entity Attestation Token (EAT) and Entity Attestation Result (EAR)
+CPoE uses Entity Attestation Token (EAT) and Entity Attestation Result (EAR)
 formats with AR4SI trustworthiness vectors:
 
-| Specification              | Usage in CPoP                                                |
+| Specification              | Usage in CPoE                                                |
 | -------------------------- | ------------------------------------------------------------ |
 | draft-ietf-rats-eat        | EAT profile URI: `urn:ietf:params:rats:eat:profile:pop:1.0` |
 | draft-ietf-rats-ear        | EAR token structure for attestation results                  |
@@ -35,7 +35,7 @@ formats with AR4SI trustworthiness vectors:
 
 ### AR4SI Trust Vector Mapping
 
-| Component (index) | RATS Meaning          | CPoP Mapping                               |
+| Component (index) | RATS Meaning          | CPoE Mapping                               |
 | ----------------- | --------------------- | ------------------------------------------- |
 | 0                 | Instance Identity     | Hardware attestation tier (TPM/SE)          |
 | 1                 | Configuration         | Declaration signature validity              |
@@ -48,7 +48,7 @@ formats with AR4SI trustworthiness vectors:
 
 ### Private-Use CWT Keys
 
-CPoP uses private-use CWT keys 70001–70009 for protocol-specific claims:
+CPoE uses private-use CWT keys 70001–70009 for protocol-specific claims:
 
 | Key   | Label           | Content                                |
 | ----- | --------------- | -------------------------------------- |
@@ -64,27 +64,27 @@ CPoP uses private-use CWT keys 70001–70009 for protocol-specific claims:
 
 ## CWT-Encoded EAT Tokens
 
-CPoP Attestation Results (Written Authorship Reports) are encoded as
+CPoE Attestation Results (Written Authorship Reports) are encoded as
 CWT (CBOR Web Token) EAT tokens per draft-ietf-rats-eat. The token
 carries standard EAT claims (`eat_profile`, `iat`, `eat_nonce`) alongside
-CPoP-specific private-use claims (keys 70001-70009). The CWT is wrapped
+CPoE-specific private-use claims (keys 70001-70009). The CWT is wrapped
 in a COSE_Sign1 envelope for integrity and authenticity.
 
 ## CoRIM Reference Values
 
-CPoP Verifiers can consume Concise Reference Integrity Manifests (CoRIM,
+CPoE Verifiers can consume Concise Reference Integrity Manifests (CoRIM,
 draft-ietf-rats-corim) to obtain reference values for appraisal. Reference
 values include expected behavioral entropy thresholds, SWF difficulty
 parameters, and approved hardware endorsement keys. The CoRIM environment
-map identifies the CPoP attestation tier (T1-T4) and platform.
+map identifies the CPoE attestation tier (T1-T4) and platform.
 
 ## SCITT Signed Statement Compatibility
 
-CPoP Evidence Packets and Written Authorship Reports can be registered as
+CPoE Evidence Packets and Written Authorship Reports can be registered as
 SCITT (Supply Chain Integrity, Transparency, and Trust) Signed Statements
 per draft-ietf-scitt-architecture. Registration in a SCITT Transparency
 Service provides an independent, append-only receipt that the attestation
-existed at a given time, complementing CPoP's internal VDF-based temporal
+existed at a given time, complementing CPoE's internal VDF-based temporal
 proofs.
 
 ## References
@@ -93,5 +93,5 @@ proofs.
 - [draft-ietf-rats-eat -- Entity Attestation Token](https://datatracker.ietf.org/doc/draft-ietf-rats-eat/)
 - [draft-ietf-rats-corim -- Concise Reference Integrity Manifest](https://datatracker.ietf.org/doc/draft-ietf-rats-corim/)
 - [draft-ietf-scitt-architecture -- SCITT Architecture](https://datatracker.ietf.org/doc/draft-ietf-scitt-architecture/)
-- [draft-condrey-cpop-protocol](https://lf-decentralized-trust-labs.github.io/proof-of-process/draft-condrey-cpop-protocol.html)
-- [draft-condrey-cpop-appraisal](https://lf-decentralized-trust-labs.github.io/proof-of-process/draft-condrey-cpop-appraisal.html)
+- [draft-condrey-cpoe-protocol](https://lf-decentralized-trust-labs.github.io/proof-of-effort/draft-condrey-cpoe-protocol.html)
+- [draft-condrey-cpoe-appraisal](https://lf-decentralized-trust-labs.github.io/proof-of-effort/draft-condrey-cpoe-appraisal.html)

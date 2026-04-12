@@ -2,7 +2,7 @@
 applyTo: "cddl/**/*.cddl"
 ---
 
-Single schema: `cddl/cpop.cddl` — covers both drafts.
+Single schema: `cddl/cpoe.cddl` — covers both drafts.
 
 ## Tags
 

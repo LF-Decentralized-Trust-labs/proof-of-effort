@@ -1,4 +1,4 @@
-; Cryptographic Proof of Process — Evidence Packet (example)
+; Cryptographic Proof of Effort — Evidence Packet (example)
 ; CBOR diagnostic notation per RFC 8949 Section 8
 ;
 ; This is a T2 (attested-software) Evidence Packet with ENHANCED content tier.
@@ -11,7 +11,7 @@
 1129336656({                         ; CBOR tag "CPOP"
 
   1: 1,                              ; version
-  2: "urn:ietf:params:cpop:profile:enhanced-v1",  ; profile-uri
+  2: "urn:ietf:params:cpoe:profile:enhanced-v1",  ; profile-uri
 
   ; packet-id (UUID v4, 16 bytes)
   3: h'a1b2c3d4e5f6071889abcdef01234567',
@@ -251,7 +251,7 @@
 
   ; profile-declaration
   9: {
-    1: "urn:ietf:params:cpop:profile:enhanced-v1",  ; profile-id
+    1: "urn:ietf:params:cpoe:profile:enhanced-v1",  ; profile-id
     2: [2, 3]                       ; feature-flags (jitter-binding, physical-state)
   },
 

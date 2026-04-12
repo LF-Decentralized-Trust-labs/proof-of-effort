@@ -6,7 +6,7 @@
 
 ## Credential Structure
 
-CPoP Written Authorship Reports can be expressed as W3C Verifiable
+CPoE Written Authorship Reports can be expressed as W3C Verifiable
 Credentials 2.0:
 
 ```json
@@ -29,7 +29,7 @@ Credentials 2.0:
   },
   "evidence": [{
     "type": "ProofOfProcessEvidence",
-    "verifier": "cpop-engine/1.0.3"
+    "verifier": "cpoe-engine/1.0.3"
   }],
   "proof": {
     "type": "DataIntegrityProof",
@@ -42,7 +42,7 @@ Credentials 2.0:
 
 ## Field Mapping
 
-| VC Field             | CPoP Source                                  |
+| VC Field             | CPoE Source                                  |
 | -------------------- | -------------------------------------------- |
 | `issuer`             | Verifier DID (`did:web:writersproof.com`)    |
 | `credentialSubject.id`| Author DID (`did:key:z...`)                 |

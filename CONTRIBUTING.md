@@ -1,8 +1,8 @@
 [//]: # (SPDX-License-Identifier: CC-BY-4.0)
 
-# Contributing to Proof-of-Process
+# Contributing to Proof of Effort
 
-This document covers how to contribute to the CPoP protocol specification.
+This document covers how to contribute to the CCPoE protocol specification.
 
 ## IETF Intellectual Property Notice
 
@@ -41,7 +41,7 @@ all pull requests.
 
 ### Reporting Issues
 
-- Use the [GitHub issue tracker](https://github.com/LF-Decentralized-Trust-labs/proof-of-process/issues)
+- Use the [GitHub issue tracker](https://github.com/LF-Decentralized-Trust-labs/proof-of-effort/issues)
   to report bugs or suggest improvements.
 - Search existing issues before opening a new one.
 
@@ -90,5 +90,5 @@ This project follows the
 
 ## Questions
 
-Open an [issue](https://github.com/LF-Decentralized-Trust-labs/proof-of-process/issues)
+Open an [issue](https://github.com/LF-Decentralized-Trust-labs/proof-of-effort/issues)
 or post to the [IETF RATS mailing list](https://mailarchive.ietf.org/arch/browse/rats/).

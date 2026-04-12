@@ -1,7 +1,7 @@
-# CPoP Protocol Multi-Model Expert Review
+# CPoE Protocol Multi-Model Expert Review
 
 9 frontier AI models participated in a 5-round structured debate reviewing
-the CPoP protocol, focusing on forgery prevention and the malicious Attester
+the CCPoE protocol, focusing on forgery prevention and the malicious Attester
 problem. Models: GPT-5.4 Pro, GPT-5.4, o3 Pro (OpenAI), Grok 4.20 Beta (xAI),
 Gemini 3.1 Pro (Google), Qwen 3.5 397B (Alibaba), DeepSeek V3.2 (DeepSeek),
 Claude Opus 4.6 (Anthropic), Mistral Large 3 (Mistral), MiMo V2 Pro (Xiaomi),
@@ -19,7 +19,7 @@ ROUND 1: INITIAL REVIEWS FROM 9 MODELS
 
 ## GPT-5.4 Pro (OpenAI)
 
-CPoP is strongest as a **forensic telemetry format**, but the current design overstates its security as a “cryptographic proof” in the presence of a **malicious Attester**. The main architectural gap is that the entity producing evidence is the same entity the protocol is trying to distrust. Without a trusted execution boundary, most fields are only self-asserted.
+CPoE is strongest as a **forensic telemetry format**, but the current design overstates its security as a “cryptographic proof” in the presence of a **malicious Attester**. The main architectural gap is that the entity producing evidence is the same entity the protocol is trying to distrust. Without a trusted execution boundary, most fields are only self-asserted.
 
 **1) Design quality / completeness**
 
@@ -47,13 +47,13 @@ The packet structure, chained checkpoints, CBOR/CDDL typing, and explicit assura
 - Add **trusted-path input provenance**: e.g., HID-origin attestations, external signing keyboard, or a capture agent in a TEE that receives raw input events and signs them.
 - Treat behavioral models as **risk signals only**, not proof. The cryptographic core should come from freshness, authenticated measurement, and external timestamping/witnessing.
 
-Bottom line: CPoP has value as **tamper-evident process evidence**, but under malicious-client control, T1/T2 are highly forgeable. The protocol needs stronger trusted measurement and external freshness to justify anti-falsification claims.
+Bottom line: CPoE has value as **tamper-evident process evidence**, but under malicious-client control, T1/T2 are highly forgeable. The protocol needs stronger trusted measurement and external freshness to justify anti-falsification claims.
 
 ---
 
 ## GPT-5.4 (OpenAI)
 
-CPoP has a thoughtful structure—hash-chained checkpoints, sequential work, behavioral telemetry, and tiered assurance—but its core security claim is constrained by a fundamental asymmetry: the Attester is user-controlled software on a potentially adversarial host. That sharply limits what can be treated as cryptographic evidence versus merely self-reported forensic signals.
+CPoE has a thoughtful structure—hash-chained checkpoints, sequential work, behavioral telemetry, and tiered assurance—but its core security claim is constrained by a fundamental asymmetry: the Attester is user-controlled software on a potentially adversarial host. That sharply limits what can be treated as cryptographic evidence versus merely self-reported forensic signals.
 
 **1. Design quality / completeness**
 
@@ -75,7 +75,7 @@ The dominant attack is **full-stack simulation**. A malicious author can generat
 Concrete variants:
 - **Keystroke timing synthesis:** generate pink-noise-like inter-key intervals with target Hurst exponent/CV. These are easy to fit using fractional Gaussian noise or GAN-style sequence synthesis. If verifier thresholds are public, attackers can tune directly to them.
 - **Semantic-aware pacing attack:** use token difficulty/word rarity to modulate delays so CLC/MTD/ET heuristics appear human. An LLM can intentionally insert typos, backspaces, and burst/pause structure.
-- **Edit-stream laundering:** compose with AI elsewhere, then “retype” through an instrumented client over time. CPoP may prove a human typed *something*, but not that the process was genuinely generative rather than transcription.
+- **Edit-stream laundering:** compose with AI elsewhere, then “retype” through an instrumented client over time. CPoE may prove a human typed *something*, but not that the process was genuinely generative rather than transcription.
 - **SWF farm with live rendering:** because SWF is independent of cognition, an attacker can pre-generate text and spend the required wall-clock only on proof generation while a bot dribbles edits into the editor.
 - **Chosen-checkpoint manipulation:** if checkpoint cadence is attacker-influenced, they can place checkpoints at favorable moments, smoothing anomalies and omitting suspicious bursts/pastes.
 - **Paste decomposition attack:** a large AI-generated insertion can be broken into synthetic micro-edits to evade PPX/SC/ET triggers.
@@ -94,13 +94,13 @@ The main improvement is to reduce trust in host-reported telemetry.
 - **Checkpoint schedule hardening:** verifier- or witness-derived randomization prevents attacker-optimized segmentation.
 - **Formal adversary model:** specify security theorems only for T3/T4, and describe T1/T2 strictly as evidentiary heuristics, not anti-forgery guarantees.
 
-Bottom line: CPoP is promising as a **forensic provenance signal**, but under malicious-attester control it is not yet a robust anti-falsification protocol unless trusted capture and independent witnessing become central rather than optional.
+Bottom line: CPoE is promising as a **forensic provenance signal**, but under malicious-attester control it is not yet a robust anti-falsification protocol unless trusted capture and independent witnessing become central rather than optional.
 
 ---
 
 ## o3 Pro (OpenAI)
 
-Round-1 Review – CPoP
+Round-1 Review – CPoE
 
 1. Design quality / completeness  
 •  The wire format, checkpoint chaining and separation of Protocol vs. Appraisal drafts are solid; the mapping to RATS and C2PA is forward-looking.  
@@ -130,7 +130,7 @@ E. TPM / HAT time shifting
 3. Recommendations to harden against malicious Attesters  
 
 1. Replace Argon2id with, or supplement it by, a delay function that has <1.2× ASIC speedup (e.g., Wesolowski VDF or MinRoot).  Embed a public randomness beacon (NIST, drand) value revealed *after* checkpoint i so proofs for i+1 cannot be pre-computed.  
-2. Make CPoP online-interactive at T3/T4: the Verifier (or witness service) injects unpredictable challenges every N seconds that must be incorporated into the next checkpoint hash.  Missed or reordered challenges expose off-line generation.  
+2. Make CPoE online-interactive at T3/T4: the Verifier (or witness service) injects unpredictable challenges every N seconds that must be incorporated into the next checkpoint hash.  Missed or reordered challenges expose off-line generation.  
 3. Bind keystroke acquisition to a measured, signed enclave:  
    •  SGX/TDX or ARM-TZ app that receives raw scancode IRQs, timestamps them internally, and seals the log;  
    •  Attester quotes enclave MRENCLAVE/PCRs inside each checkpoint.  
@@ -146,16 +146,16 @@ These steps move the protocol from “tamper-evident if the user is honest” to
 
 ## Grok 4.20 Beta (xAI)
 
-**CPoP Protocol Round 1 Review: Design Quality, Weaknesses, and Malicious Attester Resistance**
+**CPoE Protocol Round 1 Review: Design Quality, Weaknesses, and Malicious Attester Resistance**
 
-The CPoP protocol presents an ambitious and relatively well-structured attempt to cryptographically bind human authorship to a creative process. Its core strength lies in the **entangled Sequential Work Function (SWF)** using Argon2id in Mode 21, where each checkpoint’s SWF input includes the previous checkpoint’s output. This creates a strictly sequential, memory-hard causality chain that resists parallel pre-computation and forces real wall-clock time to elapse. The combination of document state hashes, jitter binding, and SWF proofs forms a tamper-evident append-only log that is conceptually sound.
+The CCPoE protocol presents an ambitious and relatively well-structured attempt to cryptographically bind human authorship to a creative process. Its core strength lies in the **entangled Sequential Work Function (SWF)** using Argon2id in Mode 21, where each checkpoint’s SWF input includes the previous checkpoint’s output. This creates a strictly sequential, memory-hard causality chain that resists parallel pre-computation and forces real wall-clock time to elapse. The combination of document state hashes, jitter binding, and SWF proofs forms a tamper-evident append-only log that is conceptually sound.
 
 However, the design has critical gaps in adversarial modeling, particularly against a **malicious Attester** who controls the entire software stack (the explicit threat model for T1/T2).
 
 ### Major Design Shortcomings
 
 1. **Root Adversary Can Fabricate Plausible Jitter Post Facto**  
-   The protocol relies heavily on inter-keystroke timing exhibiting pink noise (1/f), Hurst exponent 0.55–0.85, and biological coefficient of variation. A malicious Attester that controls the input stream can generate synthetic timing data that matches these statistical properties *after* the document is written (or even during AI generation). The reference implementation’s `cpop-jitter` crate appears to treat jitter as an observable rather than a cryptographically protected sensor reading. Nothing prevents the Attester from running a high-quality behavioral model (e.g., a fine-tuned LSTM or diffusion model trained on the target author’s prior typing) to generate timing sequences that pass SNR, BCA, and Hurst tests. The independence classes listed in the forensic table are mostly statistical; they are not cryptographically independent from an adversary who controls the data source.
+   The protocol relies heavily on inter-keystroke timing exhibiting pink noise (1/f), Hurst exponent 0.55–0.85, and biological coefficient of variation. A malicious Attester that controls the input stream can generate synthetic timing data that matches these statistical properties *after* the document is written (or even during AI generation). The reference implementation’s `cpoe-jitter` crate appears to treat jitter as an observable rather than a cryptographically protected sensor reading. Nothing prevents the Attester from running a high-quality behavioral model (e.g., a fine-tuned LSTM or diffusion model trained on the target author’s prior typing) to generate timing sequences that pass SNR, BCA, and Hurst tests. The independence classes listed in the forensic table are mostly statistical; they are not cryptographically independent from an adversary who controls the data source.
 
 2. **Insufficient Binding Between Keystrokes and SWF**  
    The protocol description does not specify exactly how individual keystrokes or small document deltas are bound into each SWF instance. If the SWF only operates on coarse checkpoints (e.g., every 30–60 seconds), an adversary can generate the entire document using AI, then synthesize a plausible checkpoint chain with correct statistical jitter in a single offline pass. The “entangled” property only protects the *time* between checkpoints, not the semantic plausibility of the typing events within each interval. A concrete attack is the **“Statistical Waterfall Attack”**: generate the full document, then solve for a sequence of inter-keystroke vectors that match the required Hurst exponent and 1/f spectrum while satisfying the SWF chain. This is computationally feasible because Argon2id is only expensive per checkpoint, not per keystroke.
@@ -164,7 +164,7 @@ However, the design has critical gaps in adversarial modeling, particularly agai
    Thermal trajectories, kernel entropy deltas, and inertial accelerometer data are mentioned as “increasing dimensionality.” Against a root adversary these are essentially free variables. The adversary can simulate plausible thermal drift, manipulate `/dev/random` entropy counters, and synthesize accelerometer data (especially on laptops without constant physical monitoring). The protocol does not appear to require continuous sampling or cryptographic binding of these sensors into the SWF computation at high frequency.
 
 4. **No Strong Keyed or Hardware-Bound Channel for Behavioral Data**  
-   There is no mention of using a TPM PCR extension or a hardware-bound monotonic counter that is updated on every checkpoint with a measurement of the *live* behavioral collection module. A root attacker can therefore replace the entire `cpop-jitter` logic with a forgery engine that produces valid-looking CBOR evidence.
+   There is no mention of using a TPM PCR extension or a hardware-bound monotonic counter that is updated on every checkpoint with a measurement of the *live* behavioral collection module. A root attacker can therefore replace the entire `cpoe-jitter` logic with a forgery engine that produces valid-looking CBOR evidence.
 
 5. **Verifier Oracle Problem and Replay**  
    The forensic mechanisms (CLC, MTD, ET, PPX, etc.) are sophisticated but rely on heuristics that a sophisticated adversary can explicitly optimize against. An attacker with access to the verifier binary (or the appraisal draft) can perform adversarial training of their forgery generator to minimize flags across independence classes. The protocol lacks a **freshness nonce** or **presence challenge** that is cryptographically bound into the SWF chain at unpredictable intervals.
@@ -173,7 +173,7 @@ However, the design has critical gaps in adversarial modeling, particularly agai
 
 - **Delayed Synthesis Attack**: AI-generate document → run behavioral model to synthesize jitter + SWF chain in one pass. Passes all statistical tests.
 - **Hybrid Human-AI Attack**: Human writes outline slowly, AI fills bulk content with synthesized timing that matches the human’s statistical profile.
-- **Kernel-Level Timing Proxy**: Attacker intercepts all timing calls (TSC, `clock_gettime`, etc.) and replaces them with pre-generated plausible values before they reach the CPoP library.
+- **Kernel-Level Timing Proxy**: Attacker intercepts all timing calls (TSC, `clock_gettime`, etc.) and replaces them with pre-generated plausible values before they reach the CPoE library.
 - **Checkpoint Granularity Attack**: If checkpoints are too infrequent, the SWF only proves “some time passed,” not that the content was authored during that time.
 
 ### Improvement Recommendations
@@ -203,7 +203,7 @@ However, when modeling a malicious Attester with full control over the software 
 ### Shortcomings and Attack Vectors
 
 **1. Generative Behavioral Forgery (GAN-Jitter Attack)**
-The protocol relies heavily on statistical markers of human typing (1/f noise, Hurst 0.55–0.85, CV). An adversary with root access can bypass this by training a Generative Adversarial Network (GAN) or specialized transformer on real human keystroke datasets. If the Verifier’s forensic mechanisms (SNR, BCA) use deterministic or known statistical thresholds, the adversary simply incorporates those exact metrics into their generator's loss function. The OS then injects this mathematically perfect "human" telemetry directly into the CPoP pipeline.
+The protocol relies heavily on statistical markers of human typing (1/f noise, Hurst 0.55–0.85, CV). An adversary with root access can bypass this by training a Generative Adversarial Network (GAN) or specialized transformer on real human keystroke datasets. If the Verifier’s forensic mechanisms (SNR, BCA) use deterministic or known statistical thresholds, the adversary simply incorporates those exact metrics into their generator's loss function. The OS then injects this mathematically perfect "human" telemetry directly into the CPoE pipeline.
 
 **2. SWF Time-Compression via Hardware Superiority**
 Argon2id is memory-hard, which limits ASIC parallelization, but it is fundamentally a Proof-of-Work (PoW) / Key Derivation Function, not a strict Verifiable Delay Function (VDF). An adversary with a massive high-bandwidth memory cluster (e.g., HBM3 GPUs) can compute the sequential Argon2id chain faster than a standard laptop. This allows the adversary to "time-compress" the generation of a document, synthesizing a fake 3-hour typing session in 20 minutes, bypassing the wall-clock enforcement.
@@ -225,24 +225,24 @@ For Tier 3 (Hardware-Bound), anchoring time via the TPM is insufficient if
 
 ## Qwen 3.5 397B (Alibaba)
 
-The CPoP protocol presents an ambitious fusion of behavioral biometrics and cryptographic chaining. However, the security model collapses under the "malicious Attester" threat, specifically in Tiers 1 and 2, which constitute the primary deployment surface. While the documentation acknowledges T1/T2 cannot defeat a root adversary, relying on "dimensionality" as a deterrent is security through obscurity, not cryptographic assurance.
+The CCPoE protocol presents an ambitious fusion of behavioral biometrics and cryptographic chaining. However, the security model collapses under the "malicious Attester" threat, specifically in Tiers 1 and 2, which constitute the primary deployment surface. While the documentation acknowledges T1/T2 cannot defeat a root adversary, relying on "dimensionality" as a deterrent is security through obscurity, not cryptographic assurance.
 
 **Critical Weakness 1: SWF and Time Manipulation**
-The Sequential Work Function (SWF) using Argon2id intends to enforce wall-clock time passage. However, computational work does not equate to elapsed time without a trusted time source. A privileged adversary controlling the kernel can manipulate the Time Stamp Counter (TSC) or CNTVCT registers used by the `cpop-jitter` engine. By hooking the timing source, an attacker can compress the perceived duration between checkpoints while performing the required Argon2id work on accelerated hardware (e.g., GPU clusters). The "entanglement" prevents parallelization of the hash chain, but it does not prevent time-compression attacks if the clock source is untrusted. Without Hardware-Anchored Time (HAT) enforced by a TPM/TEE *before* the SWF calculation begins, the SWF only proves work, not latency.
+The Sequential Work Function (SWF) using Argon2id intends to enforce wall-clock time passage. However, computational work does not equate to elapsed time without a trusted time source. A privileged adversary controlling the kernel can manipulate the Time Stamp Counter (TSC) or CNTVCT registers used by the `cpoe-jitter` engine. By hooking the timing source, an attacker can compress the perceived duration between checkpoints while performing the required Argon2id work on accelerated hardware (e.g., GPU clusters). The "entanglement" prevents parallelization of the hash chain, but it does not prevent time-compression attacks if the clock source is untrusted. Without Hardware-Anchored Time (HAT) enforced by a TPM/TEE *before* the SWF calculation begins, the SWF only proves work, not latency.
 
 **Critical Weakness 2: Biometric Spoofing via ML**
-The protocol relies on statistical properties (Hurst exponent, 1/f pink noise) to distinguish humans from bots. This is vulnerable to Generative Adversarial Networks (GANs) trained on legitimate CPoP traces. An adversary can capture valid evidence packets, extract the jitter distributions, and train a model to synthesize inter-keystroke intervals that pass SNR and Biological Cadence (BCA) checks. Furthermore, the "Error Topology" and "Cognitive Load" mechanisms assume semantic correlation that can be bypassed by inserting AI text into a live human editing session (the "Centaur" attack), where human typing masks AI insertion points.
+The protocol relies on statistical properties (Hurst exponent, 1/f pink noise) to distinguish humans from bots. This is vulnerable to Generative Adversarial Networks (GANs) trained on legitimate CPoE traces. An adversary can capture valid evidence packets, extract the jitter distributions, and train a model to synthesize inter-keystroke intervals that pass SNR and Biological Cadence (BCA) checks. Furthermore, the "Error Topology" and "Cognitive Load" mechanisms assume semantic correlation that can be bypassed by inserting AI text into a live human editing session (the "Centaur" attack), where human typing masks AI insertion points.
 
 **Critical Weakness 3: Sensor Injection**
 In T1/T2, physical state markers (thermal, accelerometer) are read via standard OS APIs. A root adversary can inject false sensor data at the driver level (e.g., using Frankenstein attacks on Linux IIO subsystems). Claiming these provide "dimensionality" is insufficient; if the verifier cannot cryptographically verify the sensor source via a hardware root (like a Sensor Hub with attestation), these fields are merely decorative and increase false positives without increasing security.
 
 **Recommendations for Improvement**
 1.  **Mandatory TEE for Collection:** Move jitter collection and SWF execution into a Trusted Execution Environment (e.g., Intel SGX, ARM TrustZone). The TEE must sign the checkpoint, ensuring the OS cannot tamper with timing or sensor inputs.
-2.  **Remote Attestation of Collector:** The Verifier must validate a quote from the TEE proving the `cpop-jitter` code is untampered before accepting evidence.
+2.  **Remote Attestation of Collector:** The Verifier must validate a quote from the TEE proving the `cpoe-jitter` code is untampered before accepting evidence.
 3.  **Challenge-Response Biometrics:** Replace passive jitter collection with active challenges (e.g., specific typing tasks) to prevent replay attacks using captured historical data.
 4.  **Hardware-Bound Timing:** Decouple SWF verification from system clocks. Use TPM monotonic counters exclusively for elapsed time measurement, ignoring system time entirely.
 
-Without these shifts, CPoP remains a forensic tool for post-hoc analysis rather than a cryptographic proof system capable of resisting a motivated adversary controlling the endpoint.
+Without these shifts, CPoE remains a forensic tool for post-hoc analysis rather than a cryptographic proof system capable of resisting a motivated adversary controlling the endpoint.
 
 ---
 
@@ -250,7 +250,7 @@ Without these shifts, CPoP remains a forensic tool for post-hoc analysis rather 
 
 ## Round 1 Review: Structural and Foundational Concerns
 
-The CPoP protocol presents an ambitious and sophisticated synthesis of cryptographic chaining, behavioral biometrics, and computational proof-of-work. Its core strength lies in its *defense-in-depth* approach, layering multiple independent verification mechanisms (spectral, temporal, semantic, hardware). The use of an Argon2id-based Sequential Work Function (SWF) in entangled mode (Mode 21) to enforce real-time passage and create an append-only, tamper-evident chain is a sound cryptographic foundation. The mapping to RATS architecture and the tiered assurance model (T1-T4) are pragmatic, acknowledging the limits of software-only attestation.
+The CCPoE protocol presents an ambitious and sophisticated synthesis of cryptographic chaining, behavioral biometrics, and computational proof-of-work. Its core strength lies in its *defense-in-depth* approach, layering multiple independent verification mechanisms (spectral, temporal, semantic, hardware). The use of an Argon2id-based Sequential Work Function (SWF) in entangled mode (Mode 21) to enforce real-time passage and create an append-only, tamper-evident chain is a sound cryptographic foundation. The mapping to RATS architecture and the tiered assurance model (T1-T4) are pragmatic, acknowledging the limits of software-only attestation.
 
 However, significant shortcomings exist in the current design, primarily revolving around the **trust boundary at the Attester** and the **practical robustness of behavioral signals**.
 
@@ -263,7 +263,7 @@ The protocol’s most severe weakness is its vulnerability to a **deterministic 
 **Concrete Attack Vector (Fork-and-Replay):**
 1.  Adversary generates target document using AI.
 2.  Offline, using a human typing model, they generate a plausible sequence of inter-keystroke intervals and document state hashes.
-3.  They execute the CPoP protocol in a controlled, instrumented environment, feeding the pre-generated jitter and document states into the Attester software. The software performs the real, sequential Argon2id work, building a perfectly valid cryptographic chain.
+3.  They execute the CCPoE protocol in a controlled, instrumented environment, feeding the pre-generated jitter and document states into the Attester software. The software performs the real, sequential Argon2id work, building a perfectly valid cryptographic chain.
 4.  The resulting Evidence Packet is cryptographically sound and will pass all chain integrity and SWF verification checks. The forensic analysis (SNR, BCA) on the *provided* jitter data will see human-like patterns because the data was specifically engineered to pass these tests.
 
 This reduces the security of T1/T2 to a **complexity barrier** (cost of modeling human behavior and incurring SWF time) rather than a cryptographic guarantee.
@@ -283,17 +283,17 @@ To elevate the protocol from detecting *statistical anomalies* to preventing *ca
 *   **Strengthen the Semantic/Behavioral Link:** Instead of just analyzing final timing, require **micro-editing events** (cursor movements, selections, deletions) and bind them to the document state delta. Simulating a fully plausible, human-like sequence of micro-edits is a vastly more difficult modeling problem than generating simple keystroke intervals.
 *   **Reframe T1/T2 as "Non-Repudiation" vs. "Attestation":** Clearly state that T1/T2 evidence is primarily valuable for **non-repudiation** in a collaborative, semi-trusted setting (e.g., an author cannot later claim "AI wrote it" if their own software signed the chain). It should not be marketed as strong attestation against a malicious author. The tier documentation must emphasize this threat model distinction.
 
-In summary, CPoP is cryptographically sound but behaviorally vulnerable to a dedicated forger at its lower assurance tiers. Its core innovation—the entangled SWF—secures the *chain of events* but not the *truthfulness of the initial events*. Closing this gap requires pushing critical measurements into hardware trust boundaries and making the protocol more interactive.
+In summary, CPoE is cryptographically sound but behaviorally vulnerable to a dedicated forger at its lower assurance tiers. Its core innovation—the entangled SWF—secures the *chain of events* but not the *truthfulness of the initial events*. Closing this gap requires pushing critical measurements into hardware trust boundaries and making the protocol more interactive.
 
 ---
 
 ## Claude Opus 4.6 (Anthropic)
 
-# CPoP Protocol Review — Round 1
+# CPoE Protocol Review — Round 1
 
 ## 1. Overall Assessment of Protocol Design Quality
 
-CPoP is an ambitious and well-structured protocol that correctly identifies a genuine problem: proving human authorship provenance in an era of generative AI. The layered tier system (T1–T4), the RATS architecture alignment, the CBOR wire format with CDDL schema, and the separation of evidence collection from appraisal are all sound architectural decisions. The forensic mechanism battery is impressively comprehensive in its coverage of independence classes.
+CPoE is an ambitious and well-structured protocol that correctly identifies a genuine problem: proving human authorship provenance in an era of generative AI. The layered tier system (T1–T4), the RATS architecture alignment, the CBOR wire format with CDDL schema, and the separation of evidence collection from appraisal are all sound architectural decisions. The forensic mechanism battery is impressively comprehensive in its coverage of independence classes.
 
 That said, the protocol's fundamental security proposition rests on a deeply adversarial foundation — the Attester is the entity being evaluated — and this creates structural tensions that I believe are insufficiently resolved at T1/T2 and only partially addressed at T3/T4.
 
@@ -338,10 +338,10 @@ The protocol is a strong conceptual foundation, but the gap between the threat m
 
 ## Mistral Large 3 (Mistral)
 
-### **CPoP Protocol Review: Strengths, Weaknesses, and Forgery Prevention**
+### **CPoE Protocol Review: Strengths, Weaknesses, and Forgery Prevention**
 
 #### **1. Quality and Completeness of Protocol Design**
-CPoP is a well-structured protocol that effectively integrates **behavioral biometrics, cryptographic chaining, and environmental binding** to detect AI-generated or forged content. Key strengths include:
+CPoE is a well-structured protocol that effectively integrates **behavioral biometrics, cryptographic chaining, and environmental binding** to detect AI-generated or forged content. Key strengths include:
 
 - **Sequential Work Function (SWF) with Argon2id**: Forces real-time computation, preventing pre-generation of checkpoints. The **entangled mode (Mode 21)** ensures strict sequential dependency, making parallel forgery infeasible.
 - **Jitter Binding & Behavioral Fingerprinting**: Captures **1/f noise, Hurst exponent, and coefficient of variation (CV)** to distinguish human typing from synthetic timing. The **forensic analysis engine** (SNR, CLC, MTD, etc.) provides multi-dimensional detection.
@@ -409,7 +409,7 @@ The **biggest threat** is a **root adversary** who controls the OS, drivers, or 
 ---
 
 ### **Conclusion**
-CPoP is a **strong foundation** for **human authorship attestation**, but **T1/T2 are vulnerable to a malicious Attester**. **Hardware-enforced isolation (SGX/TrustZone), cryptographic binding of physical state, and dynamic SWF parameters** would significantly improve resilience. The **next round** should explore **TEE-based Attester implementations** and **adversarial testing** against **GPU-accelerated forgery**.
+CPoE is a **strong foundation** for **human authorship attestation**, but **T1/T2 are vulnerable to a malicious Attester**. **Hardware-enforced isolation (SGX/TrustZone), cryptographic binding of physical state, and dynamic SWF parameters** would significantly improve resilience. The **next round** should explore **TEE-based Attester implementations** and **adversarial testing** against **GPU-accelerated forgery**.
 
 **Key Recommendations:**
 ✅ **Mandate TEE for T2+** (SGX/TrustZone)
@@ -424,9 +424,9 @@ Would the panel like to explore **TEE-based Attester designs** in Round 2?
 
 ## MiMo V2 Pro (Xiaomi)
 
-**Review of CPoP Protocol – Round 1**
+**Review of CPoE Protocol – Round 1**
 
-The CPoP protocol presents a sophisticated attempt to bind document authorship to a verifiable human process via behavioral telemetry and cryptographic chaining. The design is ambitious, integrating SWF proofs, jitter analysis, and forensic mechanisms. However, several critical weaknesses emerge, particularly under the threat model where the Attester (user) controls the software stack.
+The CCPoE protocol presents a sophisticated attempt to bind document authorship to a verifiable human process via behavioral telemetry and cryptographic chaining. The design is ambitious, integrating SWF proofs, jitter analysis, and forensic mechanisms. However, several critical weaknesses emerge, particularly under the threat model where the Attester (user) controls the software stack.
 
 **1. Jitter Binding as a Weak Cryptographic Anchor:**
 The protocol’s reliance on statistical properties of keystroke timing (1/f noise, Hurst exponent) as a forgery deterrent is its most significant vulnerability. A malicious attester with stack control can *simulate* these statistical patterns. Research in behavioral biometrics shows that generative models (e.g., GANs) can produce synthetic timing sequences that pass statistical tests for human-likeness. The attacker can pre-record or algorithmically generate a "human-like" jitter profile and inject it into the checkpoint chain. The forensic mechanisms (SNR, CLC, BCA) are heuristic and probabilistic; a sufficiently sophisticated mimicry attack could evade detection, especially if the attacker tailors the synthetic jitter to match a target distribution. This is not a mere theoretical flaw—it directly undermines the core premise of T1/T2 assurance.
@@ -447,17 +447,17 @@ The listed forensic detectors (MTD, ET, PPX) assume static attack patterns. An a
 *   **Formalize an Adversarial Model for Verifiers:** Specify that verifiers must be trained and tested against adaptive adversaries using techniques from adversarial machine learning. Implement rate limiting and anomaly detection on verification queries to detect probing attacks.
 *   **Strengthen TPM Integration:** For HAT, require the TPM to sign not just a timestamp but a hash of the *entire checkpoint chain up to that point*, with frequent quotes. This creates a tighter binding between time and the evolving evidence state.
 
-In summary, while CPoP's layered approach is commendable, its current design places excessive trust in the unforgeability of behavioral statistics and leaves critical gaps in the SWF-jitter binding and hardware integration. Without addressing these, a motivated attacker controlling the attester can systematically undermine the protocol's guarantees.
+In summary, while CPoE's layered approach is commendable, its current design places excessive trust in the unforgeability of behavioral statistics and leaves critical gaps in the SWF-jitter binding and hardware integration. Without addressing these, a motivated attacker controlling the attester can systematically undermine the protocol's guarantees.
 
 ---
 
 ## MiniMax M2.7 (MiniMax)
 
-# CPoP Protocol Review — Round 1
+# CPoE Protocol Review — Round 1
 
 ## Strengths and Design Quality
 
-The CPoP architecture demonstrates thoughtful layering: the append-only checkpoint chain with SHA-256 linkage provides tamper-evident causality, Argon2id in entangled mode raises the computational cost of forgery, and the multi-mechanism forensic engine (9 independent detection classes) offers defense-in-depth against behavioral anomalies. The tiered assurance model honestly acknowledges what T1/T2 cannot achieve, which is more defensible than overclaiming.
+The CPoE architecture demonstrates thoughtful layering: the append-only checkpoint chain with SHA-256 linkage provides tamper-evident causality, Argon2id in entangled mode raises the computational cost of forgery, and the multi-mechanism forensic engine (9 independent detection classes) offers defense-in-depth against behavioral anomalies. The tiered assurance model honestly acknowledges what T1/T2 cannot achieve, which is more defensible than overclaiming.
 
 ## Critical Weaknesses and Concrete Attack Vectors
 
@@ -467,7 +467,7 @@ The checkpoint chain needs a trusted anchor. Without it, a malicious Attester ca
 
 **2. Jitter Engine Compromise via Deterministic Mode**
 
-The `cpop-jitter` crate's HMAC-based jitter engine is explicitly deterministic. If the Attester controls the software stack, it can pre-compute all "random" intervals, trivially satisfying any entropy check. This mode should be excluded from any meaningful security claim—it provides format compliance, not entropy.
+The `cpoe-jitter` crate's HMAC-based jitter engine is explicitly deterministic. If the Attester controls the software stack, it can pre-compute all "random" intervals, trivially satisfying any entropy check. This mode should be excluded from any meaningful security claim—it provides format compliance, not entropy.
 
 **3. Hardware Timing Manipulation Under Kernel Control**
 
@@ -535,7 +535,7 @@ I agree most with the models pushing **C + D**, and I think several others overs
 **G (FIDO2 key for jitter signing):** Limited value. It proves device possession, not timing truth.
 
 **Single most impactful improvement:**  
-Adopt a **witness-anchored append-only edit log**: unpredictable external nonces, frequent transcript commitments, and operation-level logging. That is the first change that materially converts CPoP from a forgeable local narrative into something with real non-repudiation value.
+Adopt a **witness-anchored append-only edit log**: unpredictable external nonces, frequent transcript commitments, and operation-level logging. That is the first change that materially converts CPoE from a forgeable local narrative into something with real non-repudiation value.
 
 ---
 
@@ -552,7 +552,7 @@ But **C only works if paired with D**: commit to **full edit-operation logs** (i
 Yes, a real VDF is better than Argon2id if the goal is non-parallelizable delay. I agree with Gemini/o3 Pro that Argon2id is the wrong primitive for “elapsed effort.” But replacing Argon2 with Wesolowski/Pietrzak does **not** fix the decisive issue: a malicious attester can still decide *when* to request challenges, proxy timing, and synthesize edit streams around the delay. A is a second-order hardening, not the core fix.
 
 **B (mandatory TEE at T2+) is the strongest cryptographic answer but the least practical deployment-wise.**  
-Qwen/Mistral/MiMo are right on substance: without a trusted capture path, T2 remains gameable. But mandatory TEE breaks portability, excludes many users, adds vendor trust, and still does not prove “human authorship”—only that some input events reached trusted code. Good for a higher-assurance tier, not for baseline CPoP.
+Qwen/Mistral/MiMo are right on substance: without a trusted capture path, T2 remains gameable. But mandatory TEE breaks portability, excludes many users, adds vendor trust, and still does not prove “human authorship”—only that some input events reached trusted code. Good for a higher-assurance tier, not for baseline CPoE.
 
 **E and F are weak.**  
 Continuous attestation without an external challenge source just gives the attacker more fake data to synthesize. Multi-verifier PPX consensus does not solve oracle gaming if the criteria are known or learnable.
@@ -586,7 +586,7 @@ G. FIDO2 key for jitter signing. The key signs whatever timestamps it is fed; th
 
 What others missed: no one linked the selective-omission attack to block-reorderable Merkle trees. With a witness-nonce sequence number embedded in each leaf, orphaning a bad branch becomes impossible without the witness noticing the gap.
 
-Single most impactful change: adopt Proposal C—append a witness-issued, unpredictable nonce to every checkpoint and anchor the witness log in a public append-only ledger. This alone converts CPoP from a self-signed diary into a globally time-stamped receipt that attackers cannot fabricate retroactively.
+Single most impactful change: adopt Proposal C—append a witness-issued, unpredictable nonce to every checkpoint and anchor the witness log in a public append-only ledger. This alone converts CPoE from a self-signed diary into a globally time-stamped receipt that attackers cannot fabricate retroactively.
 
 ---
 
@@ -661,7 +661,7 @@ The protocol must abandon the fiction of standalone "authorship proof." Its most
 
 ## MiniMax M2.7
 
-## Round 2 Response: Making CPoP Honest About What It Cannot Prove
+## Round 2 Response: Making CPoE Honest About What It Cannot Prove
 
 The consensus identifies the right attacks but misdiagnoses the solution space. Most proposals (A, D, E, F) attempt to add cryptographic complexity where the root problem is *ontological*: you cannot cryptographically prove human consciousness typed words.
 
@@ -726,7 +726,7 @@ Concrete protocol change: “Witness-anchored checkpoints” (consensus Proposal
    • Back-dated editing: checkpoints signed after w_expiry are provably invalid.  
    • Oracle-hill-climbing on statistical detectors: attacker must stay online and cannot iteratively prune “bad” chains without leaving gaps.
 
-This single change converts CPoP from a self-signed diary into an externally time-stamped, non-forkable ledger while adding <0.1 s latency per checkpoint on commodity networks.
+This single change converts CPoE from a self-signed diary into an externally time-stamped, non-forkable ledger while adding <0.1 s latency per checkpoint on commodity networks.
 
 ---
 
@@ -809,7 +809,7 @@ Requires one synchronous HTTPS request per checkpoint (e.g., every 2 seconds or 
 **4. Attacks Defeated:**
 **Offline Transcript Synthesis:** Attackers cannot precompute a valid chain because `witness_challenge` is unpredictable and only released upon request. **Selective Omission:** The Witness Service logs issued sequence numbers; verifiers can detect gaps if the attacker tries to publish a forked branch with missing intervals. **Time Compression:** The witness timestamp provides an external lower-bound on elapsed wall-clock time, preventing batch-generation of checkpoints.
 
-This change shifts CPoP from a self-signed diary to a third-party anchored receipt, materially raising the cost of forgery without requiring TEEs or VDFs.
+This change shifts CPoE from a self-signed diary to a third-party anchored receipt, materially raising the cost of forgery without requiring TEEs or VDFs.
 
 ---
 
@@ -860,7 +860,7 @@ Verifiers must validate witness nonce freshness and edit log consistency:
 - **Fork-and-replay**: Witness sequence numbers prevent branching histories
 - **Paste decomposition**: Individual paste operations are explicitly logged with timing, preventing decomposition into fake keystrokes
 
-This change converts CPoP from self-attested timing evidence to externally-anchored forensic audit trail, defeating the most damaging offline fabrication attacks while maintaining practical deployability.
+This change converts CPoE from self-attested timing evidence to externally-anchored forensic audit trail, defeating the most damaging offline fabrication attacks while maintaining practical deployability.
 
 ---
 
@@ -928,7 +928,7 @@ This is the single highest-leverage change: it eliminates the primary failure mo
 
 # Round 4: Proposal Evaluation
 
-**Best proposal:** the **first one** (“Witness-anchored checkpoints” with `prev_id`, `w_nonce`, `w_expiry`, `w_sig`, plus a public transparency log). It is the most deployable **now** because it minimally changes the existing checkpoint object, preserves current SWF/VDF machinery, and adds the one thing CPoP most needs: an external, unpredictable, publicly auditable anchor. The transparency log is the differentiator; several others say “signed nonce,” but without an auditable issuance log, selective omission/fork detection is much weaker in practice.
+**Best proposal:** the **first one** (“Witness-anchored checkpoints” with `prev_id`, `w_nonce`, `w_expiry`, `w_sig`, plus a public transparency log). It is the most deployable **now** because it minimally changes the existing checkpoint object, preserves current SWF/VDF machinery, and adds the one thing CPoE most needs: an external, unpredictable, publicly auditable anchor. The transparency log is the differentiator; several others say “signed nonce,” but without an auditable issuance log, selective omission/fork detection is much weaker in practice.
 
 **What I’d change:**  
 1. Sign **`doc_hash` too**, not just `(seq, prev_id, nonce, expiry)`. Otherwise the witness only anchors chain position, not the claimed document state for that checkpoint.  
@@ -983,7 +983,7 @@ Ship **signed witness nonces bound to `(session_id, seq, prev_id, doc_hash)` plu
 - The witness service, while “stateless,” still needs per-session rate limiting and basic anti-abuse.
 
 **Minimum Viable Improvement for next spec revision:**  
-Add only three fields to Checkpoint: `prev_id`, `w_nonce` (32 B), `w_sig` (64 B) over `(seq ‖ prev_id ‖ w_nonce ‖ expiry)`. Require one extra HTTPS `/nonce` round-trip before emitting each checkpoint. Verifiers check: (1) hash chain via prev_id, (2) witness signature, (3) no gaps in seq, (4) expiry window. Everything else (full edit-log commitment, per-op ms deltas, dual signatures, Merkle transparency log) is deferred. This single change turns CPoP from a self-signed diary into a non-forkable, externally anchored ledger and can ship immediately.
+Add only three fields to Checkpoint: `prev_id`, `w_nonce` (32 B), `w_sig` (64 B) over `(seq ‖ prev_id ‖ w_nonce ‖ expiry)`. Require one extra HTTPS `/nonce` round-trip before emitting each checkpoint. Verifiers check: (1) hash chain via prev_id, (2) witness signature, (3) no gaps in seq, (4) expiry window. Everything else (full edit-log commitment, per-op ms deltas, dual signatures, Merkle transparency log) is deferred. This single change turns CPoE from a self-signed diary into a non-forkable, externally anchored ledger and can ship immediately.
 
 (Word count: 278)
 
@@ -1033,7 +1033,7 @@ Proposal 2/4/5 add edit-log commitments which are *defense-in-depth*, not *requi
 **How:** Witness logs `(session_id_pseudonym, seq, prev_id, doc_hash, w_nonce, issued_at, witness_id)` on issuance; verifiers/auditors fetch inclusion proofs and track witness key rotation.  
 **Cost:** **Medium**
 
-**ONE THING CPoP GETS RIGHT:**  
+**ONE THING CPoE GETS RIGHT:**  
 Keep the existing **checkpointed SWF/VDF proof model**; it is the right lightweight core and should not be replaced with heavyweight per-edit signing or full edit-log commitments.
 
 ---
@@ -1067,7 +1067,7 @@ UNCHANGED & KEEP IT: the monotonically increasing 64-bit seq field—simple, alr
 **1. Witness-anchored checkpoints**  
 What: Add `prev_id`, `w_nonce`, `w_issued_at`, `w_sig` to every Checkpoint.  
 Why: Defeats offline pre-fabrication, fork-and-replay, and selective omission by forcing external fresh unpredictability.  
-How: Before emitting checkpoint, client calls `/nonce?session_id=X&seq=N&prev_id=H` (one RTT); witness logs `(session_id, seq, prev_id, doc_hash, issued_at)` to append-only hash-chain log, returns 32 B nonce + Ed25519 signature over `( "CPoP-v1" ‖ session_id ‖ seq ‖ prev_id ‖ doc_hash ‖ issued_at ‖ max_age_ms )`. Verifier checks signature, hash link, no seq gaps, and issued_at freshness (±5 s).  
+How: Before emitting checkpoint, client calls `/nonce?session_id=X&seq=N&prev_id=H` (one RTT); witness logs `(session_id, seq, prev_id, doc_hash, issued_at)` to append-only hash-chain log, returns 32 B nonce + Ed25519 signature over `( "CPoE-v1" ‖ session_id ‖ seq ‖ prev_id ‖ doc_hash ‖ issued_at ‖ max_age_ms )`. Verifier checks signature, hash link, no seq gaps, and issued_at freshness (±5 s).  
 Cost: Low.
 
 **2. Mandatory doc_hash binding + monotonic seq verification**  
@@ -1079,7 +1079,7 @@ Cost: Low.
 **3. Simple public witness log with key rotation header**  
 What: Publish all issued tuples in a publicly auditable, hash-chained log with current witness pubkey in header.  
 Why: Enables independent fork detection and key-rotation without relying on online verifiers.  
-How: Log served at `/.well-known/cpop-log`; entries are signed statements, not full Merkle tree for MVP.  
+How: Log served at `/.well-known/cpoe-log`; entries are signed statements, not full Merkle tree for MVP.  
 Cost: Medium.
 
 **ONE THING the protocol gets RIGHT that should NOT be changed:** The core SWF/VDF + checkpoint emission model. All improvements are additive; the existing proof machinery and client-side timing source remain untouched.
@@ -1092,7 +1092,7 @@ Cost: Medium.
 
 ### 1. Witness-Anchored Nonce Binding
 **What:** Add `prev_id`, `w_nonce` (32B), and `w_sig` (64B) to each checkpoint, obtained via one HTTPS round-trip to a witness service.
-**Why:** Defeats offline pre-fabrication, fork-and-replay, and time-compression — the existential threats to CPoP's credibility.
+**Why:** Defeats offline pre-fabrication, fork-and-replay, and time-compression — the existential threats to CPoE's credibility.
 **How:** Before emitting checkpoint `n`, client calls `POST /nonce` with `(session_id, seq, prev_id)`. Witness returns `(w_nonce, w_sig)` over `(seq ‖ prev_id ‖ doc_hash ‖ w_nonce ‖ ttl)`. Verifier checks signature, hash-chain continuity, sequence monotonicity, and TTL window (≤10s). Witness rejects duplicate `(session_id, seq)` pairs.
 **Cost:** Low. Three new fields, one RTT, existing Ed25519/HTTPS primitives.
 

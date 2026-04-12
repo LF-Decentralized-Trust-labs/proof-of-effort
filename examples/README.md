@@ -1,8 +1,8 @@
 [//]: # (SPDX-License-Identifier: Apache-2.0)
 
-# CPoP Example Data
+# CPoE Example Data
 
-This directory contains canonical examples of CPoP data structures in
+This directory contains canonical examples of CPoE data structures in
 CBOR diagnostic notation ([RFC 8949 Section 8][diag]).  They are intended
 as implementation references and are **not** real evidence.
 
@@ -13,6 +13,6 @@ as implementation references and are **not** real evidence.
 
 All hash digests, UUIDs, signatures, and timestamps are synthetic
 placeholder values.  Integer map keys follow the schema in
-[`cddl/cpop.cddl`](../cddl/cpop.cddl).
+[`cddl/cpoe.cddl`](../cddl/cpoe.cddl).
 
 [diag]: https://www.rfc-editor.org/rfc/rfc8949#section-8

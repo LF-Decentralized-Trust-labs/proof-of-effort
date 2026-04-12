@@ -14,15 +14,15 @@ establishes that:
 3. Companies must disclose if materials provided contain AI-generated content
 4. Writers may choose to use AI (with company consent) but cannot be required to
 
-### CPoP Coverage
+### CPoE Coverage
 
-| MBA Requirement                       | CPoP Mechanism                                         |
+| MBA Requirement                       | CPoE Mechanism                                         |
 | ------------------------------------- | ------------------------------------------------------ |
 | Prove human authorship                | Behavioral forensic analysis (15+ checks, V1–V5 verdict) |
 | Disclose AI tool usage                | Declaration `ai_tools[]` with name, version, extent    |
 | Distinguish human vs AI content       | IPTC `digitalSourceType` + `AiExtent` mapping          |
 | Non-repudiable disclosure             | Ed25519-signed declaration bound to evidence chain     |
-| Verifiable by third parties           | Public verification via `cpop verify` or WritersProof API |
+| Verifiable by third parties           | Public verification via `cpoe verify` or WritersProof API |
 
 ## SAG-AFTRA AI Provisions
 
@@ -30,9 +30,9 @@ The [SAG-AFTRA contracts](https://www.sagaftra.org/contracts-industry-resources/
 require informed consent for digital replicas and clear disclosure of
 AI-generated performer content.
 
-### CPoP Coverage
+### CPoE Coverage
 
-| SAG-AFTRA Requirement                 | CPoP Mechanism                                         |
+| SAG-AFTRA Requirement                 | CPoE Mechanism                                         |
 | ------------------------------------- | ------------------------------------------------------ |
 | Distinguish human vs AI performance   | Behavioral attestation (keystroke dynamics, entropy)   |
 | Consent chain                         | Declaration signed by author with DID identity         |
@@ -41,7 +41,7 @@ AI-generated performer content.
 ## Compliance Check
 
 The reference implementation provides a `CreativeRightsCompliance` structure
-that derives compliance status from a CPoP declaration and EAR token:
+that derives compliance status from a CPoE declaration and EAR token:
 
 - `human_authored` — Whether EAR verdict affirms human authorship
 - `gai_source_disclosed` — Whether AI tools are disclosed per MBA Section 72

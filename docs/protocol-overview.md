@@ -1,17 +1,17 @@
 [//]: # (SPDX-License-Identifier: Apache-2.0)
 
-# CPoP Protocol Overview
+# CPoE Protocol Overview
 
 This document provides a comprehensive technical overview of the
-Cryptographic Proof of Process (CPoP) protocol: what it does, how it
+Cryptographic Proof of Effort (CPoE) protocol: what it does, how it
 works, and how the pieces fit together. For the normative specification,
-see the [protocol draft](../draft-condrey-cpop-protocol.md) and
-[appraisal draft](../draft-condrey-cpop-appraisal.md). For the RATS
+see the [protocol draft](../draft-condrey-cpoe-protocol.md) and
+[appraisal draft](../draft-condrey-cpoe-appraisal.md). For the RATS
 architecture mapping, see [architecture.md](architecture.md).
 
 ## Purpose
 
-The CPoP protocol produces tamper-evident evidence that a human
+The CCPoE protocol produces tamper-evident evidence that a human
 authored a document through a genuine creative process, rather than
 generating it with AI and back-filling fake timing data. It works by
 instrumenting the authoring environment to capture behavioral
@@ -57,7 +57,7 @@ attestation tier, and optional fields for presence challenges
 (QR-based out-of-band human verification), channel binding (TLS
 Exported Keying Material), hardware-anchored time (TPM attestation),
 and behavioral baselines. The wire format uses integer keys for
-compactness and is defined in CDDL ([`cddl/cpop.cddl`](../cddl/cpop.cddl))
+compactness and is defined in CDDL ([`cddl/cpoe.cddl`](../cddl/cpoe.cddl))
 with strict validation rules.
 
 ## Verification and Forensic Analysis
@@ -111,7 +111,7 @@ given piece of evidence.
 
 ## Ecosystem Integration
 
-CPoP is designed as an IETF protocol (experimental status) with two
+CPoE is designed as an IETF protocol (experimental status) with two
 companion Internet-Drafts: the protocol spec (wire format, checkpoint
 chain, SWF, jitter binding, physical state) and the appraisal spec
 (verifier behavior, forensic mechanisms, attestation result format).
@@ -123,11 +123,11 @@ Verifiable Credentials, CAWG, and EU AI Act compliance frameworks.
 
 The Rust implementation provides two crates:
 
-- **[cpop-jitter](../crates/cpop-jitter/)**: `no_std`-compatible
+- **[cpoe-jitter](../crates/cpoe-jitter/)**: `no_std`-compatible
   entropy collection with HMAC-based (pure/deterministic) and
   hardware-based (TSC/CNTVCT timing) jitter engines, an append-only
   evidence chain with HMAC integrity, and a human-model validator.
-- **[cpop-protocol](../crates/cpop-protocol/)**: Wire types matching
+- **[cpoe-protocol](../crates/cpoe-protocol/)**: Wire types matching
   the CDDL schema, CBOR/JSON codec with size-limited decoding,
   evidence builder with causality locks, forensic analysis engine,
   C2PA manifest generation, and Written Authorship Report encoding.

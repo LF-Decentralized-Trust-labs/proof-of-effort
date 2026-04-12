@@ -48,8 +48,8 @@ jobs:
           --exclude 'sagaftra.org'
           --timeout 30
           --max-retries 3
-          --exclude-path 'draft-condrey-cpop-protocol.md'
-          --exclude-path 'draft-condrey-cpop-appraisal.md'
+          --exclude-path 'draft-condrey-cpoe-protocol.md'
+          --exclude-path 'draft-condrey-cpoe-appraisal.md'
           '*.md'
           'docs/**/*.md'
         fail: true
