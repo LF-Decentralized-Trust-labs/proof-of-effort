@@ -611,12 +611,6 @@ registration. Values 256+ are Private Use.
 # SWF Test Vectors {#test-vectors}
 {:numbered="false"}
 
-NOTE: These test vectors were computed with legacy domain separation
-tags ("CPoE-salt-v1"). Vectors using the current tags
-("SWF-salt-v1") will be provided in a future revision. The
-algorithm logic and Argon2id parameters are unchanged; only the
-salt derivation inputs differ.
-
 The following test vectors use the type-tagged salt derivation
 (0x00/0x01 prefixes) as specified in {{mode-20-construction}}.
 All vectors use SHA-256 (H = SHA-256).
@@ -626,8 +620,8 @@ All vectors use SHA-256 (H = SHA-256).
 
 ~~~ test-vectors
 Seed: "cpoe-genesis-v1"
-Seed (hex): 7769746e657373642d67656e657369732d7631
-Salt: H(0x00 || "CPoE-salt-v1" || seed)  [H = SHA-256]
+Seed (hex): 63706f652d67656e657369732d7631
+Salt: H(0x00 || "SWF-salt-v1" || seed)  [H = SHA-256]
 
 Argon2id Parameters (initialization):
   Time Cost (t): 1
@@ -644,25 +638,25 @@ Argon2id Parameters (waypoints):
 Steps: 10,000
 Waypoint Interval (W): 1000
 
-Salt (hex): 966efc16acdedf88bd3b841d9576d6b9
-             5b3a58dfba2d9b2087b6f02da126d296
+Salt (hex): d0b1de5e520255be2ab0c75b5b6f08cc
+             fcf6023c9c3cccdd263ce152192e5cb3
 
 Intermediate States:
   state_0 (Argon2id):
-    55518d63068b5f245d9dccf5919cbcdc
-    1fa1b3256e89a5c1eb7a7b37609b323f
+    96a66581b8db69eb85ab99241c453ac4
+    279e06b85eea84565880bf20274383f1
   state_1000 (waypoint, Argon2id):
-    f880ebfd403904f134c8ddaaa85e21dd
-    4803293a8e5eb95eafe7ec88944f28c6
+    67055d129375e4a1327be707d36d4867
+    484621948772825475be2e5e7f69209f
   state_5000 (waypoint, Argon2id):
-    f9884b1c4bd487cda521ee3476079ae1
-    8be449a086ec06ffbd4f8b09c75ad9f9
+    82f8275a18a95f729cedc7dec7fc50ca
+    34ff15d40fa5bbff1b83342af678631f
   state_9999 (SHA-256):
-    b0ccd34431edab8f4fe568bee0fa4bdd
-    ac971a3d7057bf23d33097d87eb81968
+    9ced542457d0ee3576a1849c1c618eca
+    c7ef7881685938f99fd9f0137c1daff9
   state_10000 (waypoint, Argon2id, final):
-    19cbc991d4f154f47f912aa232a0c36b
-    c9f205c6cc1609984a142c9bd1f745a7
+    bcc6aade8854903b0504b2a475f139cc
+    8d6ad2386ec586d0673e451c12d73605
 ~~~
 
 ## swf-argon2id (Mode 20) Test Vector {#test-vector-mode20}
@@ -673,7 +667,7 @@ above (identical Argon2id initialization).
 
 ~~~ test-vectors
 Seed: "cpoe-genesis-v1"
-Seed (hex): 7769746e657373642d67656e657369732d7631
+Seed (hex): 63706f652d67656e657369732d7631
 
 Argon2id Parameters (per step):
   Time Cost (t): 1
@@ -685,21 +679,21 @@ Steps: 3
 
 Intermediate States:
   state_0 (Argon2id, seed as password,
-           salt=H(0x00 || "CPoE-salt-v1" || seed)):
-    55518d63068b5f245d9dccf5919cbcdc
-    1fa1b3256e89a5c1eb7a7b37609b323f
+           salt=H(0x00 || "SWF-salt-v1" || seed)):
+    96a66581b8db69eb85ab99241c453ac4
+    279e06b85eea84565880bf20274383f1
   state_1 (Argon2id, state_0 as password,
-           salt=H(0x01 || "CPoE-salt-v1" || I2OSP(1, 4))):
-    6a6df1cfbce07c09036526e19f7b6e73
-    ef2ce911d1ea77a66bb23bde5b033a79
+           salt=H(0x01 || "SWF-salt-v1" || I2OSP(1, 4))):
+    59ef8f4ededbd8e2a3e0472859968078
+    d85e662a89721fb1e77c324f5e01dc2c
   state_2 (Argon2id, state_1 as password,
-           salt=H(0x01 || "CPoE-salt-v1" || I2OSP(2, 4))):
-    bfa124c53651b2aedc79f48ec562342f
-    91efc8bc61cd8f833a5e63efbb41af44
+           salt=H(0x01 || "SWF-salt-v1" || I2OSP(2, 4))):
+    0256acada5c209e8e423a0bbcd202829
+    8ef785f638f8934ba38745cef131d3c9
   state_3 (Argon2id, state_2 as password,
-           salt=H(0x01 || "CPoE-salt-v1" || I2OSP(3, 4))):
-    bdd55e641b507d2d2d49cb67cb34c78d
-    92952ce025ef1b22a906f4721bcceb7c
+           salt=H(0x01 || "SWF-salt-v1" || I2OSP(3, 4))):
+    bd0363655ff2b96db5e93f9dca5cc445
+    bc2dc2fd33d51f89f390b359b6625533
 ~~~
 
 # Acknowledgements {#acknowledgements}
