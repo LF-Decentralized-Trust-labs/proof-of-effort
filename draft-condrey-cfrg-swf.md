@@ -619,8 +619,8 @@ All vectors use SHA-256 (H = SHA-256).
 {:numbered="false"}
 
 ~~~ test-vectors
-Seed: "cpoe-genesis-v1"
-Seed (hex): 63706f652d67656e657369732d7631
+Seed: "swf-genesis-v1"
+Seed (hex): 7377662d67656e657369732d7631
 Salt: H(0x00 || "SWF-salt-v1" || seed)  [H = SHA-256]
 
 Argon2id Parameters (initialization):
@@ -638,25 +638,25 @@ Argon2id Parameters (waypoints):
 Steps: 10,000
 Waypoint Interval (W): 1000
 
-Salt (hex): d0b1de5e520255be2ab0c75b5b6f08cc
-             fcf6023c9c3cccdd263ce152192e5cb3
+Salt (hex): c92e51f5c520555dd879c3d194077aab
+             0522ff519f5286849f3d63e6da4e277e
 
 Intermediate States:
   state_0 (Argon2id):
-    96a66581b8db69eb85ab99241c453ac4
-    279e06b85eea84565880bf20274383f1
+    4db1f3a2ec4936db9be2456d03b94ccc
+    9775e6fad69a51409e9b8e338115e82f
   state_1000 (waypoint, Argon2id):
-    67055d129375e4a1327be707d36d4867
-    484621948772825475be2e5e7f69209f
+    7600c73103eade23bedc14094bd7395f
+    9dcb006a4bf7c8e51ee6f62a80da59b1
   state_5000 (waypoint, Argon2id):
-    82f8275a18a95f729cedc7dec7fc50ca
-    34ff15d40fa5bbff1b83342af678631f
+    704eda3a8a67dd76875e3745cab02e63
+    9adbaee4afbf10251e165d8f57a60f30
   state_9999 (SHA-256):
-    9ced542457d0ee3576a1849c1c618eca
-    c7ef7881685938f99fd9f0137c1daff9
+    31ce89d182d122575737d13f4ec5cf2d
+    388c0752731af104ceb62433b06c97bf
   state_10000 (waypoint, Argon2id, final):
-    bcc6aade8854903b0504b2a475f139cc
-    8d6ad2386ec586d0673e451c12d73605
+    5665ea4ca92dd110c1eb710d3d8a103a
+    5a1c145c86f17c8903bf1ba9021ef667
 ~~~
 
 ## swf-argon2id (Mode 20) Test Vector {#test-vector-mode20}
@@ -666,8 +666,8 @@ Implementers should verify state\_0 matches the Mode 10 vector
 above (identical Argon2id initialization).
 
 ~~~ test-vectors
-Seed: "cpoe-genesis-v1"
-Seed (hex): 63706f652d67656e657369732d7631
+Seed: "swf-genesis-v1"
+Seed (hex): 7377662d67656e657369732d7631
 
 Argon2id Parameters (per step):
   Time Cost (t): 1
@@ -680,20 +680,20 @@ Steps: 3
 Intermediate States:
   state_0 (Argon2id, seed as password,
            salt=H(0x00 || "SWF-salt-v1" || seed)):
-    96a66581b8db69eb85ab99241c453ac4
-    279e06b85eea84565880bf20274383f1
+    4db1f3a2ec4936db9be2456d03b94ccc
+    9775e6fad69a51409e9b8e338115e82f
   state_1 (Argon2id, state_0 as password,
            salt=H(0x01 || "SWF-salt-v1" || I2OSP(1, 4))):
-    59ef8f4ededbd8e2a3e0472859968078
-    d85e662a89721fb1e77c324f5e01dc2c
+    ed44f10735dfee4577deb9c116229717
+    6adfc852c8866e36bc3706d28f81539c
   state_2 (Argon2id, state_1 as password,
            salt=H(0x01 || "SWF-salt-v1" || I2OSP(2, 4))):
-    0256acada5c209e8e423a0bbcd202829
-    8ef785f638f8934ba38745cef131d3c9
+    f8c150a06659306f5755d6dcc95f1666
+    357196ad878028d533a71c86cb38ffe4
   state_3 (Argon2id, state_2 as password,
            salt=H(0x01 || "SWF-salt-v1" || I2OSP(3, 4))):
-    bd0363655ff2b96db5e93f9dca5cc445
-    bc2dc2fd33d51f89f390b359b6625533
+    2b4c9570c6ff4d5901cb9609da7a93c8
+    f77425c28a5f9d12766b230095b0e642
 ~~~
 
 # Acknowledgements {#acknowledgements}
