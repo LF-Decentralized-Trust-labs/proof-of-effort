@@ -156,6 +156,12 @@ derive deterministic sample positions for audit proofs, yielding
 probabilistic verification in O(k log n) time. Three modes are
 defined ({{algorithm-spec}}).
 
+The SWF proves computational work, not elapsed time. An adversary
+with faster hardware completes the same chain in less wall-clock
+time. Applications requiring temporal guarantees MUST combine
+SWF with an external time-binding mechanism (e.g., hardware-
+attested timestamps).
+
 ## Related Work {#related-work}
 
 ### Verifiable Delay Functions
@@ -254,9 +260,12 @@ seed_n = HKDF-Expand(prev_swf_output,
                      "SWF-entangle-v1" || I2OSP(n, 4), 32)
 ~~~
 
-Where `prev_swf_output` is state\_steps from invocation n-1 (a
-pseudorandom 32-byte Argon2id output). For the first invocation,
-the seed is application-provided per {{seed-requirements}}.
+Where `prev_swf_output` is state\_steps from invocation n-1. This
+value is a 32-byte Argon2id output, which is pseudorandom and
+suitable as a PRK input to HKDF-Expand without a prior Extract
+step (the Argon2id internal mixing provides equivalent key
+material quality). For the first invocation, the seed is
+application-provided per {{seed-requirements}}.
 
 Per-step computation (Argon2id iteration, salt derivation, Merkle
 tree construction) is identical to Mode 20
@@ -426,9 +435,13 @@ plus 10,000 SHA-256 evaluations (~1ms).
 
 When full-chain verification is impractical, the Verifier MAY fall
 back to Merkle-sampled verification per {{fiat-shamir-sampling}}.
-In this fallback mode, the Verifier MUST additionally verify all
-waypoint transitions by requesting Merkle proofs for index pairs
-(iW-1, iW) for i in 1..steps/W.
+In this fallback mode, the Prover MUST include Merkle proofs for
+all waypoint transitions at index pairs (iW-1, iW) for
+i in 1..steps/W, in addition to the k Fiat-Shamir sampled proofs.
+These mandatory waypoint proofs are included in the sampled-proofs
+array (process-proof key 5). The Verifier MUST verify all waypoint
+proofs and MUST reject Mode 10 proofs that omit any waypoint
+transition.
 
 # Security Analysis {#security-analysis}
 
@@ -510,6 +523,22 @@ f in (0,1). Therefore W\_grind > n = W\_honest.
 For k=20, f=0.10: W\_grind is approximately 8.2n. For k=100,
 f=0.05: W\_grind is approximately 131n.
 
+### Multi-Target Considerations {#multi-target}
+
+The detection probabilities above apply per proof. In systems
+accepting proofs from N independent Provers, an adversary targeting
+any one of N proofs has N independent chances for skipping to
+evade detection. The per-proof detection probability is unchanged,
+but system-level risk scales: the probability that at least one
+forged proof among N escapes detection is 1 - p\_detect^N where
+p\_detect is the per-proof detection probability. For k=100,
+f=0.05, and N=1000: the system-level evasion probability is
+approximately 1 - 0.994^1000, which approaches certainty.
+
+Applications processing many independent proofs SHOULD increase k
+or apply additional verification (e.g., full-chain verification
+on a random subset of submissions).
+
 ### Forgery Cost {#forgery-cost}
 
 The minimum forgery cost for n steps is bounded by:
@@ -575,19 +604,63 @@ For Mode 10, `waypoint-interval` (key 5) and `waypoint-memory`
 (key 6) MUST be present in proof-params. Verifiers MUST reject
 Mode 10 proofs that omit these parameters.
 
+## Parameter Validation {#param-validation}
+
+Verifiers MUST reject proofs where declared parameters fall below
+security-relevant thresholds. The following minimums are REQUIRED:
+
+| Parameter | Minimum | Rationale |
+|---|---|---|
+| memory-cost (m) | 1024 KiB | Below this, Argon2id is not memory-hard |
+| steps | 1 | Zero steps produces no sequential work |
+| sample-count (k) | 20 | Below this, detection probability is insufficient |
+| parallelism (p) | 1 | Only p=1 is valid; reject p != 1 |
+
+Applications SHOULD define stricter minimums appropriate to their
+threat model. The RECOMMENDED values in {{mode-20-params}} and
+{{mode-10-params}} reflect typical deployment requirements.
+
 # Security Considerations {#security-considerations}
 
+## Work vs. Time {#work-vs-time}
+
+The SWF proves that a Prover performed a specific quantity of
+sequential computation. It does not prove that this computation
+occupied a specific wall-clock duration. An adversary with
+hardware providing a 10x advantage completes the same chain in
+1/10th the time. Applications requiring temporal guarantees MUST
+combine the SWF with an independent time-binding mechanism; the
+SWF alone provides an economic cost floor, not a time floor.
+
+## Sample Count Selection {#sample-count-selection}
+
 Applications MUST choose k based on their required detection
-probability ({{skipping-detection}}).
+probability ({{skipping-detection}}). For single-proof
+verification, k=100 detects 5% skipping with >99.4% probability.
+For systems processing many proofs, see {{multi-target}}.
+
+## Seed Unpredictability {#seed-unpredictability}
 
 Seed requirements are defined in {{seed-requirements}}. A
-predictable seed defeats temporal binding by enabling
-pre-computation.
+predictable seed allows pre-computation of the entire SWF chain
+before the intended computation window.
+
+## Parameter Downgrade {#param-downgrade}
+
+A malicious Prover may declare low parameters (e.g., m=1024 KiB)
+to minimize computation cost while producing a valid proof. The
+Verifier MUST enforce minimum parameter thresholds per
+{{param-validation}} and SHOULD reject proofs with parameters
+below the application's security requirements.
+
+## Verifier Resource Exhaustion {#verifier-exhaustion}
 
 Verification of Modes 20 and 21 requires k Argon2id evaluations,
-each consuming m KiB. Verifiers SHOULD implement rate limiting on
-proof submission and MAY reject proofs with parameters exceeding
-configured memory limits.
+each consuming m KiB. A malicious Prover can submit proofs with
+large m or k values to exhaust Verifier memory. Verifiers SHOULD
+implement rate limiting on proof submission and MUST reject proofs
+with parameters exceeding configured resource limits before
+allocating memory for verification.
 
 # IANA Considerations {#iana-considerations}
 
