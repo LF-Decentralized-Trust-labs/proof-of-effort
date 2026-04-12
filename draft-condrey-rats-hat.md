@@ -5,9 +5,9 @@ title: "Hardware Attestation of Time (HAT): TPM-Based Temporal Binding for Remot
 abbrev: HAT
 category: info
 ipr: trust200902
-submissiontype: independent
+submissiontype: IETF
 area: Security
-workgroup: Individual Submission
+workgroup: Remote ATtestation ProcedureS
 keyword:
   - attestation
   - RATS
@@ -58,6 +58,15 @@ informative:
   RFC3161:
   RFC9052:
   RFC9711:
+  I-D.birkholz-rats-tuda:
+    title: "Time-Based Uni-Directional Attestation"
+    author:
+      - fullname: Henk Birkholz
+        initials: H.
+        surname: Birkholz
+    date: 2023
+    seriesinfo:
+      Internet-Draft: draft-birkholz-rats-tuda-07
   CPoE-Protocol:
     title: "Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"
     author:
@@ -146,6 +155,34 @@ result as part of broader trust decisions.
 This document defines HAT independently of any specific consuming
 protocol. Any RATS profile that requires hardware-attested duration
 measurement can incorporate HAT proofs.
+
+## Related Work {#related-work}
+
+Time-Based Uni-Directional Attestation (TUDA)
+{{I-D.birkholz-rats-tuda}} explored TPM-based temporal attestation
+using Time Stamp Authorities (TSA). TUDA required synchronization
+between TPM tick time and external TSA timestamps via a Sync Base
+Protocol, creating Sync Tokens for audit logs.
+
+HAT differs from TUDA in several ways:
+
+- HAT requires no external Time Stamp Authority, relying solely on
+  TPM2\_GetTime() for temporal bracketing.
+- HAT focuses on computation duration verification rather than
+  general audit logging.
+- HAT uses TPM resetCount and clock-safe validation rather than TSA
+  synchronization.
+- HAT is designed for integration with sequential work verification
+  rather than general attestation flows.
+
+While TUDA addressed a similar problem space, the draft expired
+without progressing to standardization. HAT provides a simpler,
+self-contained approach suitable for applications where TSA
+infrastructure is unavailable or undesirable.
+
+Timestamp Authorities per {{RFC3161}} provide trusted timestamps
+but require network connectivity and attest only to signing time,
+not computation duration.
 
 # Conventions and Definitions
 

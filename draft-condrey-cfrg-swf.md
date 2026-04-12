@@ -115,6 +115,15 @@ informative:
     date: 2022
     seriesinfo:
       JEDEC: "JESD238A"
+  I-D.bakshi-vdt-verifiable-delay-token:
+    title: "Verifiable Delay Tokens for Privacy-Preserving Time Enforcement"
+    author:
+      - fullname: C. Bakshi
+        initials: C.
+        surname: Bakshi
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-bakshi-vdt-verifiable-delay-token-00
   CPoE-Protocol:
     title: "Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"
     author:
@@ -182,6 +191,49 @@ pre-computation. Mode 10 (`swf-sha256`) uses a single Argon2id
 initialization followed by iterated SHA-256 with periodic memory-hard
 waypoints, targeting constrained environments where full Argon2id
 iteration is impractical.
+
+## Related Work {#related-work}
+
+### Verifiable Delay Functions
+
+Verifiable Delay Functions (VDFs) {{Boneh2018}} provide efficient
+public verification of elapsed time from the output alone, typically
+using number-theoretic constructions (RSA groups, class groups).
+VDFs offer O(1) verification time but require trusted setup or rely
+on unproven hardness assumptions.
+
+The SWF is NOT a VDF. SWF provides probabilistic verification via
+Merkle-sampled audit proofs in O(k log n) time, where k is the
+sample count. This trade-off (larger proofs, probabilistic
+verification) eliminates trusted setup and enables memory-hard ASIC
+resistance.
+
+### Verifiable Delay Tokens
+
+Verifiable Delay Tokens (VDT)
+{{I-D.bakshi-vdt-verifiable-delay-token}} use VDFs for
+privacy-preserving time enforcement in rate limiting and abuse
+prevention. VDT targets anonymous token issuance with unlinkability
+between issuance and redemption.
+
+SWF differs from VDT in:
+
+- Primitive: Memory-hard Argon2id vs VDF sequential squaring.
+- Use case: Authorship attestation vs anonymous rate limiting.
+- Properties: ASIC resistance via memory bandwidth vs efficient
+  verification.
+- Privacy: Not privacy-preserving (deterministic from seed).
+
+VDT and SWF address different application domains and are
+complementary rather than competing approaches.
+
+### Argon2 Memory-Hard Function
+
+Argon2 {{RFC9106}} is the foundational memory-hard function
+underlying SWF Modes 20 and 21. SWF uses Argon2id as a primitive,
+not a replacement. The SWF construction chains iterated Argon2id
+evaluations to produce sequential work proofs, whereas Argon2
+specifies single-evaluation password hashing and proof-of-work.
 
 # Conventions and Definitions
 
