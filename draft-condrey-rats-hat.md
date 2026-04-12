@@ -160,8 +160,15 @@ Relying Party:
 : Consumes Attestation Results per {{RFC9334}}.
 
 Reference Value Provider:
-: Provides expected computation durations and clock tolerance
-  parameters for HAT proof evaluation.
+: Supplies the expected computation duration and clock tolerance
+  parameters that the Verifier uses to evaluate HAT time deltas.
+  The Reference Value Provider conveys these values via one of:
+  (a) the consuming protocol's Evidence structure (e.g., declared
+  parameters from which duration is derived),
+  (b) an out-of-band policy configuration on the Verifier, or
+  (c) a CoRIM reference values manifest per draft-ietf-rats-corim.
+  The specific conveyance mechanism is defined by the consuming
+  protocol.
 
 ## HAT in the Attestation Flow {#attestation-flow}
 
@@ -395,11 +402,10 @@ The Verifier MUST perform the following checks:
    SHOULD reject.
 
 5. **Time delta check**: delta = T\_after.clock - T\_before.clock
-   MUST be >= expected computation duration. The Reference Value
-   Provider supplies the expected duration; conveyance of this
-   value to the Verifier is protocol-specific and outside this
-   specification's scope. SHOULD flag deltas exceeding 10x
-   expected duration as a configurable threshold.
+   MUST be >= the expected computation duration obtained from the
+   Reference Value Provider ({{rats-roles}}). SHOULD flag deltas
+   exceeding a configurable upper threshold (default: 10x expected
+   duration).
 
 6. **Temporal chain continuity** (multi-invocation): T\_before.clock
    of invocation n MUST be strictly greater than T\_after.clock of
@@ -457,11 +463,18 @@ different computations. Applications SHOULD include
 computation-specific qualifying data. For multi-invocation chains,
 temporal chain continuity prevents insertion of old proofs.
 
-## Clock Drift {#clock-drift}
+## Clock Drift and Resolution {#clock-drift}
 
 TPM clocks lack mandated accuracy; typical drift is seconds per
 day. Verifiers SHOULD use a tolerance factor (5-10%) when comparing
 deltas to expected durations.
+
+The TPM 2.0 specification defines `clockInfo.clock` as a
+millisecond counter, but actual update granularity is
+implementation-dependent. Some TPMs update the clock at intervals
+of 10ms or coarser. For computations shorter than approximately
+100ms, clock resolution may dominate the measurement error. HAT
+is best suited for computations lasting at least one second.
 
 ## Scope Limitations {#scope-limitations}
 
