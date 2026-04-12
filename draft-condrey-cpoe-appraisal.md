@@ -49,6 +49,24 @@ normative:
 informative:
   RFC9106:
   RFC9334:
+  CFRG-SWF:
+    title: "Sequential Work Function (SWF): Memory-Hard Iterative Proofs with Merkle-Sampled Verification"
+    author:
+      - fullname: David Condrey
+        initials: D.
+        surname: Condrey
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-condrey-cfrg-swf-00
+  RATS-HAT:
+    title: "Hardware Attestation of Time (HAT): TPM-Based Temporal Binding for Remote Attestation"
+    author:
+      - fullname: David Condrey
+        initials: D.
+        surname: Condrey
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-condrey-rats-hat-00
   Monrose2000:
     title: Keystroke dynamics as a biometric for authentication
     target: https://doi.org/10.1016/S0167-739X(99)00059-X

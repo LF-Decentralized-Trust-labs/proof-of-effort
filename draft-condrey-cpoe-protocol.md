@@ -57,6 +57,24 @@ informative:
     date: 2026-02
     seriesinfo:
       Internet-Draft: draft-condrey-cpoe-appraisal-04
+  CFRG-SWF:
+    title: "Sequential Work Function (SWF): Memory-Hard Iterative Proofs with Merkle-Sampled Verification"
+    author:
+      - fullname: David Condrey
+        initials: D.
+        surname: Condrey
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-condrey-cfrg-swf-00
+  RATS-HAT:
+    title: "Hardware Attestation of Time (HAT): TPM-Based Temporal Binding for Remote Attestation"
+    author:
+      - fullname: David Condrey
+        initials: D.
+        surname: Condrey
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-condrey-rats-hat-00
   RFC3161:
   RFC3552:
   RFC6838:
@@ -1920,6 +1938,8 @@ The following rules apply to the armored encoding:
 
 # Sequential Work Function {#swf-construction}
 
+NOTE: The SWF is also specified as a standalone construction in {{CFRG-SWF}}, which defines the algorithm independently of CPoE. This section is the normative definition within the CPoE protocol.
+
 CPoE uses a Sequential Work Function (SWF) to bind Evidence to sustained computational effort. For `swf-argon2id` (20) and `swf-argon2id-entangled` (21), the SWF consists of iterated Argon2id {{RFC9106}} evaluations, each individually memory-hard, providing ASIC-resistant sequential work. For `swf-sha256` (10), the SWF uses a single Argon2id evaluation followed by iterated SHA-256 hashing, intended for constrained environments where Argon2id is impractical. This construction is NOT a Verifiable Delay Function in the formal sense {{Boneh2018}}; it does not provide efficient public verification of the delay claim from the output alone.
 
 Instead, verification relies on Merkle-sampled audit proofs: the Attester commits to a Merkle tree over intermediate states, and the Verifier checks a random subset of state transitions. This provides probabilistic verification in O(k * log n) time where k is the sample count and n is the step count.
@@ -2679,6 +2699,8 @@ trial count. This result holds regardless of the adversary's
 computational resources.
 
 ## Hardware-Anchored Time (HAT) {#hat}
+
+NOTE: HAT is fully specified in {{RATS-HAT}}, which defines the mechanism independently of CPoE. This section summarizes HAT within the CPoE protocol context.
 
 In T3/T4 tiers, the AE MUST construct a HAT proof bracketing each
 SWF computation to bind the temporal claim to the TPM's internal

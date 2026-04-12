@@ -80,6 +80,8 @@ document-ref = {
 
 ; ============================================================
 ; Sequential Work Function (SWF)
+; Canonical standalone definition: cddl/swf.cddl
+; (draft-condrey-cfrg-swf)
 ; ============================================================
 
 process-proof = {
@@ -152,6 +154,8 @@ thermal-sample = [pop-timestamp, int]  ; (timestamp, millidegree delta)
 
 ; ============================================================
 ; Hardware-Anchored Time (HAT)
+; Canonical standalone definition: cddl/hat.cddl
+; (draft-condrey-rats-hat)
 ; ============================================================
 
 hat-proof = {
