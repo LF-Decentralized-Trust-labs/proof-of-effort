@@ -57,7 +57,6 @@ normative:
 informative:
   RFC3161:
   RFC9052:
-  RFC9711:
   I-D.birkholz-rats-tuda:
     title: "Time-Based Uni-Directional Attestation"
     author:
@@ -67,15 +66,6 @@ informative:
     date: 2023
     seriesinfo:
       Internet-Draft: draft-birkholz-rats-tuda-07
-  CPoE-Protocol:
-    title: "Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"
-    author:
-      - fullname: David Condrey
-        initials: D.
-        surname: Condrey
-    date: 2026
-    seriesinfo:
-      Internet-Draft: draft-condrey-cpoe-protocol-06
 ---
 
 --- abstract
@@ -120,8 +110,8 @@ signatures, clock continuity, and elapsed time.
 HAT proofs can optionally bind the computation's input to T\_before,
 preventing pre-computation attacks.
 
-The mechanism was originally defined as part of the CPoE protocol
-{{CPoE-Protocol}} and is extracted here for broader applicability.
+HAT is designed for sequential computation verification systems and
+other scenarios where the platform operator is adversarial.
 
 ## Related Work {#related-work}
 
@@ -249,7 +239,8 @@ Each TPM2\_GetTime call returns a TPMS\_ATTEST structure
 * `firmwareVersion`: TPM firmware version.
 
 Applications SHOULD include qualifying data binding the HAT proof
-to the computation:
+to the computation. Use cases where replay is not a threat (e.g.,
+public timestamping) may omit qualifying data.
 
 * T\_before qualifyingData: computation input seed or hash thereof.
 * T\_after qualifyingData: computation output or commitment (e.g.,
@@ -373,8 +364,7 @@ Same format as sig-before, covering the time-after attestation.
 
 The consuming protocol defines:
 
-* The position within its Evidence structure for the HAT proof
-  (e.g., CPoE uses checkpoint key 15).
+* The position within its Evidence structure for the HAT proof.
 * AIK conveyance mechanism.
 * Computation binding (e.g., incorporating T\_before into seed
   derivation).
@@ -405,8 +395,11 @@ The Verifier MUST perform the following checks:
    SHOULD reject.
 
 5. **Time delta check**: delta = T\_after.clock - T\_before.clock
-   MUST be >= expected computation duration. SHOULD flag deltas
-   exceeding 10x expected duration.
+   MUST be >= expected computation duration. The Reference Value
+   Provider supplies the expected duration; conveyance of this
+   value to the Verifier is protocol-specific and outside this
+   specification's scope. SHOULD flag deltas exceeding 10x
+   expected duration as a configurable threshold.
 
 6. **Temporal chain continuity** (multi-invocation): T\_before.clock
    of invocation n MUST be strictly greater than T\_after.clock of
@@ -415,6 +408,11 @@ The Verifier MUST perform the following checks:
 7. **Computation binding** (application-specific): If the consuming
    protocol binds the computation seed to T\_before, verify this
    binding.
+
+NOTE: HAT proves a lower bound on computation duration (the TPM
+clock interval). It does not prove a tight bound; the Attester may
+introduce delays between T\_before/T\_after and the actual
+computation.
 
 ## Error Handling {#error-handling}
 
@@ -428,7 +426,7 @@ The Verifier MUST perform the following checks:
 | T\_after.clockInfo.safe is false | SHOULD reject |
 | restartCount mismatch | SHOULD reject |
 | Time delta less than expected duration | MUST reject |
-| Time delta implausibly large (>10x expected) | SHOULD flag as warning |
+| Time delta implausibly large (>threshold) | SHOULD flag as warning |
 | Temporal chain continuity violation | MUST reject |
 | firmwareVersion mismatch between readings | SHOULD reject |
 
@@ -503,7 +501,6 @@ This document has no IANA actions.
 # Acknowledgements {#acknowledgements}
 {:numbered="false"}
 
-HAT was originally specified as part of the Cryptographic Proof
-of Effort (CPoE) protocol. The author thanks the Trusted Computing
-Group for the TPM 2.0 specification and the IETF RATS working
-group for the remote attestation architecture.
+The author thanks the Trusted Computing Group for the TPM 2.0
+specification and the IETF RATS working group for the remote
+attestation architecture that informed this design.

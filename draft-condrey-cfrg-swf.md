@@ -37,6 +37,7 @@ normative:
   RFC2104:
   RFC5869:
   RFC8017:
+  RFC8126:
   RFC8610:
   RFC8949:
   RFC9106:
@@ -124,15 +125,6 @@ informative:
     date: 2026
     seriesinfo:
       Internet-Draft: draft-bakshi-vdt-verifiable-delay-token-00
-  CPoE-Protocol:
-    title: "Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"
-    author:
-      - fullname: David Condrey
-        initials: D.
-        surname: Condrey
-    date: 2026
-    seriesinfo:
-      Internet-Draft: draft-condrey-cpoe-protocol-06
 ---
 
 --- abstract
@@ -197,7 +189,8 @@ sequential work with Merkle-committed intermediate states.
 {::boilerplate bcp14-tagged}
 
 H:
-: The hash function (SHA-256 unless otherwise specified).
+: SHA-256. This specification does not support hash agility;
+  future versions may define alternate hash functions.
 
 I2OSP(x, len):
 : Integer-to-Octet-String Primitive per {{RFC8017}}.
@@ -226,13 +219,12 @@ Verifier:
 For `swf-argon2id` (algorithm identifier 20):
 
 ~~~ pseudocode
-hash_len = output_length(H)          ; 32, 48, or 64 bytes
-state_0  = Argon2id(seed, salt=H(0x00 || "CPoE-salt-v1" || seed),
-                    t=t, m=m, p=1, len=hash_len)
+state_0  = Argon2id(seed, salt=H(0x00 || "SWF-salt-v1" || seed),
+                    t=t, m=m, p=1, len=32)
 for i in 1..steps:
     state_i = Argon2id(state_{i-1},
-                       salt=H(0x01 || "CPoE-salt-v1" || I2OSP(i, 4)),
-                       t=t, m=m, p=1, len=hash_len)
+                       salt=H(0x01 || "SWF-salt-v1" || I2OSP(i, 4)),
+                       t=t, m=m, p=1, len=32)
 merkle_root = MerkleTree(state_0, state_1, ...,
                          state_steps).root
 ~~~
@@ -250,24 +242,24 @@ collisions even when the seed value equals I2OSP(i, 4) for some i.
 | m | Argon2id memory cost (KiB) | RECOMMENDED >= 65536 (64 MiB) |
 | p | Argon2id parallelism | MUST be 1 (p > 1 undermines sequential guarantee) |
 | steps | Number of iterations | MUST be >= 1 |
-| hash\_len | Output length per step | MUST equal output\_length(H) |
 
 ## Mode 21: Entangled Argon2id {#mode-21}
 
 Mode 21 (`swf-argon2id-entangled`, algorithm identifier 21) is
 identical to Mode 20 except seed derivation includes the previous
-invocation's final state:
+invocation's final state. For invocation n >= 2:
 
 ~~~ pseudocode
-seed_n = application_seed_derivation(
-    ...,
-    prev_swf_output    ; state_steps from invocation n-1
-)
+seed_n = HKDF-Expand(prev_swf_output,
+                     "SWF-entangle-v1" || I2OSP(n, 4), 32)
 ~~~
 
-The first invocation omits previous output; subsequent invocations
-MUST include it. Per-step computation (Argon2id iteration, salt
-derivation, Merkle tree construction) is identical to Mode 20
+Where `prev_swf_output` is state\_steps from invocation n-1 (a
+pseudorandom 32-byte Argon2id output). For the first invocation,
+the seed is application-provided per {{seed-requirements}}.
+
+Per-step computation (Argon2id iteration, salt derivation, Merkle
+tree construction) is identical to Mode 20
 ({{mode-20-construction}}).
 
 Mode 21 is RECOMMENDED when the SWF is invoked repeatedly and the
@@ -282,15 +274,14 @@ invocation's final state eliminates parallel pre-computation.
 For `swf-sha256` (algorithm identifier 10):
 
 ~~~ pseudocode
-hash_len = 32                        ; SHA-256 fixed
-state_0  = Argon2id(seed, salt=H(0x00 || "CPoE-salt-v1" || seed),
-                    t=t, m=m, p=1, len=hash_len)
+state_0  = Argon2id(seed, salt=H(0x00 || "SWF-salt-v1" || seed),
+                    t=t, m=m, p=1, len=32)
 for i in 1..steps:
     if i mod W == 0:
         state_i = Argon2id(state_{i-1},
-                           salt=H(0x01 || "CPoE-salt-v1"
+                           salt=H(0x01 || "SWF-salt-v1"
                                   || I2OSP(i, 4)),
-                           t=1, m=m_waypoint, p=1, len=hash_len)
+                           t=1, m=m_waypoint, p=1, len=32)
     else:
         state_i = H(state_{i-1})
 merkle_root = MerkleTree(state_0, state_1, ...,
@@ -331,10 +322,6 @@ The seed MUST satisfy the following requirements:
 * It SHOULD incorporate context that binds the SWF to the
   intended computation (timestamps, nonces, prior state).
 
-The CPoE protocol {{CPoE-Protocol}} defines one concrete seed
-derivation incorporating behavioral entropy, content hashes, and
-optional hardware-attested time.
-
 # Verification Protocol {#verification}
 
 ## Merkle Tree Construction {#merkle-tree-construction}
@@ -359,7 +346,7 @@ Fiat-Shamir transform:
 
 ~~~ pseudocode
 sample_seed = H(
-    "CPoE-Fiat-Shamir-v1" ||
+    "SWF-sample-v1" ||
     I2OSP(proof-algorithm, 2) ||
     CBOR-encode(proof-params) ||
     process-proof.input ||
@@ -400,13 +387,16 @@ Verifier MUST:
    the sibling path against the committed root using tagged hashing
    ({{merkle-tree-construction}}) and recompute the state transition:
    Argon2id(state\_i,
-   salt=H(0x01 \|\| "CPoE-salt-v1" \|\| I2OSP(i+1, 4)),
-   t=t, m=m, p=1, len=hash\_len). Verify the result equals
+   salt=H(0x01 \|\| "SWF-salt-v1" \|\| I2OSP(i+1, 4)),
+   t=t, m=m, p=1, len=32). Verify the result equals
    state\_{i+1}.
 3. Verify the final state (state\_steps) by checking its Merkle
    proof against the committed root. If the final-leaf index is
    not included in the Fiat-Shamir sample set, the Verifier MUST
    additionally derive or request a proof for it.
+
+The claimed-duration field is informational; it is not verified by
+this specification.
 
 Verifiers MUST verify samples sequentially or limit concurrent
 evaluations to avoid excessive memory consumption (each requires
@@ -418,12 +408,12 @@ For `swf-sha256` (10), the Verifier SHOULD perform deterministic
 full-chain verification. The Verifier MUST:
 
 1. Recompute state\_0 = Argon2id(seed,
-   salt=H(0x00 \|\| "CPoE-salt-v1" \|\| seed),
+   salt=H(0x00 \|\| "SWF-salt-v1" \|\| seed),
    t=t, m=m, p=1, len=32).
 2. Recompute the full chain sequentially: for i in 1..steps,
    if i mod W == 0, compute state\_i =
    Argon2id(state\_{i-1},
-   salt=H(0x01 \|\| "CPoE-salt-v1" \|\| I2OSP(i, 4)),
+   salt=H(0x01 \|\| "SWF-salt-v1" \|\| I2OSP(i, 4)),
    t=1, m=m\_waypoint, p=1, len=32);
    otherwise, compute state\_i = H(state\_{i-1}).
 3. Construct the Merkle tree from all recomputed states using
@@ -454,7 +444,8 @@ Time-Memory Tradeoff (TMTO):
   ({{RFC9106}}, Section 7). Using t=1 is recommended because the
   TMTO advantage is offset by the multiplicative effect of iterated
   evaluations: an adversary gaining 2x per step gains 2x overall
-  (not 2^steps), while t>1 reduces throughput.
+  (not 2^steps), while t>1 reduces throughput. Note: the combined
+  bound below assumes t=1; higher t values yield a tighter bound.
 
 Memory Bandwidth:
 : Each step is bounded by memory bandwidth, not ALU throughput.
@@ -471,7 +462,8 @@ Silicon Optimization:
 Combined Advantage:
 : Multiplicative combination yields an upper bound of 8-16x for a
   fully optimized ASIC versus consumer DDR4. Verifiers SHOULD use
-  a conservative ASIC advantage factor of 10x.
+  a conservative ASIC advantage factor of 10x. This factor should
+  be re-evaluated as memory technology evolves.
 
 For `swf-sha256` (Mode 10), SHA-256 iterations between waypoints
 have ASIC advantage exceeding 10,000x. The memory-hard waypoints
@@ -548,7 +540,7 @@ process-proof = {
     1 => proof-algorithm,
     2 => proof-params,
     3 => bstr,                    ; input (max 64 bytes)
-    4 => bstr,                    ; merkle-root (max 64 bytes)
+    4 => bstr,                    ; merkle-root (32 bytes)
     5 => [+ merkle-proof],        ; sampled-proofs (max 1000)
     6 => uint,                    ; claimed-duration (ms)
 }
@@ -560,12 +552,13 @@ proof-params = {
     4 => uint,                    ; steps
     ? 5 => uint,                  ; waypoint-interval (Mode 10)
     ? 6 => uint,                  ; waypoint-memory (KiB, Mode 10)
+    7 => uint,                    ; sample-count (k)
 }
 
 merkle-proof = {
     1 => uint,                    ; leaf-index
     2 => [+ bstr .size 32],       ; sibling-path (max depth 64)
-    3 => bstr,                    ; leaf-value (max 64 bytes)
+    3 => bstr,                    ; leaf-value (32 bytes)
 }
 
 proof-algorithm = &(
@@ -574,6 +567,9 @@ proof-algorithm = &(
     swf-argon2id-entangled: 21,
 )
 ~~~
+
+The sample-count (proof-params key 7) MUST be at least 20. Values
+below 100 are NOT RECOMMENDED for production use.
 
 For Mode 10, `waypoint-interval` (key 5) and `waypoint-memory`
 (key 6) MUST be present in proof-params. Verifiers MUST reject
@@ -593,10 +589,6 @@ each consuming m KiB. Verifiers SHOULD implement rate limiting on
 proof submission and MAY reject proofs with parameters exceeding
 configured memory limits.
 
-The domain separation tags ("CPoE-salt-v1", "CPoE-Fiat-Shamir-v1")
-retain the "CPoE" prefix for compatibility with the CPoE protocol
-{{CPoE-Protocol}} in which the SWF was originally defined.
-
 # IANA Considerations {#iana-considerations}
 
 ## SWF Proof Algorithm Registry {#swf-registry}
@@ -610,7 +602,7 @@ with the following initial entries:
 | 20 | swf-argon2id | This document, {{mode-20}} |
 | 21 | swf-argon2id-entangled | This document, {{mode-21}} |
 
-Registration policy: Specification Required per RFC 8126.
+Registration policy: Specification Required per {{RFC8126}}.
 Values 0-9 are Reserved. Values 10-255 are available for
 registration. Values 256+ are Private Use.
 
@@ -619,9 +611,15 @@ registration. Values 256+ are Private Use.
 # SWF Test Vectors {#test-vectors}
 {:numbered="false"}
 
+NOTE: These test vectors were computed with legacy domain separation
+tags ("CPoE-salt-v1"). Vectors using the current tags
+("SWF-salt-v1") will be provided in a future revision. The
+algorithm logic and Argon2id parameters are unchanged; only the
+salt derivation inputs differ.
+
 The following test vectors use the type-tagged salt derivation
 (0x00/0x01 prefixes) as specified in {{mode-20-construction}}.
-All vectors use SHA-256 (H = SHA-256, hash\_len = 32).
+All vectors use SHA-256 (H = SHA-256).
 
 ## swf-sha256 (Mode 10) Test Vector {#test-vector-mode10}
 {:numbered="false"}
@@ -707,7 +705,6 @@ Intermediate States:
 # Acknowledgements {#acknowledgements}
 {:numbered="false"}
 
-The SWF was originally specified as part of the Cryptographic Proof
-of Effort (CPoE) protocol. The author thanks the participants of
-the CFRG for their work on memory-hard functions and the authors
-of Argon2 for the foundational construction.
+The author thanks the participants of the CFRG for their work on
+memory-hard functions and the authors of Argon2 for the
+foundational construction.
