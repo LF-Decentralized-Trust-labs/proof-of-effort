@@ -131,20 +131,23 @@ informative:
 --- abstract
 
 This document defines Proof of Sequential Memory Execution (PoSME),
-a cryptographic primitive that fuses sequential computation with
-persistent memory evolution. A Prover executes K steps over a
-mutable N-block arena, where each step reads data-dependent
-addresses via pointer chasing, modifies the arena in-place with
-symbiotic binding (data depends on causal hash and vice versa),
-and chains a per-block causal hash through every write. The causal
-hash creates a dependency web: fabricating any block requires the
-full causal ancestry of its writer, recursively. PoSME achieves
-latency-bound ASIC resistance (bounded by the DRAM random-access
-latency ratio, approximately 2x for DDR5 vs HBM3), asymmetric
-verification (O(Q * d * log K * log N) hashes, no arena
-allocation), and requires no trusted setup. PoSME is the first
-primitive to simultaneously enforce sequential time and persistent
-memory occupancy with a single fused mechanism.
+a cryptographic primitive combining mutable arena state, data-
+dependent pointer-chase addressing, and per-block causal hash
+binding in a single step function. A Prover executes K sequential
+steps over a mutable N-block arena. Each step reads d blocks at
+addresses determined by the previous read's result (pointer
+chasing), writes one block with symbiotic binding (new data
+depends on old causal hash; new causal hash depends on cursor),
+and advances a transcript chain. The construction provides four
+properties: (1) unconditional sequential time enforcement
+(Omega(K) computation regardless of storage), (2) forgery
+prevention via causal hashes (reduces to collision resistance of
+H), (3) TMTO resistance scaling linearly with write density rho =
+K/N (10x penalty at rho=4 for a zero-storage adversary), and (4)
+latency-bound ASIC resistance (approximately 2x for DDR5 vs HBM3,
+tighter than the 8-16x of bandwidth-hard constructions).
+Verification requires O(Q * d^R * log N) hash evaluations with no
+arena allocation. No trusted setup is required.
 
 --- middle
 
@@ -162,23 +165,28 @@ Merkle sampling) produces a construction where sequentiality and
 memory-hardness are independent properties; neither reinforces the
 other.
 
-PoSME fuses them. A persistent mutable arena IS the computation
-state. Each step reads via data-dependent pointer chasing
-(sequential because each address depends on the previous read),
-modifies the arena in-place (creating evolving state), and chains
-a causal hash through every write (creating a dependency web
-binding the proof to the full execution history). The data and
-causal hash are symbiotically bound: new data depends on the old
-causal hash, and the new causal hash depends on the cursor.
-Neither can be independently fabricated.
+PoSME takes a different approach. A persistent mutable arena IS
+the computation state. Each step reads via data-dependent pointer
+chasing (sequential because each address depends on the previous
+read's result) and modifies the arena in-place. A per-block
+causal hash chain binds each block's value to the cursor of the
+step that wrote it, preventing forgery (the adversary cannot
+produce a valid causal hash without knowing the writer's cursor,
+which depends on d other blocks' causal hashes, recursively).
+The data and causal hash are symbiotically bound: new data
+depends on the old causal hash, and the new causal hash depends
+on the cursor.
 
-ASIC resistance derives from memory latency, not bandwidth. Each
+The primary contribution is latency-bound ASIC resistance. Each
 pointer-chase iteration is bottlenecked by random DRAM access
 (~35ns on DDR5 {{JESD79-5}}), with hash computation (~3ns via
 BLAKE3) as a minor component. The ASIC advantage is bounded by
 the memory latency ratio (approximately 2x for DDR5 vs HBM3),
 tighter than the 8-16x bandwidth bounds of Argon2id
-{{Biryukov2016}}.
+{{Biryukov2016}}. Memory latency improves more slowly than
+bandwidth across technology generations (constrained by signal
+propagation and DRAM cell sensing time), making this bound more
+durable than bandwidth-based resistance.
 
 ## Related Work {#related-work}
 
@@ -192,11 +200,13 @@ binding its value to its full write history.
 
 ### Memory-Hard Functions
 
-Argon2id {{RFC9106}} resists TMTO via bandwidth-hardness. PoSME
-uses Argon2id only for arena initialization. The ongoing
-computation uses pointer-chasing with in-place writes, creating
-latency-hardness, and causal hashes that amplify TMTO penalties
-beyond what bandwidth-hard constructions achieve.
+Argon2id {{RFC9106}} resists TMTO via bandwidth-hardness, with a
+single-pass TMTO penalty of approximately 2x. PoSME uses Argon2id
+only for arena initialization. The ongoing computation uses
+pointer-chasing with in-place writes, creating latency-hardness
+(2x ASIC bound vs Argon2id's 8-16x). PoSME's TMTO penalty is
+approximately 2+2\*rho for zero-storage adversaries, where
+rho = K/N is the write density (10x at rho=4 vs Argon2id's 2x).
 
 ### Cumulative Memory Complexity
 
@@ -527,48 +537,47 @@ For Q=128, d=8, R=3, N=2^24, K=2^24:
 
 # Security Analysis {#security}
 
-## Soundness via Causal Web {#soundness}
+## Forgery Prevention {#soundness}
 
-The causal hash mechanism prevents fabrication. To forge a
-block's causal hash, the adversary needs the cursor of the step
-that wrote it. That cursor depends on d blocks read at the
-writer step, each with their own causal hashes requiring their
-own writers' cursors, recursively.
-
-Symbiotic binding strengthens this: forging data requires
-old\_causal (the block's causal history), and forging old\_causal
-requires the prior writer's cursor. The bidirectional dependency
-eliminates the possibility of independently fabricating either
-field.
+The causal hash mechanism prevents block value fabrication.
+To forge a block's causal hash, the adversary needs the cursor
+of the step that wrote it. That cursor depends on d blocks read
+at the writer step, each with their own causal hashes requiring
+their own writers' cursors, recursively. Symbiotic binding
+strengthens this: forging data requires old\_causal, and forging
+old\_causal requires the prior writer's cursor. Neither field
+can be independently fabricated.
 
 The root chain commitment ({{root-chain}}) binds the Prover to
-ALL K arena roots before challenges are derived. The Prover
-cannot fabricate roots after seeing challenges because C\_roots
-is an input to the Fiat-Shamir challenge derivation.
+ALL K arena roots before challenges are derived. C\_roots is an
+input to the Fiat-Shamir challenge derivation, so the Prover
+cannot fabricate roots after seeing challenges.
 
-Under collision-resistant H, the probability of passing
-verification while having fabricated fraction delta of steps:
+This is a SOUNDNESS property: it prevents the adversary from
+producing a valid-looking proof without executing the computation.
+It reduces to collision resistance of H: if an adversary produces
+T\_K' != T\_K with a valid proof, there exists a step c where the
+local state diverges. This requires either a collision in H
+(the transcript chain produces the same T\_c from different
+inputs) or a collision in the Merkle commitment. Both occur with
+probability at most K \* epsilon\_H, where epsilon\_H is the
+collision probability of H.
 
-~~~ artwork
-Pr[accept] <= (1 - delta)^{Q * D_eff} + negl(lambda)
-~~~
+## Recomputation Cost {#recomp-cost}
 
-## Security Reduction {#reduction}
+Separately from forgery prevention, causal hashes impose a
+constant-factor increase on the cost of recomputing missing
+blocks. Without causal hashes, an adversary recomputing a
+missing block traverses its write chain at cost O(rho) hashes
+(one per write in the chain). With causal hashes, the adversary
+must traverse both the data chain and the causal chain, doubling
+the cost to O(2\*rho) per miss.
 
-PoSME soundness reduces to collision resistance of H. If an
-adversary produces a valid proof with T\_K' != T\_K (the honest
-transcript), there exists a step c where the adversary's local
-state differs from the honest execution but verification passes.
-This requires either:
-
-1. A collision in H (the transcript chain produces the same T\_c
-   from different inputs), or
-2. A collision in the Merkle commitment (different arena states
-   produce the same root).
-
-Both occur with probability at most epsilon\_H (the collision
-probability of H). The reduction loses a factor of K (the
-number of steps where the divergence could occur).
+This is a MODERATE improvement: a 2x constant factor on write
+chain traversal, not an exponential blowup. The TMTO penalty
+table in {{tmto}} incorporates this factor. The causal hash
+mechanism's primary contribution is soundness ({{soundness}}),
+not TMTO amplification.
 
 ## TMTO Lower Bound {#tmto}
 
@@ -855,8 +864,6 @@ This document has no IANA actions.
 # Acknowledgements {#acknowledgements}
 {:numbered="false"}
 
-The PoSME construction emerged from 58 rounds of multi-model
-adversarial iteration. The causal hash mechanism, symbiotic
-binding, and committed steps were independently proposed and
-stress-tested across this process. The author thanks the CFRG
-for foundational work on memory-hard functions.
+The author thanks the CFRG for foundational work on memory-hard
+functions, and the authors of Argon2 for the initialization
+primitive used in PoSME.
