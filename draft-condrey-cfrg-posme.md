@@ -516,7 +516,7 @@ For Q challenges with recursion depth R:
 - Cursor replays: O(Q * d^R * d)
 - No arena memory allocation
 
-For Q=128, d=8, R=3, N=2^24, K=2^20:
+For Q=128, d=8, R=3, N=2^24, K=2^24:
 
 | Operation | Count |
 |---|---|
@@ -580,44 +580,83 @@ The transcript chain T\_0 through T\_K must be computed
 sequentially to produce T\_K before Fiat-Shamir challenges are
 derived. This is an Omega(K) lower bound regardless of storage.
 
+### Write Density and Arena Coverage {#write-density}
+
+Each step writes 1 block at a uniformly random address (in the
+ROM). After K steps, the fraction of blocks written at least once
+is phi = 1 - e^{-rho}, where rho = K/N is the write density.
+
+A block that was never written retains its initialization value,
+recomputable in O(1) from the seed. Only written blocks require
+write chain traversal for recomputation. The expected write chain
+length for a modified block is rho, costing O(rho) hashes.
+
+| rho = K/N | Blocks modified | Recomp cost/miss | TMTO effect |
+|---|---|---|---|
+| < 1 | < 63% | O(1) | Weak: most blocks free |
+| 1 | 63% | O(1) | Moderate |
+| 4 | 98% | O(4) | Strong |
+| 16 | ~100% | O(16) | Very strong |
+
+K MUST be at least N (rho >= 1) for meaningful TMTO resistance.
+Values of rho >= 4 are RECOMMENDED.
+
 ### Reconstruction Amplification
 
 After computing the chain, the adversary discards state. When
 challenged, it must reconstruct from checkpoints. With S stored
-arena snapshots at spacing C = K/S:
+arena snapshots at spacing C = K/S, each challenge requires
+replaying C steps. Each replayed step encounters cache misses
+requiring write chain traversal at cost O(rho) per miss.
 
 ~~~ artwork
-T_adv = K * d + Q * (K/S) * d * R
+T_adv = K * d + Q * (K/S) * d * R * (1 + 2*rho)
 
-Ratio: T_adv / T_honest = 1 + Q * R / S
+Ratio: T_adv / T_honest = 1 + Q * R * (1 + 2*rho) / S
 ~~~
 
-For Q=128, R=3, S=2: the adversary pays 193x honest cost.
+For Q=128, R=3, rho=1, S=2: ratio = 577x.
+For Q=128, R=3, rho=4, S=2: ratio = 1729x.
 
-Committed steps amplify this further: if a challenged step is
-committed (4\*d reads), the reconstruction cost at that step is
-4x higher. The expected number of committed steps among Q
-challenges is Q \* d / C.
+The write density rho amplifies reconstruction cost: each miss
+costs O(rho) to traverse the write chain. Committed steps
+amplify further (4\*d reads at committed steps).
 
-### Dynamic Pebbling Framework
+### Space-Time Product
+
+In the random oracle model, the adversary's space-time product:
+
+~~~ artwork
+M * T >= Omega(N * K * d * min(1, rho))
+~~~
+
+For rho >= 1 (K >= N), this equals Omega(N \* K \* d), matching
+the honest prover. No adversary can reduce both space and time.
+
+### Dynamic Pebbling Game {#pebbling-game}
 
 PoSME's causal DAG is dynamic: edges are created during
 execution based on data-dependent addressing. In the random
-oracle model, each step creates d edges to unpredictable targets.
-The resulting DAG has expected depth K and expected in-degree d
-at each node.
+oracle model, each step creates d edges to uniformly random
+targets. The pebbling game:
 
-A pebbling adversary storing alpha \* N pebbles incurs expected
-recomputation per challenge proportional to the causal cone size,
-which grows as d^R for recursion depth R. The space-time product
-for the adversary is:
+1. N block nodes (arena) and K step nodes.
+2. At step t, the game reveals d random read addresses.
+3. To execute step t, the adversary must have pebbles on all
+   d read addresses (stored or recomputed at cost O(rho)).
+4. The adversary maintains auxiliary state (cursors, write
+   index) of at most K \* 32 bytes.
+
+The cumulative pebbling complexity for an adversary storing
+alpha \* N blocks:
 
 ~~~ artwork
-S * T >= Omega(N + K * d * R)
+CPC >= alpha * N * K + Q * d * (1-alpha) * R * (2*rho + 1)
 ~~~
 
-This bound is informal; a formal proof within the dynamic
-pebbling framework remains open.
+The first term is storage cost; the second is recomputation
+for Q challenges. The adversary minimizes by choosing alpha
+to balance the two terms.
 
 ## ASIC Resistance {#asic-resistance}
 
@@ -715,7 +754,7 @@ writer-proof = {
 | Arena blocks | N | 2^24 (16M blocks) | MUST be power of 2 |
 | Block size | B | 64 bytes | Fixed |
 | Arena memory | M | 1 GiB | MUST exceed L3 cache |
-| Steps | K | 2^20 (~1M) | Application-specific |
+| Steps | K | 2^24 (16M) | MUST be >= N (see {{write-density}}) |
 | Reads per step | d | 8 | MUST be >= 4 |
 | Challenges | Q | 128 | MUST be >= 64 |
 | Recursion depth | R | 3 | MUST be >= 2 |
@@ -729,7 +768,7 @@ Verifiers MUST reject proofs with parameters below these minimums:
 | Parameter | Minimum | Rationale |
 |---|---|---|
 | N | 2^20 (64 MiB) | Below this, arena fits in L3 cache |
-| K | 2^10 | Below this, sequential chain is trivial |
+| K | N | Below N, most blocks are never written; TMTO is trivial |
 | d | 4 | Below this, causal fan-out is insufficient |
 | Q | 64 | Below this, detection probability < 2^{-64} |
 | R | 2 | Below this, causal verification is shallow |
@@ -743,7 +782,7 @@ On reference hardware (DDR5, ~35ns random access latency):
 |---|---|
 | Per-step latency | d * 35ns = 280ns |
 | Per-step hash cost | d * 3ns = 24ns |
-| K=2^20 execution time | ~0.3 seconds |
+| K=2^24 execution time | ~4.7 seconds |
 | Prover storage | 1 GiB (arena) + ~200 MiB (logs) |
 | Verifier time | ~6ms |
 | Proof size | ~2-4 MiB |
@@ -789,14 +828,15 @@ resources for verification.
 
 ## Open Problems {#open-problems}
 
-The TMTO analysis is an informal argument, not a formal reduction
-within the dynamic pebbling framework. The cumulative memory
-complexity of PoSME's dynamic causal DAG has not been formally
-proven. Block access distribution uniformity under hash-derived
-addressing has not been formally characterized; skewed
-distributions may enable hot-block caching strategies. The
-interaction between committed steps and the optimal adversary
-checkpoint strategy requires further analysis.
+The dynamic pebbling game ({{pebbling-game}}) provides a framework
+for TMTO analysis, but a machine-checked proof of the space-time
+lower bound remains open. The adversary's optimal caching strategy
+(which blocks to store, when to checkpoint) has not been formally
+optimized. Block access distribution uniformity under hash-derived
+addressing requires formal characterization; skewed distributions
+may enable hot-block caching. The tight relationship between
+committed step frequency C, write density rho, and the optimal
+adversary strategy requires further analysis.
 
 # IANA Considerations {#iana-considerations}
 
