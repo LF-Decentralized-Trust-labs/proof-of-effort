@@ -208,6 +208,21 @@ pointer-chasing with in-place writes, creating latency-hardness
 approximately 2+2\*rho for zero-storage adversaries, where
 rho = K/N is the write density (10x at rho=4 vs Argon2id's 2x).
 
+### Proofs of Space-Time
+
+Proofs of Space-Time (PoST) {{CohenPietrzak2018}} enforce both
+sequential time and persistent storage by requiring a Prover to
+repeatedly prove possession of stored data over a sequence of
+time intervals. PoST operates over a static graph: the stored
+data does not change between proofs, and the graph structure is
+fixed before execution. PoSME differs in that the arena is
+mutable (each step modifies it), the access pattern is data-
+dependent (addresses are determined by arena contents, not
+pre-computed), and each block carries a causal hash binding its
+current value to its write history. These differences make PoSME
+a different construction with different TMTO characteristics,
+not a strict improvement over PoST.
+
 ### Cumulative Memory Complexity
 
 Alwen, Blocki, and Pietrzak {{AlwenBlockPietrzak2017}} formalized
@@ -507,9 +522,13 @@ verify_step(sp, C_roots, root_0, params):
     assert sp.root_after == MerkleUpdate(
         sp.root_before, w, sp.write.new)
 
-    // G. Verify transcript chain
-    assert H(sp.cursor_in || I2OSP(sp.step_id, 4)
-             || cursor || sp.root_after) is consistent
+    // G. Compute and store transcript value for cross-check
+    T_c = H(sp.cursor_in || I2OSP(sp.step_id, 4)
+            || cursor || sp.root_after)
+    // If another challenged step c' has cursor_in == T_c,
+    // verify they match. If sp.step_id == K, verify
+    // T_c == T_K (the public final transcript).
+    stored_transcripts[sp.step_id] = T_c
 
     // H. Recursive causal provenance
     for j in 0..d_t-1:
@@ -583,7 +602,7 @@ not TMTO amplification.
 
 An adversary storing alpha \* N blocks faces a two-layer penalty:
 
-### Sequential Floor
+### Sequential Floor {#sequential-floor}
 
 The transcript chain T\_0 through T\_K must be computed
 sequentially to produce T\_K before Fiat-Shamir challenges are
@@ -610,18 +629,15 @@ length for a modified block is rho, costing O(rho) hashes.
 K MUST be at least N (rho >= 1) for meaningful TMTO resistance.
 Values of rho >= 4 are RECOMMENDED.
 
-### Reconstruction Amplification
+### Per-Step Recomputation Cost
 
-After computing the chain, the adversary discards state. When
-challenged, it must reconstruct from checkpoints. With S stored
-arena snapshots at spacing C = K/S, each challenge requires
-replaying C steps. Each replayed step encounters cache misses
-requiring write chain traversal at cost O(rho) per miss.
-
-An adversary storing alpha \* N arena blocks plus all K cursors
-(K \* 32 bytes) faces per-step recomputation cost of
-d \* (1 - alpha) \* (2\*rho + 1) for each cache miss. The TMTO
-ratio:
+An adversary storing alpha \* N arena blocks must still compute
+the full K-step transcript chain ({{sequential-floor}}). At
+each step, d blocks are read. Each read missing the stored set
+(probability 1-alpha per read, since addresses are uniform in
+the ROM) requires write-chain traversal at expected cost
+2\*rho + 1 hashes. The per-step cost becomes
+d \* (1 + (1-alpha) \* (2\*rho + 1)), giving the TMTO ratio:
 
 ~~~ artwork
 T_adv / T_honest >= 1 + (1-alpha) * (2*rho + 1)
@@ -633,9 +649,17 @@ T_adv / T_honest >= 1 + (1-alpha) * (2*rho + 1)
 | 4 | 10x | 5.5x |
 | 16 | 34x | 17.5x |
 
-The penalty scales linearly with rho. Committed steps amplify
-the penalty at committed step positions (4\*d reads instead
-of d, quadrupling miss rate).
+The penalty scales linearly with rho. Committed steps (4\*d
+reads) quadruple the miss rate at committed step positions.
+
+This bound assumes the adversary stores all K cursors
+(K \* 32 bytes; 512 MiB for K = 2^26). Storing all cursors is
+optimal for the adversary: it eliminates the need for sequential
+replay from checkpoints. An adversary who stores cursors at
+intervals of L steps instead pays an additional L \* d \*
+(1 + (1-alpha) \* (2\*rho + 1)) hashes per cursor miss. Sparse
+cursor storage strictly increases the adversary's cost; the
+bound above is a LOWER bound on the TMTO penalty.
 
 ### Space-Time Product
 
