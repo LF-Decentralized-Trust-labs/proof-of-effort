@@ -1,449 +1,487 @@
-# PoSME Dynamic Pebbling Game: Formal Framework
+# PoSME Dynamic Pebbling: Formal Framework
 
-## 1. Model
+## 1. Computation Model
 
-### 1.1 The Computation
+Fix parameters: N (arena blocks), K (steps), d (reads per step),
+lambda = 256 (security parameter). Let H : {0,1}* -> {0,1}^lambda
+be a random oracle.
 
-Fix parameters N (arena size), K (steps), d (reads per step),
-lambda (security parameter). Let H be a random oracle.
+### 1.1 Arena and State
 
-**Arena.** A : [N] -> {0,1}^{2*lambda}. Each block stores
-(data, causal), each lambda bits.
+Arena A_t : [N] -> {0,1}^{2*lambda} is the arena state after
+step t. Each block stores (data, causal), each lambda bits.
 
-**Initialization.** A_0[i] is a deterministic function of seed s
-and index i, computable in O(1) from s.
+A_0 is deterministic from seed s: any party can compute A_0[i]
+in O(1) from s and i (plus at most 2 predecessor lookups for the
+skip-link initialization).
 
-**Step t** (for t = 1, ..., K):
+### 1.2 Step Function (Precise)
 
-1. Read addresses: for j = 0..d-1,
-   a_{t,j} = H("addr" || c_{t-1} || j) mod N
+At step t, given transcript value T_{t-1} and arena state A_{t-1}:
 
-2. Cursor update:
-   c_t = H(c_{t-1} || A_{t-1}[a_{t,0}] || ... || A_{t-1}[a_{t,d-1}])
+~~~ pseudocode
+// Phase 1: Sequential pointer-chase reads
+cursor := T_{t-1}
+a_0 := H("addr" || cursor || 0) mod N
+v_0 := A_{t-1}[a_0]
+cursor := H(cursor || v_0.data || v_0.causal)
 
-3. Write address: w_t = H("write" || c_t || t) mod N
+for j = 1 to d-1:
+    a_j := H("addr" || cursor || j) mod N
+    v_j := A_{t-1}[a_j]
+    cursor := H(cursor || v_j.data || v_j.causal)
 
-4. Write value:
-   A_t[w_t].data = H(A_{t-1}[w_t].data || c_t || A_{t-1}[w_t].causal)
-   A_t[w_t].causal = H(A_{t-1}[w_t].causal || c_t || t)
-   A_t[i] = A_{t-1}[i] for all i != w_t
+// Phase 2: Write
+w := H("write" || cursor) mod N
+old := A_{t-1}[w]
+new.data := H(old.data || cursor || old.causal)
+new.causal := H(old.causal || cursor || t)
+A_t[w] := new;  A_t[i] := A_{t-1}[i] for i != w
 
-5. Transcript: T_t = H(T_{t-1} || t || c_t || root_t)
+// Phase 3: Transcript
+root_t := MerkleUpdate(root_{t-1}, w, new)
+T_t := H(T_{t-1} || t || cursor || root_t)
+~~~
 
-**Output.** (T_K, root_K).
+**Critical structure:** Address a_j depends on cursor AFTER
+absorbing blocks v_0 through v_{j-1}. This means:
 
-### 1.2 The Random Oracle Property
+- a_0 depends only on T_{t-1} (known before any reads)
+- a_1 depends on T_{t-1} AND v_0 (requires reading block a_0)
+- a_2 depends on T_{t-1}, v_0, AND v_1 (requires a_0 and a_1)
+- ...
+- a_{d-1} depends on all prior reads
 
-In the random oracle model, the addresses a_{t,j} = H(...) mod N
-are uniformly random in [N] and independent of the adversary's
-storage decisions, because the adversary cannot predict H's output
-without evaluating it, and evaluating it requires c_{t-1}, which
-requires completing step t-1.
+The d reads within a step are SEQUENTIALLY DEPENDENT. The
+adversary cannot determine a_{j+1} without first obtaining v_j
+(the contents of block a_j). This is the pointer-chasing
+property.
 
-More precisely: conditioned on the adversary's storage set S_t at
-the beginning of step t, the d read addresses are uniform in [N]
-and independent of S_t. This is the key property that makes the
-pebbling analysis work.
+### 1.3 Address Distribution in the ROM
 
-### 1.3 Block Write History
+**Claim:** In the random oracle model, conditioned on the
+adversary's storage set S_{t-1} and the values of blocks
+{v_0, ..., v_{j-1}} already read during step t, the address
+a_j is uniformly distributed in [N].
 
-Define the write history of block i as the sequence of steps that
-wrote to block i:
+**Justification:** a_j = H("addr" || cursor || j) mod N. The
+cursor at this point is H(... || v_{j-1}.data || v_{j-1}.causal),
+which is the output of the random oracle on a fresh input (the
+input includes v_{j-1}, which was not an input to any previous H
+query in this context). By the ROM property, this output is
+uniform and independent of all prior queries to H on different
+inputs.
 
-  W(i) = {t in [K] : w_t = i}
+**Important caveat:** The address IS determined by the arena
+contents. The adversary's storage decisions affect which blocks
+are available, which affects which values v_j take, which affects
+cursor, which affects addresses. The correct statement is:
 
-Each step writes to one uniformly random block (in the ROM). So
-each block's write count |W(i)| follows a Binomial(K, 1/N)
-distribution, which for large N is approximately Poisson(K/N).
+For ANY fixed adversary strategy (determining S_t as a function
+of prior observations), the DISTRIBUTION of a_j over the
+random oracle's coins is uniform in [N]. The adversary cannot
+bias the address distribution by choosing what to store.
 
-Define rho = K/N as the write density. This is the expected number
-of writes per block.
-
-**Critical observation:** The fraction of blocks that have been
-written at least once after K steps is:
-
-  phi = 1 - (1 - 1/N)^K ≈ 1 - e^{-rho}
-
-For rho = K/N << 1: phi ≈ rho (most blocks are unmodified).
-For rho >= 3: phi > 0.95 (almost all blocks are modified).
-
-A block that has NEVER been written retains its initialization
-value, which is recomputable in O(1) from the seed. Only modified
-blocks require knowledge of the write chain.
+This does NOT mean a_j is independent of S_t. The adversary's
+storage set and the address are both functions of the same random
+oracle coins. But the adversary cannot PREDICT or CONTROL which
+addresses will be selected.
 
 ## 2. The Dynamic Pebbling Game
 
-### 2.1 Players and State
+### 2.1 Game Definition
 
-The game is played by an Adversary A against the computation
-defined above.
+**Players:** Challenger (running the PoSME computation) and
+Adversary (trying to produce a valid proof with minimal resources).
 
-**Adversary state.** At each step t, the adversary maintains:
-- A stored set S_t subset [N] of arena blocks (pebbled blocks)
-- For each i in S_t, the current value A_t[i]
-- Auxiliary state aux_t of at most P bits (e.g., stored cursors,
-  write indices, checkpoints)
+**Adversary state at time t:**
+- Pebbled set P_t subset [N]: blocks stored in memory
+- For each i in P_t: the current value A_t[i] (2*lambda bits)
+- Auxiliary tape aux_t: arbitrary additional state (bounded)
+- Total storage: |P_t| * 2 * lambda + |aux_t|
+
+**Rules for each step t = 1, ..., K:**
 
-**Constraints:**
-- |S_t| = s_t (the adversary stores s_t blocks at step t)
-- |aux_t| <= P
+1. REVEAL: The Challenger reveals a_0 (the first read address,
+   determined by T_{t-1} which the Adversary already knows).
+
+2. For j = 0, ..., d-1:
+   a. If a_j in P_t: the Adversary reads v_j = A_{t-1}[a_j]
+      from its stored set. Cost: 0.
+   b. If a_j not in P_t: the Adversary must RECOMPUTE v_j.
+      Cost: R(a_j, t) hash evaluations (defined below).
+   c. The Adversary updates cursor and the Challenger reveals
+      a_{j+1} (which depends on v_j and hence on whether
+      the Adversary recomputed correctly).
 
-### 2.2 Game Rules
-
-At each step t = 1, ..., K:
-
-1. The game REVEALS the d read addresses a_{t,0}, ..., a_{t,d-1}.
-   (These are determined by c_{t-1}, which the adversary must have
-   computed at the previous step.)
-
-2. For each read address a_{t,j}:
-   - If a_{t,j} in S_t: the adversary has the value. Cost: 0.
-   - If a_{t,j} not in S_t: the adversary must RECOMPUTE A_t[a_{t,j}].
-     Cost: R(a_{t,j}, t) hash evaluations.
-
-3. The adversary computes c_t using the d block values (obtained
-   either from storage or recomputation).
-
-4. The game reveals w_t. The adversary updates A[w_t] and may
-   add or remove blocks from S_t.
-
-5. The adversary computes T_t.
-
-### 2.3 Recomputation Cost
-
-To recompute block i at step t (when i not in S_t):
-
-**Case 1: Block i was never written** (i not in union of w_1..w_t).
-The value is A_0[i], computable from seed in O(1).
-Cost: R(i, t) = 1.
-
-**Case 2: Block i was written at steps t_1 < t_2 < ... < t_m <= t.**
-The adversary must reconstruct the write chain from initialization
-to the most recent write. Each link in the chain requires:
-- The cursor c_{t_k} at the writing step (lambda bits)
-- The previous value A_{t_k - 1}[i] = (data, causal) before
-  the write
-
-The total recomputation cost is:
-
-  R(i, t) = 2 * |W(i, t)| + 1
-
-where W(i, t) = {t' in W(i) : t' <= t} is the number of writes
-to block i up to step t. The factor 2 accounts for recomputing
-both data and causal hash at each write. The +1 is for the
-initialization lookup.
-
-**BUT:** This assumes the adversary has the cursor c_{t_k} for
-each writing step t_k. If the adversary stores all K cursors
-(K * lambda bits of auxiliary state), this is available. If not,
-the adversary must recompute the cursor, which requires re-
-executing from the nearest stored cursor checkpoint.
-
-### 2.4 Optimized Adversary Strategy
-
-The adversary can minimize cost by storing:
-
-1. All K cursors: K * lambda bits = K * 32 bytes.
-   (For K = 2^20: 32 MiB. For K = 2^24: 512 MiB.)
-
-2. A write index mapping each block to its write history.
-   (At most K entries, each O(log N) bits. Total: K * log N bits.)
-
-3. Arena checkpoints every C steps.
-   (Each checkpoint: N * 2 * lambda bits. Total: (K/C) * N * 64 bytes.)
-
-With cursors and write index stored, the adversary can recompute
-any block's current value in O(rho) hash evaluations (expected
-write chain length).
-
-## 3. Cumulative Memory Complexity
-
-### 3.1 Definition
-
-The cumulative memory complexity of the adversary's strategy is:
-
-  CMC(A) = sum_{t=1}^{K} s_t * B
-
-where s_t = |S_t| and B = 64 bytes per block.
-
-For the honest prover: s_t = N for all t, so CMC_honest = N * K * B.
-
-### 3.2 Lower Bound: Sequential Floor
-
-**Theorem 1 (Sequential Floor).** Any adversary producing T_K
-must perform at least K sequential hash evaluations.
-
-**Proof.** T_t = H(T_{t-1} || ...). In the ROM, the only way to
-compute T_t is to evaluate H on an input containing T_{t-1}.
-Computing T_{t-1} requires T_{t-2}, etc. The chain T_0, T_1, ...,
-T_K requires K sequential H evaluations. No parallelism or
-storage strategy can reduce this.
-
-This bound is independent of memory. The adversary MUST spend
-Omega(K) time regardless of how much memory it has. []
-
-### 3.3 Lower Bound: Memory-Time Tradeoff
-
-**Theorem 2 (TMTO Lower Bound).** In the random oracle model,
-any adversary storing at most alpha * N blocks at each step
-and producing a valid PoSME proof (passing Q challenges with
-recursive depth R) must perform expected additional work:
-
-  W_recomp >= Q * d * (1 - alpha) * rho * R
-
-hash evaluations, where rho = K/N is the write density.
-
-**Proof sketch.**
-
-Step 1: Cache miss rate.
-At each challenged step c, the adversary must provide the d
-read block values. Each address is uniform in [N] (ROM). The
-probability that a read misses the stored set is (1 - alpha).
-Expected misses per challenge: d * (1 - alpha).
-Total expected misses across Q challenges: Q * d * (1 - alpha).
-
-Step 2: Recomputation cost per miss.
-For a miss at block i, the adversary must recompute A[i]. By
-Section 2.3, this costs 2 * |W(i, t)| + 1 hash evaluations
-(with cursors stored).
-
-The expected write chain length is E[|W(i, t)|] = rho (Poisson
-mean). So the expected recomputation cost per miss is 2*rho + 1.
-
-Step 3: Recursive provenance amplification.
-Each challenged step also requires opening the causal provenance
-to depth R. Each provenance level opens d more blocks, each of
-which may miss with probability (1 - alpha). At each recursion
-level, the expected number of new blocks to recompute is
-d * (1 - alpha). Over R levels, the total blocks to recompute
-is approximately d * (1 - alpha) * R (with overlaps reducing
-this, but in the ROM, addresses are independent so overlap is
-negligible for alpha << 1).
-
-Each recomputed block costs O(rho) hash evaluations.
-
-Total:
-  W_recomp >= Q * d * (1 - alpha) * R * (2*rho + 1)
-
-For rho >= 1: W_recomp >= Q * d * (1 - alpha) * R * 2 * rho. []
-
-### 3.4 The Critical Parameter: Write Density rho
-
-The strength of the TMTO bound depends on rho = K/N:
-
-| rho = K/N | Fraction modified (phi) | Recomp cost per miss | Adversary advantage |
-|---|---|---|---|
-| 0.0625 (K=2^20, N=2^24) | 6% | ~1.1 hashes | Minimal TMTO penalty |
-| 1 (K = N) | 63% | ~3 hashes | Moderate penalty |
-| 4 (K = 4N) | 98% | ~9 hashes | Strong penalty |
-| 16 (K = 16N) | ~100% | ~33 hashes | Very strong penalty |
-
-**IMPORTANT FINDING:** The currently recommended parameters
-(K = 2^20, N = 2^24) give rho = 1/16. At this write density,
-94% of blocks are never written and can be recomputed for free.
-The TMTO penalty is negligible.
-
-For meaningful TMTO resistance, rho MUST be at least 1, and
-SHOULD be at least 4. This means K >= N, preferably K >= 4*N.
-
-### 3.5 Revised CMC Bound
-
-With the write density constraint, the CMC lower bound for an
-adversary storing alpha * N blocks becomes:
-
-**Theorem 3 (CMC Bound).** For rho = K/N >= 1, any adversary
-producing a valid PoSME proof with CMC_adv < alpha * N * K
-(where alpha < 1) must perform additional work at least:
-
-  W_extra >= Q * d * (1 - alpha) * R * 2 * rho
-
-Setting W_extra = K * d (the honest computation cost) and
-solving for alpha:
-
-  alpha >= 1 - K / (Q * R * 2 * rho)
-        = 1 - N / (Q * R * 2)       (substituting rho = K/N)
-        = 1 - N / (2*Q*R)
-
-For N = 2^24, Q = 128, R = 3: alpha >= 1 - 2^24 / 768 ≈ 1 - 21845.
-
-This gives alpha > 1, which is vacuously true. This means the
-TMTO penalty alone does not force the adversary to store the
-full arena.
-
-**However:** The adversary must ALSO compute the sequential chain
-(Theorem 1), which requires K hash evaluations. If the adversary
-stores checkpoints every C steps (S = K/C checkpoints), then
-answering each challenge requires replaying from the nearest
-checkpoint: C * d hash evaluations.
-
-The combined cost:
-
-  W_total = K * d + Q * C * d * (1 + R * 2 * rho)
-          = K * d * (1 + Q * (1 + 2*R*rho) / S)
-
-where S is the number of stored checkpoints.
-
-The adversary's total storage: alpha * N * B + S * N * B + K * 32.
-
-Minimizing total cost over (alpha, S) gives the optimal strategy.
-
-## 4. Formal Theorem: Complete TMTO Characterization
-
-**Theorem 4 (PoSME Space-Time Tradeoff).** In the random oracle
-model, let an adversary Adv maintain storage M bits throughout
-the PoSME computation with parameters (N, K, d, Q, R). Define:
-
-  rho = K/N    (write density)
-  B = 64       (bytes per block)
-
-Then the adversary's total computation T_Adv (hash evaluations)
-satisfies:
-
-  M * T_Adv >= Omega(N * B * K * d * min(1, rho))
-
-That is, the space-time product is lower-bounded by
-Omega(N * K * d * min(1, rho)) when measured in blocks * hashes.
-
-For rho >= 1, this simplifies to:
-
-  M * T_Adv >= Omega(N * K * d)
-
-which matches the honest prover's space-time product (N blocks
-stored for K steps, each requiring d hash evaluations).
+3. WRITE: The Challenger reveals w. The Adversary computes the
+   new block value (requires cursor, which requires all d reads).
+
+4. MANAGE: The Adversary may add or remove blocks from P_t to
+   form P_{t+1}. Adding a new block requires either:
+   - computing it (via step function or initialization), or
+   - having it delivered by recomputation.
+
+5. The Adversary computes T_t.
+
+### 2.2 Recomputation Cost Function
+
+When the Adversary needs block i at step t but i not in P_t:
+
+**Case A: Block i was never written** (w_s != i for all s < t).
+The Adversary computes A_0[i] from the seed. Cost: R(i,t) = O(1).
+
+**Case B: Block i was last written at step tau** (the most recent
+s < t where w_s = i). The Adversary needs:
+
+1. The cursor at step tau: c_tau. This requires knowing the d
+   read values at step tau, which requires those blocks at their
+   state at time tau-1.
+
+2. The old value of block i before step tau wrote to it: A_{tau-1}[i].
+   This requires knowing who last wrote to i BEFORE tau, etc.
+
+The recomputation traces backward through the write history of
+block i, and at each link, requires the cursor of the writing
+step, which requires d reads at that step.
+
+**If the Adversary stored all cursors** (K * lambda bits of aux):
+The Adversary needs only the write chain of block i. Each link
+requires the previous value of i, traceable back to initialization.
+The write chain has expected length E[|W_i|] = rho = K/N (Poisson).
+Each link costs O(1) hashes (given the cursor). But the Adversary
+also needs old.causal at each link (for symbiotic binding), which
+requires traversing the CAUSAL chain of the same block, which is
+the same write chain. Total cost: 2 * |W_i| + 1 hashes.
+
+Expected cost per miss with cursors stored: 2*rho + 1.
+
+**If the Adversary did NOT store cursors:** The Adversary must
+recompute cursor at the writing step tau. Recomputing cursor at
+tau requires replaying steps from some checkpoint. If the nearest
+checkpoint is C steps away, this costs C * d hash evaluations
+(each intervening step requires d reads). Recomputing one cursor
+may cause further cache misses, creating a cascade.
+
+This is where the adversary faces a tradeoff: store more cursors
+(auxiliary memory) to reduce recomputation cost, or store fewer
+and pay sequential replay costs.
+
+### 2.3 Cursor Storage Tradeoff
+
+The Adversary can store cursors at intervals of L steps, using
+K/L * lambda bits of auxiliary storage. Recomputing a cursor at
+an arbitrary step costs at most L * d * (expected recomp per
+step) hashes, where "expected recomp per step" depends on the
+pebbled fraction alpha.
+
+For alpha-fraction storage: expected misses per step = d*(1-alpha).
+Expected recomp per miss = 2*rho + 1 (with cursor available).
+Cost of replaying one step without cursor: d * (1 + (1-alpha)*(2*rho+1)).
+Cost of replaying L steps: L * d * (1 + (1-alpha)*(2*rho+1)).
+
+The Adversary's total cost to answer one challenge:
+- Find the nearest cursor checkpoint: O(1) lookup
+- Replay from checkpoint to challenged step: at most L steps
+- Total per challenge: L * d * (1 + (1-alpha)*(2*rho+1))
+
+## 3. Lower Bounds
+
+### 3.1 Sequential Floor (Unconditional)
+
+**Theorem 1.** Any algorithm producing T_K from (s, params)
+performs at least K evaluations of H in sequence.
+
+**Proof.** T_t = H(T_{t-1} || ...). In the ROM, the output T_t
+is uniform and independent of all prior queries except the one
+computing T_t itself. The only way to learn T_t is to evaluate H
+on input (T_{t-1} || ...), which requires knowing T_{t-1}.
+Inductively, computing T_K requires the sequential chain
+T_0, T_1, ..., T_K. Each step requires at least one H
+evaluation. The chain has depth K. []
+
+**Corollary.** The Adversary's wall-clock time is at least
+K * tau_H, where tau_H is the time for one H evaluation. No
+parallelism or storage strategy can reduce this below K
+sequential steps.
+
+### 3.2 Memory-Dependent Recomputation Cost
+
+**Theorem 2.** In the ROM, let the Adversary maintain pebbled
+set of expected size alpha * N blocks and cursor checkpoints
+every L steps. The expected total computation to produce T_K
+and answer Q Fiat-Shamir challenges with recursion depth R is:
+
+~~~ artwork
+T_total >= K * d                                  (chain cost)
+         + Q * L * d * (1 + (1-alpha)*(2*rho+1))  (challenge replay)
+         + Q * d * R * (1-alpha) * (2*rho+1)       (provenance)
+~~~
 
 **Proof.**
 
-The adversary must compute the sequential chain T_0 -> T_K,
-costing K * d hash evaluations (Theorem 1). This establishes
-T_Adv >= K * d regardless of M.
+Part 1 (chain cost): By Theorem 1, computing the sequential chain
+costs K * d hash evaluations (each step requires d reads to
+compute the cursor, plus hash evaluations for write and transcript).
 
-At each step t, the adversary maintains s_t blocks. The d read
-addresses are uniform in [N] (ROM). The expected number of
-cache misses is d * (N - s_t) / N. Each miss costs at least
-1 hash (for unmodified blocks) or 2*|W(i,t)| + 1 hashes (for
-modified blocks).
+Part 2 (challenge replay): The Adversary computes the chain but
+discards most state. When challenged at step c, it must
+reconstruct the arena state at c. Starting from the nearest cursor
+checkpoint (at most L steps away), the Adversary replays forward.
+Each replayed step requires d reads. Each read that misses the
+pebbled set (probability 1-alpha per read, since addresses are
+uniform in the ROM) costs 2*rho+1 to recompute via write chain
+traversal. Expected cost per replayed step: d * (1 + (1-alpha)*(2*rho+1)).
+Over L steps per challenge, times Q challenges: Q*L*d*(1+(1-alpha)*(2*rho+1)).
 
-The expected recomputation cost at step t is at least:
+Part 3 (provenance): Each challenge opens d reads recursively to
+depth R. Each recursive level requires d more block lookups, each
+missing with probability 1-alpha. Expected provenance cost per
+challenge: d*R*(1-alpha)*(2*rho+1). Over Q challenges:
+Q*d*R*(1-alpha)*(2*rho+1). []
 
-  d * (N - s_t) / N * (1 + 2 * rho * phi(t))
+### 3.3 Adversary's Optimal Strategy
 
-where phi(t) = 1 - e^{-t/N} is the fraction of modified blocks.
+The Adversary jointly optimizes alpha (pebbled fraction) and L
+(cursor checkpoint interval) to minimize total cost:
 
-Summing over all K steps:
+~~~ artwork
+Total cost = K*d + Q*L*d*(1 + (1-alpha)*(2*rho+1))
+                 + Q*d*R*(1-alpha)*(2*rho+1)
 
-  T_Adv >= K * d + sum_{t=1}^{K} d * (N - s_t) / N * (1 + 2*rho*phi(t))
+Storage = alpha * N * 2*lambda + (K/L) * lambda + aux
+~~~
 
-For the space-time product:
+Minimizing over L: the Adversary wants L small (less replay) but
+this costs more cursor storage (K/L * lambda). Setting
+cursor storage budget = B_aux:
 
-  M * T_Adv >= (sum s_t * B) * T_Adv
-           >= (CMC * B) * (K * d)    (by Cauchy-Schwarz or AM-GM)
+  L = K * lambda / B_aux
 
-The key step: by Cauchy-Schwarz on (s_t) and (1/s_t):
+Minimizing over alpha: the Adversary wants alpha small (less arena
+storage) but this increases recomputation. The marginal cost of
+NOT storing one block is d * (2*rho+1) per step it's needed.
+The marginal cost of storing one block is 2*lambda bits per step.
 
-  (sum s_t) * (sum 1/s_t) >= K^2
+At equilibrium: alpha is determined by the ratio of storage cost
+to recomputation cost.
 
-But this doesn't directly help. Instead, we use the tradeoff
-between storage and recomputation:
+### 3.4 Numerical Analysis
 
-For each step t, the adversary either:
-(a) stores s_t blocks (cost: s_t * B memory), or
-(b) recomputes some of the d reads (cost: d * (N-s_t)/N * f(rho))
+For recommended parameters: N = K = 2^24, d = 8, Q = 128, R = 3,
+rho = 1, lambda = 256 bits = 32 bytes.
 
-The product of memory and computation at step t is:
+**Honest prover:**
+- Cost: K * d = 2^24 * 8 = 2^27 hash evaluations
+- Storage: N * 64 bytes = 1 GiB (arena) + K * 32 = 512 MiB (cursors)
 
-  s_t * B * (K*d/K + d*(N-s_t)/N * f(rho))
+**Adversary storing alpha = 0 (no arena), L = 2^12 (cursor every 4096 steps):**
+- Cursor storage: K/L * 32 = 2^12 * 32 = 128 KiB
+- Chain cost: 2^27 hashes (same as honest)
+- Per challenge replay: L * d * (1 + 1*(2*1+1)) = 4096 * 8 * 4 = 131072 hashes
+- Challenge total: 128 * 131072 = 2^24 hashes
+- Provenance: 128 * 8 * 3 * 1 * 3 = 9216 hashes (negligible)
+- Total: 2^27 + 2^24 = 2^27 * 1.125
+- **Adversary pays 12.5% more computation for 0% arena storage**
 
-Averaging over K steps and optimizing over s_t, we get:
+This is a WEAK bound. The adversary saves 1 GiB of storage for
+only 12.5% more computation.
 
-  M * T >= Omega(N * K * d * min(1, rho))
+**Why it's weak:** With rho = 1, each miss costs only 2*1+1 = 3
+hashes (expected write chain length is 1). The replay cost
+L * d * 4 is significant only if L is large. The adversary can
+set L small by spending modest auxiliary storage on cursors.
 
-The bound is tight when rho >= 1 (every block has been written
-at least once, so recomputation always incurs the write chain
-cost). For rho << 1, most blocks are free to recompute, and
-the bound weakens to Omega(K * d) (the sequential floor). []
+**Adversary storing alpha = 0, L = 2^20 (cursor every ~1M steps):**
+- Cursor storage: 2^4 * 32 = 512 bytes
+- Per challenge replay: 2^20 * 8 * 4 = 2^25 hashes
+- Challenge total: 128 * 2^25 = 2^32 hashes
+- Total: 2^27 + 2^32 = 2^32 * 1.03
+- **Ratio to honest: 2^32 / 2^27 = 32x**
 
-## 5. Parameter Implications
+Still not 170x. The previous analysis was wrong.
 
-### 5.1 The Write Density Requirement
+**To get 170x, we need rho = K/N much larger than 1.**
 
-For PoSME to provide meaningful TMTO resistance, the write
-density rho = K/N MUST be at least 1. With rho < 1, the
-majority of blocks are never written and can be recomputed
-for free, nullifying the memory-hardness guarantee.
+For rho = 16 (K = 16*N): miss cost = 2*16+1 = 33 hashes.
+Adversary with alpha=0, L=2^12:
+- Per challenge replay: 4096 * 8 * 34 = 1,114,112 hashes
+- Challenge total: 128 * 1.1M = 143M hashes
+- Chain cost: 16 * 2^24 * 8 = 2^31 hashes
+- Total: 2^31 + 1.4*2^27 ≈ 2^31 * 1.07
+- Ratio: 1.07x. Still weak!
 
-**Revised parameter constraint: K >= N.**
+The problem: the chain cost dominates. The adversary MUST compute
+the full chain (Omega(K*d) hashes) regardless of memory. The
+recomputation cost from challenges is additive, and for Q=128,
+it's much smaller than K*d when K is large.
 
-This means: for a 1 GiB arena (N = 2^24 blocks of 64 bytes),
-the computation must run for at least K = 2^24 steps.
+### 3.5 The Real Bound
 
-At d = 8 reads per step and 35ns per read:
-- K = 2^24 steps * 8 reads * 35ns = ~4.7 seconds
+The honest prover's cost is ALSO K*d. The adversary's extra cost
+from challenges is Q * L * d * (1-alpha) * (2*rho+1). The ratio:
 
-This is within practical range for the intended applications
-(authorship attestation during minutes-to-hours sessions).
+~~~ artwork
+Ratio = 1 + Q * L * (1-alpha) * (2*rho+1) / K
+~~~
 
-### 5.2 Increasing Write Rate
+For this ratio to be significant (say, >= 2x), we need:
 
-An alternative to increasing K: increase the number of writes
-per step. Currently, each step writes 1 block. If each step
-wrote d blocks (one per read, overwriting the read blocks):
+  Q * L * (1-alpha) * (2*rho+1) >= K
 
-  rho = K * d / N
+The adversary chooses L to minimize its cost. If it stores all
+cursors (L = 1): the replay cost is minimized to Q * d * (1+(1-alpha)*(2*rho+1)).
+Ratio = 1 + Q * (1-alpha) * (2*rho+1) / K.
+For K = 2^24, Q = 128, rho = 1, alpha = 0:
+Ratio = 1 + 128 * 3 / 2^24 = 1 + 0.000023.
 
-For K = 2^20, d = 8, N = 2^24: rho = 2^23 / 2^24 = 0.5.
+**This is negligible.** The adversary storing ALL cursors (512 MiB)
+can recompute any challenge in O(1) and barely pays more than the
+honest prover.
 
-This gives phi ≈ 39% modified blocks. Better than rho = 1/16,
-but still below the rho >= 1 threshold.
+### 3.6 The Fundamental Issue
 
-The most direct fix: set K >= N in the recommended parameters.
+The TMTO analysis fails because:
 
-### 5.3 Revised Recommended Parameters
+1. **The sequential chain dominates cost.** The honest prover
+   spends K*d hashes on the chain. The adversary ALSO spends K*d.
+   Both have the same dominant cost. The difference is only in
+   challenge answering, which is O(Q * ...) and Q << K.
 
-| Parameter | Old | Revised | Rationale |
+2. **Cursors are cheap to store.** All K cursors cost K*32 bytes.
+   For K = 2^24: 512 MiB. With cursors stored, any block can be
+   recomputed in O(rho) hashes. The arena (1 GiB) provides value
+   only in avoiding O(rho) recomputation per miss, but rho is
+   small.
+
+3. **The real memory benefit of storing the arena is SPEED during
+   chain computation, not challenge answering.** During the chain,
+   the honest prover reads d blocks per step from RAM (fast). The
+   adversary who doesn't store the arena must recompute those
+   blocks (slower). But the recomputation cost per step is only
+   d * (1-alpha) * (2*rho+1) hashes, which for rho=1 is about
+   3*d extra hashes. The total chain cost becomes K * d * (1 + 3*(1-alpha))
+   = K * d * 4 for alpha=0. The adversary pays 4x more computation
+   but uses 0 arena memory.
+
+**This is the true TMTO: the space-time product is approximately
+constant.** Halving memory roughly doubles computation. This is
+similar to Argon2id's TMTO, not the "catastrophic" penalty claimed
+in the early design rounds.
+
+### 3.7 What Causal Hashes Actually Provide
+
+Causal hashes don't change the TMTO asymptotically. What they
+provide is SOUNDNESS: they prevent the adversary from fabricating
+block values without computing the write chain. Without causal
+hashes, the adversary could insert random values and hope the
+Verifier doesn't check. With causal hashes, every checked block
+must have a valid causal chain traceable to initialization.
+
+The TMTO penalty is:
+- Without causal hashes: adversary pays O(rho) per miss (write chain)
+- With causal hashes: adversary pays O(2*rho) per miss (data + causal chains)
+- With symbiotic binding: adversary pays O(2*rho) per miss (same, but can't
+  fabricate data independently of causal hash)
+
+The causal hash doubles the write-chain traversal cost (2*rho
+instead of rho) but doesn't change the scaling.
+
+### 3.8 Honest Assessment
+
+The PoSME TMTO penalty for a zero-storage adversary (who stores
+only cursors and a write index) is approximately **4x** for rho=1,
+not 170x as previously claimed. The 170x figure arose from an
+analysis that assumed the adversary needed to replay C steps per
+challenge WITHOUT cursors, but storing all cursors is cheap (512
+MiB for K = 2^24) and eliminates the replay cost.
+
+For rho = 4: the penalty rises to about 1 + 3*8*(1-alpha) ≈ 25x
+for alpha=0. Still not 170x.
+
+For rho = 16: about 1 + 3*32 ≈ 97x. Getting closer.
+
+The TMTO penalty scales linearly with rho. To achieve 100x+
+penalty, rho must be >= 16, meaning K = 16*N = 16 * 2^24 = 2^28.
+At d=8 and 35ns per read, this is K * d * 35ns ≈ 75 seconds.
+Practical for attestation but long for interactive use.
+
+## 4. Formal Theorem (Corrected)
+
+**Theorem (PoSME Space-Time Tradeoff).** In the random oracle
+model, any adversary computing a valid PoSME proof for parameters
+(N, K, d, Q, R) while storing at most alpha * N arena blocks and
+K * lambda bits of cursor state performs expected computation:
+
+~~~ artwork
+T_adv >= K * d * (1 + (1-alpha) * (2*rho + 1))
+~~~
+
+hash evaluations, where rho = K/N.
+
+Honest computation costs K * d hash evaluations with N * B + K *
+lambda storage. The TMTO ratio is:
+
+~~~ artwork
+T_adv / T_honest >= 1 + (1-alpha) * (2*rho + 1)
+~~~
+
+For alpha = 0: ratio = 2 + 2*rho.
+For rho = 1: ratio = 4x.
+For rho = 4: ratio = 10x.
+For rho = 16: ratio = 34x.
+
+**Proof.** At each of the K steps, the adversary computes the
+cursor, which requires d block reads. Each read hits the stored
+set with probability alpha (uniform addresses in ROM). Each miss
+requires traversing the write chain (expected 2*rho+1 hashes for
+data + causal chains). The expected per-step cost is
+d * (1 + (1-alpha) * (2*rho+1)). Summing over K steps gives the
+bound. []
+
+## 5. Soundness Reduction (Unchanged)
+
+**Theorem (PoSME Soundness).** Any adversary producing (T_K', pi')
+with T_K' != T_K that passes verification has advantage at most
+K * epsilon_cr, where epsilon_cr is the collision-finding
+advantage against H.
+
+**Proof.** Same as Section 6 of the previous version. The
+soundness argument is independent of the TMTO analysis. Soundness
+relies on collision resistance; TMTO relies on memory cost. []
+
+## 6. Parameter Implications (Revised)
+
+The corrected TMTO analysis shows:
+
+| rho = K/N | alpha=0 penalty | alpha=0.5 penalty | Execution time (d=8, 35ns) |
 |---|---|---|---|
-| K | 2^20 | 2^24 | K >= N for rho >= 1 |
-| Execution time | ~0.3s | ~4.7s | Acceptable for attestation |
-| Prover storage | ~1.2 GiB | ~1.2 GiB (unchanged) | Arena + logs |
-| TMTO penalty | ~1x (negligible) | ~170x | rho >= 1 activates write chain cost |
+| 1 | 4x | 2.5x | 4.7s |
+| 4 | 10x | 5.5x | 18.8s |
+| 16 | 34x | 17.5x | 75s |
+| 64 | 130x | 65.5x | 5 min |
 
-## 6. Security Reduction: Soundness to Collision Resistance
+For a 100x TMTO penalty with zero storage: rho >= 50, K >= 50*N.
+For a 10x penalty: rho >= 4.
 
-**Theorem 5 (PoSME Soundness).** In the random oracle model,
-if H is collision-resistant (with advantage epsilon_cr), then
-any adversary that produces a valid PoSME proof (T_K', root_K',
-pi') where T_K' != T_K (the honestly computed transcript) has
-advantage at most:
+The choice of rho (and hence K) depends on the application's
+tolerance for computation time versus TMTO resistance. For
+authorship attestation (minutes-to-hours sessions), rho = 4-16
+is practical. For interactive verification, rho = 1 may be
+acceptable with the understanding that the TMTO penalty is
+only 4x.
 
-  Adv <= K * epsilon_cr
+## 7. Comparison with Previous Claims
 
-**Proof.**
+| Claim | Previous | Corrected | Why |
+|---|---|---|---|
+| TMTO penalty (alpha=0, rho=1) | 170x | 4x | Previous assumed adversary lacks cursors; cursors cost only 512 MiB |
+| TMTO penalty (alpha=0, rho=4) | Not analyzed | 10x | Corrected formula |
+| "Catastrophic TMTO" | Claimed | False | Penalty scales linearly with rho, not exponentially |
+| Causal hash contribution | "creates dependency web" | Doubles write-chain cost | 2*rho vs rho per miss |
+| Symbiotic binding contribution | "prevents independent fabrication" | Soundness (prevents forgery) | Does not change TMTO asymptotically |
 
-If the adversary's proof is accepted with T_K' != T_K, there
-exists a step c in [K] where the adversary's local state
-diverges from the honest execution. That is, there exists c
-such that T_{c-1}' = T_{c-1} (the transcripts agree up to c-1)
-but T_c' != T_c (they diverge at step c).
-
-At step c, verification checks:
-  T_c = H(T_{c-1} || c || cursor_c || root_c)
-
-If T_c' != T_c but T_{c-1}' = T_{c-1}, then either:
-(a) The adversary's (cursor_c', root_c') differs from the honest
-    (cursor_c, root_c), but H maps different inputs to the same
-    output. This is a collision in H.
-(b) The adversary's cursor_c' = cursor_c and root_c' = root_c
-    but T_c' != T_c. Also a collision in H (same inputs,
-    different outputs: impossible for a deterministic H).
-
-Case (b) cannot occur. Case (a) requires finding a collision
-in H. The adversary can try at most K steps for such a
-collision. By a union bound, the total advantage is:
-
-  Adv <= K * epsilon_cr. []
-
-**Note:** This reduction addresses transcript forgery but not
-TMTO attacks. An adversary who produces the CORRECT T_K with
-less memory than honest is not "forging" -- they're computing
-the same function more efficiently. The TMTO resistance relies
-on the pebbling analysis (Theorem 4), not on collision
-resistance.
+The causal hash mechanism provides SOUNDNESS (preventing forgery),
+not a TMTO advantage. The TMTO penalty comes from write chain
+traversal, which exists with or without causal hashes (though
+causal hashes double the per-miss cost).

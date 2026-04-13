@@ -609,18 +609,24 @@ arena snapshots at spacing C = K/S, each challenge requires
 replaying C steps. Each replayed step encounters cache misses
 requiring write chain traversal at cost O(rho) per miss.
 
-~~~ artwork
-T_adv = K * d + Q * (K/S) * d * R * (1 + 2*rho)
+An adversary storing alpha \* N arena blocks plus all K cursors
+(K \* 32 bytes) faces per-step recomputation cost of
+d \* (1 - alpha) \* (2\*rho + 1) for each cache miss. The TMTO
+ratio:
 
-Ratio: T_adv / T_honest = 1 + Q * R * (1 + 2*rho) / S
+~~~ artwork
+T_adv / T_honest >= 1 + (1-alpha) * (2*rho + 1)
 ~~~
 
-For Q=128, R=3, rho=1, S=2: ratio = 577x.
-For Q=128, R=3, rho=4, S=2: ratio = 1729x.
+| rho = K/N | alpha=0 penalty | alpha=0.5 penalty |
+|---|---|---|
+| 1 | 4x | 2.5x |
+| 4 | 10x | 5.5x |
+| 16 | 34x | 17.5x |
 
-The write density rho amplifies reconstruction cost: each miss
-costs O(rho) to traverse the write chain. Committed steps
-amplify further (4\*d reads at committed steps).
+The penalty scales linearly with rho. Committed steps amplify
+the penalty at committed step positions (4\*d reads instead
+of d, quadrupling miss rate).
 
 ### Space-Time Product
 
@@ -647,16 +653,17 @@ targets. The pebbling game:
 4. The adversary maintains auxiliary state (cursors, write
    index) of at most K \* 32 bytes.
 
-The cumulative pebbling complexity for an adversary storing
-alpha \* N blocks:
+Any adversary storing alpha \* N blocks and all K cursors
+performs expected computation:
 
 ~~~ artwork
-CPC >= alpha * N * K + Q * d * (1-alpha) * R * (2*rho + 1)
+T_adv >= K * d * (1 + (1-alpha) * (2*rho + 1))
 ~~~
 
-The first term is storage cost; the second is recomputation
-for Q challenges. The adversary minimizes by choosing alpha
-to balance the two terms.
+The honest cost is K \* d. The TMTO ratio is
+1 + (1-alpha) \* (2\*rho + 1). For alpha=0, rho=4:
+the adversary pays 10x honest cost. The penalty is LINEAR
+in rho, not exponential.
 
 ## ASIC Resistance {#asic-resistance}
 
@@ -754,7 +761,7 @@ writer-proof = {
 | Arena blocks | N | 2^24 (16M blocks) | MUST be power of 2 |
 | Block size | B | 64 bytes | Fixed |
 | Arena memory | M | 1 GiB | MUST exceed L3 cache |
-| Steps | K | 2^24 (16M) | MUST be >= N (see {{write-density}}) |
+| Steps | K | 4\*N (64M) | MUST be >= N; rho=K/N >= 4 RECOMMENDED ({{write-density}}) |
 | Reads per step | d | 8 | MUST be >= 4 |
 | Challenges | Q | 128 | MUST be >= 64 |
 | Recursion depth | R | 3 | MUST be >= 2 |
@@ -782,7 +789,8 @@ On reference hardware (DDR5, ~35ns random access latency):
 |---|---|
 | Per-step latency | d * 35ns = 280ns |
 | Per-step hash cost | d * 3ns = 24ns |
-| K=2^24 execution time | ~4.7 seconds |
+| K=4\*N execution time | ~18.8 seconds |
+| TMTO penalty (alpha=0) | 10x (rho=4) |
 | Prover storage | 1 GiB (arena) + ~200 MiB (logs) |
 | Verifier time | ~6ms |
 | Proof size | ~2-4 MiB |
