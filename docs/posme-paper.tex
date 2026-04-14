@@ -116,14 +116,17 @@ arena (not a static DAG), the access pattern is data-dependent
 (not fixed), and each node carries a causal hash binding its value
 to its write history.
 
-\textbf{Argon2id.}~Biryukov et al.~\cite{biryukov2016} achieve
+\textbf{MHFs.}~scrypt~\cite{percival2009} introduced
+memory-hardness; Argon2id~\cite{biryukov2016} achieves
 bandwidth-hardness with ${\sim}2{\times}$ single-pass TMTO penalty
 and $8$--$16{\times}$ ASIC advantage~\cite{ren2017}. \posme{}
 achieves $10{\times}$ TMTO (at $\rho{=}4$) and
 ${\sim}2{\times}$ ASIC bound via latency-hardness rather than
 bandwidth-hardness.
 
-\textbf{PoST.}~Proofs of Space-Time~\cite{cohen2018posw} enforce
+\textbf{PoS/PoST.}~Proofs of Space~\cite{dziembowski2015}
+certify memory allocation. Proofs of
+Space-Time~\cite{cohen2018posw} enforce
 sequential time and persistent storage over a static graph.
 \posme{} differs: the arena is mutable, addressing is
 data-dependent, and each block carries a causal hash.
@@ -153,7 +156,8 @@ incorporates the cursor.
 
 \newcommand{\algcmt}[1]{\hfill\makebox[2.8cm][l]{\textit{// #1}}}
 \begin{algorithm}[h]
-\caption{$\textsc{Step}(t, A, T_{t-1})$}\label{alg:step}
+\caption{$\textsc{Step}(t, A, T_{t-1})$.
+$d$/$h$: block data/causal fields. $c$: cursor. $r$: Merkle root.}\label{alg:step}
 \begin{algorithmic}[1]
 \STATE $c \gets T_{t-1}$
 \FOR{$j = 0$ \TO $d-1$}
@@ -441,11 +445,15 @@ Steps & $K$ & $4N$ & $\rho \geq 4$ \\
 Reads/step & $d$ & 8 & $\geq 4$ \\
 Challenges & $Q$ & 128 & $\geq 64$ \\
 Recursion & $R$ & 3 & $\geq 2$ \\
-Hash & $H$ & BLAKE3 & Fixed \\
+Hash & $H$ & BLAKE3~\cite{blake3} & Fixed \\
 \bottomrule
 \end{tabular*}
 \label{tab:params}
 \end{table}
+
+\textbf{Initialization.} Arena initialization (skip-link DAG over
+$N$ blocks) requires ${\sim}4$\,s for 1\,GiB (measured). This is
+a one-time cost per seed, amortized over the $K$-step computation.
 
 \textbf{Recursion depth.} At $R{=}2$, the Verifier opens a
 challenged step's $d$ reads and each read's writer---but not the
@@ -469,13 +477,14 @@ The TMTO penalty is linear in $\rho$, not exponential. Causal
 hashes contribute soundness, not TMTO amplification---a
 $2{\times}$ constant factor on write-chain traversal.
 
+Data-dependent addressing may leak access patterns via cache
+timing on shared hardware. This does not affect proof soundness
+but may affect seed confidentiality in multi-tenant environments.
+
 We conjecture $O(1)$ hash-only verification is unachievable.
 A formal space-time product proof within the dynamic pebbling
-framework remains open.
-
-A reference benchmark with pre-compiled binaries and CUDA source
-is provided as ancillary material, reproducible on any platform
-with a Rust compiler.
+framework remains open. A reference benchmark with pre-compiled
+binaries and CUDA source is provided as ancillary material.
 
 \section{Conclusion}
 
@@ -487,6 +496,9 @@ available hardware---including NVIDIA's H100---outperforms a
 consumer laptop. The construction requires no trusted setup,
 achieves $10{\times}$ TMTO resistance at $\rho{=}4$, and
 provides forgery prevention reducing to collision resistance.
+A formal pebbling lower bound for the dynamic causal DAG and an
+optimized implementation targeting consensus applications are
+natural next steps.
 
 \FloatBarrier
 \bibliographystyle{IEEEtran}
@@ -526,6 +538,21 @@ JEDEC Solid State Technology Association,
 K.~K.~Chang \emph{et al.},
 ``Understanding and improving the latency of DRAM-based memory
 systems,'' arXiv:1712.08304, 2017.
+
+\bibitem{percival2009}
+C.~Percival,
+``Stronger key derivation via sequential memory-hard functions,''
+in \emph{BSDCan}, 2009.
+
+\bibitem{dziembowski2015}
+S.~Dziembowski, S.~Faust, V.~Kolmogorov, and K.~Pietrzak,
+``Proofs of space,''
+in \emph{CRYPTO 2015}, LNCS 9216, pp.~585--605, 2015.
+
+\bibitem{blake3}
+J.~O'Connor \emph{et al.},
+``BLAKE3: one function, fast everywhere,''
+2020, \url{https://github.com/BLAKE3-team/BLAKE3-specs}.
 
 \end{thebibliography}
 
