@@ -132,20 +132,15 @@ pebbling framework (Section~\ref{sec:pebbling}).
 \centering
 \begin{tikzpicture}[>=stealth]
 % Arena at bottom
-\fill[blue!8] (0, 0) rectangle (\columnwidth-0.1, 1.0);
-\draw[thick] (0, 0) rectangle (\columnwidth-0.1, 1.0);
-\node[font=\footnotesize\bfseries] at (0.5*\columnwidth-0.05, 0.5)
-  {Arena (1\,GiB --- $2^{24}$ blocks)};
-
-% Grid lines in arena
-\foreach \x in {0.5,1.0,...,7.5} {
-  \draw[gray!30] (\x, 0) -- (\x, 1.0);
-}
+\fill[blue!8] (0, 0) rectangle (\columnwidth-0.1, 0.6);
+\draw[thick] (0, 0) rectangle (\columnwidth-0.1, 0.6);
+\node[font=\scriptsize\bfseries] at (0.5*\columnwidth-0.05, 0.3)
+  {Arena (1\,GiB)};
 
 % Time axis at top
-\def\topy{4.2}
-\def\bary{1.6}
-\def\barh{2.2}
+\def\topy{3.4}
+\def\bary{1.1}
+\def\barh{1.9}
 
 % Scale: 45ns DRAM = 2.0cm, 3ns hash = 0.13cm
 \def\dw{1.7}   % DRAM bar width
@@ -228,13 +223,9 @@ pebbling framework (Section~\ref{sec:pebbling}).
 \draw[->, thick] (0, \topy) -- (\columnwidth-0.1, \topy);
 \node[font=\scriptsize] at (0.5*\columnwidth, \topy+0.12) {time $\longrightarrow$};
 \end{tikzpicture}
-\caption{One PoSME step ($d{=}8$ reads, 3 shown). Bar widths are
-proportional to time: each DRAM read (orange, 45\,ns) dwarfs the
-subsequent hash (green, 3\,ns). Red arrows show the sequential
-data dependency: each read address is derived from the \emph{hash
-of the previous read}. No lookahead, prefetching, or parallelism
-is possible. Arrows to the arena show random access to unpredictable
-addresses across the 1\,GiB memory space.}
+\caption{One PoSME step (3 of $d{=}8$ reads shown). Bar widths
+are proportional to time. DRAM reads (orange, 45\,ns) dwarf
+hashes (green, 3\,ns). Red arrows: sequential data dependency.}
 \label{fig:pointer-chase}
 \end{figure}
 
