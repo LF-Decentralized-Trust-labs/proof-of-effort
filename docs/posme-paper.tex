@@ -30,46 +30,37 @@ david@writerslogic.com}
 
 \begin{abstract}
 We introduce \posme{} (Proof of Sequential Memory Execution), a
-cryptographic primitive combining mutable arena state,
-data-dependent pointer-chase addressing, and per-block causal hash
-binding. A Prover executes $K$ sequential steps over a mutable
-$N$-block arena, where each step reads $d$ blocks at addresses
-determined by the previous read's result and writes one block with
-symbiotic binding. The construction achieves: (1) unconditional
-sequential time enforcement; (2) forgery prevention reducing to
-collision resistance; (3) TMTO resistance linear in write density
-($10{\times}$ at $\rho{=}4$); and (4) latency-bound ASIC
-resistance. Empirical benchmarks across 16 platforms show hash
-computation is 1.4--3.1\% of step cost; GPU hardware (including
-NVIDIA H100) is 14--19$\times$ \emph{slower} than a consumer CPU.
-No trusted setup is required.
+primitive in which a Prover executes $K$ sequential pointer-chase
+reads over a mutable $N$-block arena, writing each block with
+symbiotic causal hash binding. The construction enforces sequential
+time ($\Omega(K)$), prevents forgery (reducing to collision
+resistance), resists TMTO ($10{\times}$ at write density
+$\rho{=}4$), and bounds ASIC advantage by memory latency rather
+than bandwidth. Benchmarks across 16 platforms show hash
+computation is 1.4--3.1\% of step cost. GPU hardware (including
+NVIDIA H100) is 14--19$\times$ slower than a consumer CPU. No
+trusted setup is required.
 \end{abstract}
 
 \section{Introduction}
 
-Existing primitives for proving sequential computation have
-complementary weaknesses. VDFs~\cite{boneh2018vdf} prove sequential
-time but offer no memory-hardness. PoSW~\cite{cohen2018posw}
-operates over static memory. MHFs such as
-Argon2id~\cite{biryukov2016} are single-evaluation primitives with
-no chain proof system. Composing these yields a construction where
-sequentiality and memory-hardness are independent.
+VDFs~\cite{boneh2018vdf} prove sequential time but not
+memory-hardness. PoSW~\cite{cohen2018posw} operates over static
+graphs. Argon2id~\cite{biryukov2016} is memory-hard but offers no
+chain proof system. Composing these yields independent properties
+that do not reinforce each other.
 
-\posme{} takes a different approach: a persistent mutable arena
-\emph{is} the computation state. Each step reads via data-dependent
-pointer chasing and modifies the arena in-place. A per-block
-\emph{causal hash chain} binds each block to the cursor of its
-writer, preventing forgery. Data and causal hash are
-\emph{symbiotically bound}: each depends on the other.
-
-The primary contribution is \textbf{latency-bound ASIC resistance}.
-Each pointer-chase iteration is bottlenecked by random DRAM access
-(40--50\,ns raw latency on DDR5; 120--160\,ns full system path),
-with hash computation (${\sim}3$\,ns) constituting under 3\% of
-cost. Measured random-access latency for HBM3 is approximately
-1.3$\times$ faster than DDR5 (not the 2$\times$ often assumed from
-raw specifications). We show empirically that GPU hardware is
-14--19$\times$ \emph{slower} than CPUs at this workload.
+\posme{} fuses them: a persistent mutable arena \emph{is} the
+computation state. Each step reads $d$ blocks at addresses
+determined by the previous read's hash output (pointer chasing),
+modifies the arena in-place, and chains a \emph{causal hash}
+through the written block. Data and causal hash are
+\emph{symbiotically bound}: neither can be fabricated without the
+other. The bottleneck is DRAM random-access latency
+(40--50\,ns on DDR5), with hash computation (${\sim}3$\,ns)
+under 3\% of cost. HBM3 is only 1.3$\times$ faster than DDR5
+at random access; GPU hardware is 14--19$\times$ \emph{slower}
+than CPUs at this workload.
 
 \subsection{Related Work}
 
