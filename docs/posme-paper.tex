@@ -92,33 +92,33 @@ graphs. \posme{}'s DAG is dynamic (Section~\ref{sec:pebbling}).
 \centering
 \resizebox{\columnwidth}{!}{%
 \begin{tikzpicture}[
-  node distance=0.3cm,
-  box/.style={draw, rounded corners, minimum width=1.4cm,
-              minimum height=0.5cm, font=\scriptsize},
-  arr/.style={->, thick}
+  node distance=0.15cm,
+  box/.style={draw, rounded corners, minimum width=1.1cm,
+              minimum height=0.7cm, font=\scriptsize, align=center},
+  arr/.style={->, thick, >=stealth}
 ]
-\node[box, fill=blue!10] (cursor0) {$T_{t-1}$};
-\node[box, right=of cursor0, fill=orange!15] (read0) {Read $a_0$};
-\node[box, right=of read0, fill=green!10] (hash0) {$H(\cdot)$};
-\node[box, right=of hash0, fill=orange!15] (read1) {Read $a_1$};
-\node[box, right=of read1, fill=green!10] (hash1) {$H(\cdot)$};
-\node[right=0.15cm of hash1, font=\scriptsize] (dots) {$\cdots$};
+\node[box, fill=blue!15] (t0) {cursor\\$= T_{t-1}$};
+\node[box, right=0.4cm of t0, fill=orange!20] (r0) {DRAM\\read $a_0$};
+\node[box, right=0.4cm of r0, fill=green!15] (h0) {$H(c\|v_0)$\\$\to c'$};
+\node[box, right=0.4cm of h0, fill=orange!20] (r1) {DRAM\\read $a_1$};
+\node[box, right=0.4cm of r1, fill=green!15] (h1) {$H(c'\|v_1)$\\$\to c''$};
+\node[right=0.3cm of h1, font=\small] (dots) {$\cdots \times d$};
 
-\draw[arr] (cursor0) -- (read0);
-\draw[arr] (read0) -- (hash0);
-\draw[arr] (hash0) -- (read1);
-\draw[arr] (read1) -- (hash1);
-\draw[arr] (hash1) -- (dots);
+\draw[arr] (t0) -- (r0);
+\draw[arr] (r0) -- (h0) node[midway, above, font=\tiny] {40--50\,ns};
+\draw[arr] (h0) -- (r1) node[midway, above, font=\tiny] {3\,ns};
+\draw[arr] (r1) -- (h1) node[midway, above, font=\tiny] {40--50\,ns};
+\draw[arr] (h1) -- (dots);
 
-\node[below=0.4cm of read0, font=\tiny, text width=1.4cm,
-      align=center] {addr from\\cursor};
-\node[below=0.4cm of hash0, font=\tiny, text width=1.4cm,
-      align=center] {cursor from\\block};
+\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick]
+  ([yshift=-0.5cm]r0.south west) -- ([yshift=-0.5cm]h0.south east)
+  node[midway, below=5pt, font=\tiny] {one read: ${\sim}48$\,ns};
 \end{tikzpicture}%
 }
-\caption{Pointer-chase data dependency within one step. Each
-address depends on the hash of the previous read. No lookahead
-is possible.}
+\caption{Pointer-chase data dependency. Each address depends on
+the hash of the previous read (${\sim}3$\,ns), which depends on
+the DRAM read (${\sim}45$\,ns). Hash is ${<}7\%$ of each
+iteration. No lookahead is possible.}
 \label{fig:pointer-chase}
 \end{figure}
 
@@ -265,25 +265,30 @@ is a \emph{structural} minority of per-step cost ($< 3\%$ at
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  width=\columnwidth, height=4.5cm,
+  width=\columnwidth, height=5cm,
   ybar stacked,
-  bar width=14pt,
-  symbolic x coords={DDR5, HBM3},
+  bar width=10pt,
+  symbolic x coords={DDR4, DDR5, LPDDR5, GDDR6, HBM2e, HBM3},
   xtick=data,
+  x tick label style={font=\scriptsize, rotate=25, anchor=east},
   ylabel={Per-read cost (ns)},
+  ylabel style={font=\footnotesize},
   ymin=0, ymax=55,
   legend pos=north east,
-  legend style={font=\footnotesize},
-  nodes near coords style={font=\tiny},
+  legend style={font=\scriptsize},
 ]
-\addplot[fill=blue!60] coordinates {(DDR5,45) (HBM3,20)};
-\addlegendentry{Memory latency}
-\addplot[fill=red!60] coordinates {(DDR5,3) (HBM3,0.3)};
-\addlegendentry{Hash (BLAKE3)}
+\addplot[fill=blue!60] coordinates
+  {(DDR4,28) (DDR5,45) (LPDDR5,18) (GDDR6,8) (HBM2e,18) (HBM3,18)};
+\addlegendentry{Memory}
+\addplot[fill=red!60] coordinates
+  {(DDR4,3) (DDR5,3) (LPDDR5,3) (GDDR6,3) (HBM2e,3) (HBM3,3)};
+\addlegendentry{BLAKE3}
 \end{axis}
 \end{tikzpicture}
-\caption{Per-read cost breakdown. Hash is $< 7\%$ on DDR5 (45\,ns
-measured average) and negligible on HBM3. Memory latency dominates.}
+\caption{Per-read cost across memory technologies. Hash (3\,ns)
+is a small fraction on all types. GDDR6 has low CAS latency but
+GPU cores are 14--19$\times$ slower at sequential pointer-chasing
+(Table~\ref{tab:gpu}), negating the memory advantage.}
 \label{fig:cost-breakdown}
 \end{figure}
 
