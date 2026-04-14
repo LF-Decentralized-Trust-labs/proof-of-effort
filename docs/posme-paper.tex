@@ -385,12 +385,14 @@ structurally more durable than bandwidth-based resistance
 
 \section{Empirical Validation}
 
-\subsection{Cross-Platform Hash Fraction}
-
 We benchmarked \posme{} on 16 platforms spanning ARM64 and x86,
 1--32 vCPUs, DDR4/DDR5, and GPU instances (T4, A10G, L4, A100,
 H100). Hash fraction ranged from 1.4\% to 3.1\% across all
-platforms (Table~\ref{tab:crossplat}).
+platforms (Table~\ref{tab:crossplat}), confirming the
+latency-dominance claim is machine-independent. Step times varied
+2.3$\times$ (1783--4047\,ns), but the hash fraction remained in
+a tight band because both hash and memory scale together on any
+given machine.
 
 \begin{table}[t]
 \centering
@@ -409,8 +411,6 @@ Google Colab (AMD EPYC) & 3585 & 1.5 \\
 \end{tabular}
 \label{tab:crossplat}
 \end{table}
-
-\subsection{GPU Pointer-Chase Benchmark}
 
 To directly measure the adversary's hardware advantage, we ran
 the pointer-chase loop on GPU cores accessing GPU memory (HBM/GDDR).
