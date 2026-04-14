@@ -292,11 +292,20 @@ GPU cores are 14--19$\times$ slower at sequential pointer-chasing
 \label{fig:cost-breakdown}
 \end{figure}
 
+Real random-access latency includes row activation (tRCD),
+precharge (tRP), controller scheduling, and TLB translation,
+raising the effective floor from ${\sim}10$\,ns (CAS-only) to
+40--50\,ns (measured). These overheads are inherent to random
+DRAM access on \emph{any} hardware---the adversary cannot avoid
+them. HBM controllers are more complex (managing 8--16 stacked
+dies via TSVs), which partially explains why the measured HBM
+advantage is only 1.3$\times$ rather than 2$\times$.
+
 DRAM random-access latency has improved only 1.3$\times$ over two
-decades (1997--2017) while bandwidth improved
-20$\times$~\cite{chang2017}. This makes PoSME's latency bound
-structurally more durable than bandwidth-based ASIC resistance
-(e.g., Argon2id's 8--16$\times$~\cite{biryukov2016,ren2017}).
+decades while bandwidth improved
+20$\times$~\cite{chang2017}, making PoSME's latency bound
+structurally more durable than bandwidth-based resistance
+(Argon2id's 8--16$\times$~\cite{biryukov2016,ren2017}).
 
 \section{Empirical Validation}
 
