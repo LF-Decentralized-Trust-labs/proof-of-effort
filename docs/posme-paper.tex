@@ -336,6 +336,12 @@ within this framework remains open.
 \posme{} is designed to be latency-dominated: hash computation
 is a \emph{structural} minority of per-step cost ($< 3\%$ at
 1\,GiB arena). The bottleneck is DRAM random-access latency.
+Fig.~\ref{fig:cost-breakdown} shows the cost breakdown across
+six memory technologies. Hash cost (3\,ns) is constant; memory
+latency varies by type but dominates in all cases. GDDR6 has
+the lowest CAS latency (${\sim}8$\,ns) but GPU cores are
+14--19$\times$ slower at sequential pointer-chasing
+(Table~\ref{tab:gpu}), negating the memory advantage entirely.
 
 \begin{figure}[t]
 \centering
@@ -361,10 +367,9 @@ is a \emph{structural} minority of per-step cost ($< 3\%$ at
 \addlegendentry{BLAKE3}
 \end{axis}
 \end{tikzpicture}
-\caption{Per-read cost across memory technologies. Hash (3\,ns)
-is a small fraction on all types. GDDR6 has low CAS latency but
-GPU cores are 14--19$\times$ slower at sequential pointer-chasing
-(Table~\ref{tab:gpu}), negating the memory advantage.}
+\caption{Per-read cost across six memory technologies. Hash
+(3\,ns, red) is a small fraction on all types. Values are
+tRCD+CL latency from JEDEC specifications.}
 \label{fig:cost-breakdown}
 \end{figure}
 
