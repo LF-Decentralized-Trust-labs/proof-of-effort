@@ -398,16 +398,32 @@ Hash & $H$ & BLAKE3 & Fixed \\
 \label{tab:params}
 \end{table}
 
-\textbf{Machine-independent properties:} hash fraction ${<}\,3\%$
-at 1\,GiB arena (${<}\,10\%$ on any hardware); TMTO penalty
+\textbf{Machine-independent properties:} hash fraction ${<}\,3.5\%$
+at 1\,GiB arena (validated on 6 platforms); TMTO penalty
 $10{\times}$ at $\rho{=}4$; verification ${\sim}2.1$M hashes;
 proof size ${\sim}2$--$4$\,MiB.
 
-\textbf{Reference timings} (Apple M-series, DDR5; vary by hardware):
-per-step ${\sim}2750$\,ns; $K{=}N$ in ${\sim}30$\,s; $K{=}4N$ in
-${\sim}185$\,s; verification ${\sim}6$\,ms desktop,
-60--300\,ms mobile.
+\begin{table}[h]
+\centering
+\caption{Cross-platform benchmark (1\,GiB arena, $\rho{=}1$)}
+\begin{tabular}{@{}lrr@{}}
+\toprule
+Platform & Step (ns) & Hash \% \\
+\midrule
+Apple M-series (ARM64, DDR5) & 1783 & 3.1 \\
+Cloud x86 (4 vCPU) & 4047 & 1.4 \\
+Cloud x86 (8 vCPU) & 4011 & 1.4 \\
+Cloud x86 (2 vCPU) & 2947 & 1.9 \\
+Cloud x86 + T4 GPU & 3335 & 1.6 \\
+Rust Playground (64 MiB$^*$) & 3178 & 1.7 \\
+\bottomrule
+\multicolumn{3}{@{}l@{}}{\small $^*$Arena limited by platform timeout.}
+\end{tabular}
+\label{tab:crossplat}
+\end{table}
 
+Step times vary 2.3$\times$ across platforms; hash fraction
+stays in 1.4--3.1\%, confirming the latency-dominance claim.
 A reference benchmark with pre-compiled binaries is provided as
 ancillary material.
 
