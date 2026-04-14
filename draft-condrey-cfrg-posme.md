@@ -849,12 +849,13 @@ On reference hardware (DDR5, ~35ns random access latency):
 
 | Metric | Value |
 |---|---|
-| Per-step latency | d * 35ns = 280ns |
-| Per-step hash cost | d * 3ns = 24ns |
-| K=4\*N execution time | ~18.8 seconds |
-| TMTO penalty (alpha=0) | 10x (rho=4) |
+| Per-step latency (measured) | ~2750 ns |
+| Per-step hash fraction | ~1-3% (measured) |
+| K=N execution time (measured, 1 GiB) | ~30 seconds |
+| K=4\*N execution time (measured, 1 GiB) | ~185 seconds |
+| TMTO penalty (alpha=0, rho=4) | 10x |
 | Prover storage | 1 GiB (arena) + ~200 MiB (logs) |
-| Verifier time | ~6ms |
+| Verifier time | ~6ms (desktop), 60-300ms (mobile) |
 | Proof size | ~2-4 MiB |
 
 # Security Considerations {#security-considerations}

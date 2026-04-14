@@ -398,11 +398,13 @@ Hash & $H$ & BLAKE3 & Fixed \\
 \label{tab:params}
 \end{table}
 
-\textbf{Performance} (DDR5, ${\sim}35$\,ns random access): per-step
-latency $d \cdot 35 = 280$\,ns; $K = 4N$ execution time
-${\sim}18.8$\,s; Prover storage 1\,GiB arena $+$ ${\sim}200$\,MiB
+\textbf{Performance} (measured on DDR5 consumer hardware):
+per-step latency ${\sim}2750$\,ns (hash fraction 1--3\%); $K = N$
+execution time ${\sim}30$\,s; $K = 4N$ execution time
+${\sim}185$\,s; Prover storage 1\,GiB arena $+$ ${\sim}200$\,MiB
 logs; Verifier time ${\sim}6$\,ms (desktop), 60--300\,ms (mobile);
-proof size ${\sim}2$--$4$\,MiB.
+proof size ${\sim}2$--$4$\,MiB. A reference benchmark is provided
+as ancillary material.
 
 \section{Limitations and Open Problems}
 
