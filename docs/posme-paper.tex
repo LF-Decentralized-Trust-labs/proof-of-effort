@@ -44,13 +44,41 @@ trusted setup is required.
 
 \section{Introduction}
 
-VDFs~\cite{boneh2018vdf} prove sequential time but not
-memory-hardness. PoSW~\cite{cohen2018posw} operates over static
-graphs. Argon2id~\cite{biryukov2016} is memory-hard but offers no
-chain proof system. Composing these yields independent properties
-that do not reinforce each other.
+Many systems require proof that a party performed sustained,
+sequential computation under concrete resource constraints:
+ASIC-resistant mining, authorship attestation, Sybil resistance,
+and verifiable delay. Existing primitives each capture only part
+of this objective.
 
-\posme{} fuses them: a persistent mutable arena \emph{is} the
+VDFs~\cite{boneh2018vdf} certify sequential time but are
+insensitive to memory; a VDF ASIC gains arbitrary speedup via
+faster ALUs. PoSW~\cite{cohen2018posw} proves graph traversal
+but over static, immutable memory. Memory-hard functions such as
+Argon2id~\cite{biryukov2016} raise per-evaluation cost via memory
+pressure, but are single-shot primitives with no chain proof
+system. Composing them (e.g., chaining Argon2id with Merkle
+sampling) yields independent properties that do not reinforce
+each other. Table~\ref{tab:compare} summarizes the gap.
+
+\begin{table}[h]
+\centering
+\caption{Property comparison of sequential primitives.}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+ & VDF & PoSW & MHF & \posme{} \\
+\midrule
+Sequential time     & \checkmark & \checkmark &   & \checkmark \\
+Memory-hard         &   &   & \checkmark & \checkmark \\
+Mutable state       &   &   &   & \checkmark \\
+Efficient verify    & \checkmark & \checkmark &   & \checkmark \\
+No trusted setup    &   & \checkmark & \checkmark & \checkmark \\
+ASIC bound          & none & none & 8--16$\times$ & ${\sim}2{\times}$ \\
+\bottomrule
+\end{tabular}
+\label{tab:compare}
+\end{table}
+
+\posme{} fills this gap. A persistent mutable arena \emph{is} the
 computation state. Each step reads $d$ blocks at addresses
 determined by the previous read's hash output (pointer chasing),
 modifies the arena in-place, and chains a \emph{causal hash}
@@ -62,20 +90,41 @@ under 3\% of cost. HBM3 is only 1.3$\times$ faster than DDR5
 at random access; GPU hardware is 14--19$\times$ \emph{slower}
 than CPUs at this workload.
 
+\textbf{Contributions.} (1) We define \posme{}, the first
+construction combining mutable arena state, data-dependent
+pointer-chase addressing, and per-block causal hash binding in a
+single step function. (2) We prove soundness reducing to collision
+resistance of $H$ (Theorem~1). (3) We derive TMTO bounds linear
+in write density (Theorem~2). (4) We validate ASIC resistance
+empirically across 16 CPU platforms and 4 GPU architectures,
+showing hash fraction 1.4--3.1\% and GPUs 14--19$\times$ slower
+than consumer CPUs.
+
 \subsection{Related Work}
 
-\textbf{PoSW}~\cite{cohen2018posw} proves traversal of a
-depth-robust graph. \posme{} differs: mutable arena, data-dependent
-access, causal hash binding.
-\textbf{Argon2id}~\cite{biryukov2016} achieves bandwidth-hardness
-with ${\sim}2{\times}$ TMTO penalty and $8$--$16{\times}$ ASIC
-advantage. \posme{} achieves $10{\times}$ TMTO penalty (at
-$\rho{=}4$) and ${\sim}2{\times}$ ASIC bound.
-\textbf{PoST}~\cite{cohen2018posw} enforces sequential time over
-static storage. \posme{} uses a mutable arena with data-dependent
-addressing and causal hashes.
-\textbf{CMC}~\cite{alwen2017} formalizes pebbling for static
-graphs. \posme{}'s DAG is dynamic (Section~\ref{sec:pebbling}).
+\textbf{PoSW.}~Cohen and Pietrzak~\cite{cohen2018posw} prove
+traversal of a depth-robust graph via Fiat-Shamir-sampled Merkle
+proofs. \posme{} differs in three ways: the graph is a mutable
+arena (not a static DAG), the access pattern is data-dependent
+(not fixed), and each node carries a causal hash binding its value
+to its write history.
+
+\textbf{Argon2id.}~Biryukov et al.~\cite{biryukov2016} achieve
+bandwidth-hardness with ${\sim}2{\times}$ single-pass TMTO penalty
+and $8$--$16{\times}$ ASIC advantage~\cite{ren2017}. \posme{}
+achieves $10{\times}$ TMTO (at $\rho{=}4$) and
+${\sim}2{\times}$ ASIC bound via latency-hardness rather than
+bandwidth-hardness.
+
+\textbf{PoST.}~Proofs of Space-Time~\cite{cohen2018posw} enforce
+sequential time and persistent storage over a static graph.
+\posme{} differs: the arena is mutable, addressing is
+data-dependent, and each block carries a causal hash.
+
+\textbf{CMC.}~Alwen et al.~\cite{alwen2017} formalized cumulative
+memory complexity for static graph pebbling. \posme{}'s causal DAG
+is dynamic---edges are created during execution---requiring a new
+pebbling framework (Section~\ref{sec:pebbling}).
 
 \section{Construction}
 
