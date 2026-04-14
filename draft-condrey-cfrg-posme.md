@@ -845,18 +845,28 @@ Verifiers MUST reject proofs with parameters below these minimums:
 
 ## Performance Estimates {#performance}
 
-On reference hardware (DDR5, ~35ns random access latency):
+The following properties are machine-independent:
+
+| Property | Value |
+|---|---|
+| Hash fraction at 1 GiB arena | < 3% (measured; < 10% on any hardware) |
+| TMTO penalty (alpha=0, rho=4) | 10x |
+| Prover storage | N \* B (arena) + ~200 MiB (logs) |
+| Verifier time | ~2.1M hash evaluations |
+| Proof size | ~2-4 MiB |
+
+Reference timings (Apple M-series, DDR5; will vary by hardware):
 
 | Metric | Value |
 |---|---|
-| Per-step latency (measured) | ~2750 ns |
-| Per-step hash fraction | ~1-3% (measured) |
-| K=N execution time (measured, 1 GiB) | ~30 seconds |
-| K=4\*N execution time (measured, 1 GiB) | ~185 seconds |
-| TMTO penalty (alpha=0, rho=4) | 10x |
-| Prover storage | 1 GiB (arena) + ~200 MiB (logs) |
-| Verifier time | ~6ms (desktop), 60-300ms (mobile) |
-| Proof size | ~2-4 MiB |
+| Per-step latency | ~2750 ns |
+| K=N execution time (1 GiB arena) | ~30 seconds |
+| K=4\*N execution time (1 GiB arena) | ~185 seconds |
+| Verifier time (desktop) | ~6ms |
+| Verifier time (mobile) | 60-300ms |
+
+A reference benchmark with pre-compiled binaries is provided
+as ancillary material (anc/README.md).
 
 # Security Considerations {#security-considerations}
 

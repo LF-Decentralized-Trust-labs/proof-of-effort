@@ -398,13 +398,18 @@ Hash & $H$ & BLAKE3 & Fixed \\
 \label{tab:params}
 \end{table}
 
-\textbf{Performance} (measured on DDR5 consumer hardware):
-per-step latency ${\sim}2750$\,ns (hash fraction 1--3\%); $K = N$
-execution time ${\sim}30$\,s; $K = 4N$ execution time
-${\sim}185$\,s; Prover storage 1\,GiB arena $+$ ${\sim}200$\,MiB
-logs; Verifier time ${\sim}6$\,ms (desktop), 60--300\,ms (mobile);
-proof size ${\sim}2$--$4$\,MiB. A reference benchmark is provided
-as ancillary material.
+\textbf{Machine-independent properties:} hash fraction ${<}\,3\%$
+at 1\,GiB arena (${<}\,10\%$ on any hardware); TMTO penalty
+$10{\times}$ at $\rho{=}4$; verification ${\sim}2.1$M hashes;
+proof size ${\sim}2$--$4$\,MiB.
+
+\textbf{Reference timings} (Apple M-series, DDR5; vary by hardware):
+per-step ${\sim}2750$\,ns; $K{=}N$ in ${\sim}30$\,s; $K{=}4N$ in
+${\sim}185$\,s; verification ${\sim}6$\,ms desktop,
+60--300\,ms mobile.
+
+A reference benchmark with pre-compiled binaries is provided as
+ancillary material.
 
 \section{Limitations and Open Problems}
 
