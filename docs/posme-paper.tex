@@ -338,7 +338,7 @@ given machine.
 \centering
 \caption{Cross-platform benchmark (1\,GiB arena, $\rho{=}1$).
 Hash fraction is consistently $< 3.5\%$.}
-\begin{tabular}{@{}lrr@{}}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrr@{}}
 \toprule
 Platform & Step (ns) & Hash \% \\
 \midrule
@@ -348,7 +348,7 @@ Cloud x86 + GPU (T4/A10G/L4/A100/H100) & 3218--4047 & 1.4--1.7 \\
 Google Colab (Xeon + T4) & 3485 & 1.6 \\
 Google Colab (AMD EPYC) & 3585 & 1.5 \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \label{tab:crossplat}
 \end{table}
 
@@ -416,7 +416,7 @@ exceeds L3 cache, confirming memory-bound behavior.}
 \begin{table}[!ht]
 \centering
 \caption{Recommended parameters}
-\begin{tabular}{@{}llll@{}}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}llll@{}}
 \toprule
 Parameter & Symbol & Value & Constraint \\
 \midrule
@@ -428,7 +428,7 @@ Challenges & $Q$ & 128 & $\geq 64$ \\
 Recursion & $R$ & 3 & $\geq 2$ \\
 Hash & $H$ & BLAKE3 & Fixed \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \label{tab:params}
 \end{table}
 
