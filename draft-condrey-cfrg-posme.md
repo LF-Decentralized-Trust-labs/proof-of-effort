@@ -179,7 +179,7 @@ on the cursor.
 
 The primary contribution is latency-bound ASIC resistance. Each
 pointer-chase iteration is bottlenecked by random DRAM access
-(~35ns on DDR5 {{JESD79-5}}), with hash computation (~3ns via
+(~45ns on DDR5 {{JESD79-5}}), with hash computation (~3ns via
 BLAKE3) as a minor component. The ASIC advantage is bounded by
 the memory latency ratio (approximately 2x for DDR5 vs HBM3),
 tighter than the 8-16x bandwidth bounds of Argon2id
@@ -726,9 +726,9 @@ available to the adversary. Current measurements:
 
 | Component | Consumer DDR5 | ASIC (HBM3) | Ratio |
 |---|---|---|---|
-| Memory read | ~35ns | ~20ns | 1.75x |
+| Memory read | ~45ns | ~20ns | 2.25x |
 | BLAKE3 hash | ~3ns | ~0.3ns | 10x |
-| **Total** | **~38ns** | **~20.3ns** | **~1.9x** |
+| **Total** | **~48ns** | **~20.3ns** | **~2.4x** |
 
 These are empirical values for 2024-era memory technology, not
 formal bounds. The approximately 2x ratio reflects the current
