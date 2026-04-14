@@ -90,35 +90,111 @@ graphs. \posme{}'s DAG is dynamic (Section~\ref{sec:pebbling}).
 
 \begin{figure}[t]
 \centering
-\resizebox{\columnwidth}{!}{%
-\begin{tikzpicture}[
-  node distance=0.15cm,
-  box/.style={draw, rounded corners, minimum width=1.1cm,
-              minimum height=0.7cm, font=\scriptsize, align=center},
-  arr/.style={->, thick, >=stealth}
-]
-\node[box, fill=blue!15] (t0) {cursor\\$= T_{t-1}$};
-\node[box, right=0.4cm of t0, fill=orange!20] (r0) {DRAM\\read $a_0$};
-\node[box, right=0.4cm of r0, fill=green!15] (h0) {$H(c\|v_0)$\\$\to c'$};
-\node[box, right=0.4cm of h0, fill=orange!20] (r1) {DRAM\\read $a_1$};
-\node[box, right=0.4cm of r1, fill=green!15] (h1) {$H(c'\|v_1)$\\$\to c''$};
-\node[right=0.3cm of h1, font=\small] (dots) {$\cdots \times d$};
+\begin{tikzpicture}[>=stealth]
+% Arena at bottom
+\fill[blue!8] (0, 0) rectangle (\columnwidth-0.1, 1.0);
+\draw[thick] (0, 0) rectangle (\columnwidth-0.1, 1.0);
+\node[font=\footnotesize\bfseries] at (0.5*\columnwidth-0.05, 0.5)
+  {Arena (1\,GiB --- $2^{24}$ blocks)};
 
-\draw[arr] (t0) -- (r0);
-\draw[arr] (r0) -- (h0) node[midway, above, font=\tiny] {40--50\,ns};
-\draw[arr] (h0) -- (r1) node[midway, above, font=\tiny] {3\,ns};
-\draw[arr] (r1) -- (h1) node[midway, above, font=\tiny] {40--50\,ns};
-\draw[arr] (h1) -- (dots);
-
-\draw[decorate, decoration={brace, amplitude=4pt, mirror}, thick]
-  ([yshift=-0.5cm]r0.south west) -- ([yshift=-0.5cm]h0.south east)
-  node[midway, below=5pt, font=\tiny] {one read: ${\sim}48$\,ns};
-\end{tikzpicture}%
+% Grid lines in arena
+\foreach \x in {0.5,1.0,...,7.5} {
+  \draw[gray!30] (\x, 0) -- (\x, 1.0);
 }
-\caption{Pointer-chase data dependency. Each address depends on
-the hash of the previous read (${\sim}3$\,ns), which depends on
-the DRAM read (${\sim}45$\,ns). Hash is ${<}7\%$ of each
-iteration. No lookahead is possible.}
+
+% Time axis at top
+\def\topy{4.2}
+\def\bary{1.6}
+\def\barh{2.2}
+
+% Scale: 45ns DRAM = 2.0cm, 3ns hash = 0.13cm
+\def\dw{1.7}   % DRAM bar width
+\def\hw{0.12}  % Hash bar width
+\def\gap{0.05} % gap between bars
+
+% Iteration 0
+\def\xstart{0.15}
+\fill[orange!50] (\xstart, \bary)
+  rectangle +(\dw, \barh);
+\node[font=\tiny, rotate=90] at (\xstart+0.5*\dw, \bary+0.5*\barh)
+  {DRAM read $a_0$ (45\,ns)};
+
+\pgfmathsetmacro{\hx}{\xstart+\dw+\gap}
+\fill[green!60!black] (\hx, \bary)
+  rectangle +(\hw, \barh);
+
+% Arrow down to arena
+\draw[->, thick, orange!70!black]
+  (\xstart+0.5*\dw, \bary) -- (\xstart+0.5*\dw, 1.0);
+\draw[<-, thick, orange!70!black, dashed]
+  (\xstart+0.5*\dw+0.15, \bary) -- (\xstart+0.5*\dw+0.15, 1.0);
+
+% Iteration 1
+\pgfmathsetmacro{\xb}{\hx+\hw+\gap}
+\fill[orange!50] (\xb, \bary)
+  rectangle +(\dw, \barh);
+\node[font=\tiny, rotate=90] at (\xb+0.5*\dw, \bary+0.5*\barh)
+  {DRAM read $a_1$ (45\,ns)};
+
+\pgfmathsetmacro{\hxb}{\xb+\dw+\gap}
+\fill[green!60!black] (\hxb, \bary)
+  rectangle +(\hw, \barh);
+
+\draw[->, thick, orange!70!black]
+  (\xb+0.5*\dw, \bary) -- (\xb+0.5*\dw, 1.0);
+\draw[<-, thick, orange!70!black, dashed]
+  (\xb+0.5*\dw+0.15, \bary) -- (\xb+0.5*\dw+0.15, 1.0);
+
+% Iteration 2
+\pgfmathsetmacro{\xc}{\hxb+\hw+\gap}
+\fill[orange!50] (\xc, \bary)
+  rectangle +(\dw, \barh);
+\node[font=\tiny, rotate=90] at (\xc+0.5*\dw, \bary+0.5*\barh)
+  {DRAM read $a_2$ (45\,ns)};
+
+\pgfmathsetmacro{\hxc}{\xc+\dw+\gap}
+\fill[green!60!black] (\hxc, \bary)
+  rectangle +(\hw, \barh);
+
+\draw[->, thick, orange!70!black]
+  (\xc+0.5*\dw, \bary) -- (\xc+0.5*\dw, 1.0);
+\draw[<-, thick, orange!70!black, dashed]
+  (\xc+0.5*\dw+0.15, \bary) -- (\xc+0.5*\dw+0.15, 1.0);
+
+% Dots
+\pgfmathsetmacro{\xdots}{\hxc+\hw+0.2}
+\node[font=\footnotesize] at (\xdots+0.15, \bary+0.5*\barh)
+  {$\cdots$};
+
+% Dependency arrows between iterations (curved, on top)
+\draw[->, very thick, red!70!black]
+  (\hx+0.5*\hw, \bary+\barh+0.1) to[bend left=30]
+  node[above, font=\tiny, text=red!70!black] {addr}
+  (\xb, \bary+\barh+0.1);
+\draw[->, very thick, red!70!black]
+  (\hxb+0.5*\hw, \bary+\barh+0.1) to[bend left=30]
+  node[above, font=\tiny, text=red!70!black] {addr}
+  (\xc, \bary+\barh+0.1);
+
+% Legend
+\fill[orange!50] (0.2, \topy+0.3) rectangle +(0.3, 0.2);
+\node[right, font=\tiny] at (0.55, \topy+0.4) {DRAM wait (45\,ns)};
+\fill[green!60!black] (2.5, \topy+0.3) rectangle +(0.3, 0.2);
+\node[right, font=\tiny] at (2.85, \topy+0.4) {Hash (3\,ns)};
+\draw[->, very thick, red!70!black] (4.6, \topy+0.4) -- +(0.4, 0);
+\node[right, font=\tiny] at (5.05, \topy+0.4) {Data dependency};
+
+% Time arrow
+\draw[->, thick] (0, \topy) -- (\columnwidth-0.1, \topy);
+\node[font=\scriptsize] at (0.5*\columnwidth, \topy+0.12) {time $\longrightarrow$};
+\end{tikzpicture}
+\caption{One PoSME step ($d{=}8$ reads, 3 shown). Bar widths are
+proportional to time: each DRAM read (orange, 45\,ns) dwarfs the
+subsequent hash (green, 3\,ns). Red arrows show the sequential
+data dependency: each read address is derived from the \emph{hash
+of the previous read}. No lookahead, prefetching, or parallelism
+is possible. Arrows to the arena show random access to unpredictable
+addresses across the 1\,GiB memory space.}
 \label{fig:pointer-chase}
 \end{figure}
 
