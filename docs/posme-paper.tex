@@ -235,31 +235,30 @@ with probability $1{-}\alpha$. Each miss costs $2\rho{+}1$
 hashes (write chain for data and causal). Sum over $K$ steps.
 \end{proof}
 
-\begin{figure}[t]
+\begin{figure}[b]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  width=\columnwidth, height=4.5cm,
-  xlabel={Write density $\rho = K/N$},
-  ylabel={TMTO penalty ($\alpha{=}0$)},
-  xmin=0, xmax=18, ymin=0, ymax=40,
+  width=0.9\columnwidth, height=4.5cm,
+  xbar,
+  bar width=8pt,
+  symbolic y coords={PoSME GPU,PoSME ASIC,Argon2id,scrypt,SHA-256},
+  ytick=data,
+  y tick label style={font=\scriptsize},
+  xlabel={Hardware advantage ($\times$ consumer CPU)},
+  xlabel style={font=\footnotesize},
+  xmin=0.03, xmax=15000,
+  xmode=log,
+  log ticks with fixed point,
   grid=major, grid style={gray!20},
-  thick,
-  legend pos=north west,
-  legend style={font=\footnotesize}
 ]
-\addplot[blue, very thick, domain=0:18, samples=50]
-  {1 + (2*x + 1)};
-\addlegendentry{$1 + (2\rho + 1)$}
-\addplot[red, dashed, very thick] coordinates {(0,2)(18,2)};
-\addlegendentry{Argon2id (${\sim}2{\times}$)}
-\addplot[only marks, mark=*, mark size=2.5pt, blue]
-  coordinates {(1,4)(4,10)(16,34)};
+\addplot[fill=green!60] coordinates
+  {(0.07,PoSME GPU) (2,PoSME ASIC) (16,Argon2id) (100,scrypt) (10000,SHA-256)};
 \end{axis}
 \end{tikzpicture}
-\caption{TMTO penalty for zero-storage adversary vs write
-density $\rho$. PoSME exceeds Argon2id at $\rho > 0.5$.}
-\label{fig:tmto}
+\caption{Hardware advantage over consumer CPU (log scale).
+PoSME resists acceleration; existing primitives do not.}
+\label{fig:asic-compare}
 \end{figure}
 
 Write density $\rho = K/N$ must be $\geq 1$ ($K \geq N$) for
@@ -295,7 +294,7 @@ the lowest CAS latency (${\sim}8$\,ns) but GPU cores are
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  width=\columnwidth, height=5cm,
+  width=0.95\columnwidth, height=5cm,
   ybar stacked,
   bar width=10pt,
   symbolic x coords={DDR4, DDR5, LPDDR5, GDDR6, HBM2e, HBM3},
@@ -410,12 +409,14 @@ accelerators (GPUs) are strictly \emph{worse} than consumer CPUs.
   width=0.97\columnwidth, height=4.5cm,
   xlabel={Arena size},
   ylabel={Avg step time (ns)},
-  xmin=0, xmax=5, ymin=0, ymax=5000,
+  xmin=0.5, xmax=5.5, ymin=0, ymax=5000,
   xtick={1,2,3,4,5},
   xticklabels={1\,MiB, 4\,MiB, 16\,MiB, 64\,MiB, 1\,GiB},
   x tick label style={font=\footnotesize, rotate=30, anchor=east},
   grid=major, grid style={gray!20},
   thick,
+  legend pos=south east,
+  legend style={font=\scriptsize},
 ]
 \addplot[blue, very thick, mark=*] coordinates
   {(1,1871)(2,1063)(3,1333)(4,1630)(5,1783)};
