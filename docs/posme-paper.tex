@@ -70,18 +70,22 @@ each other. Table~\ref{tab:compare} summarizes the gap.
 \toprule
  & VDF & PoSW & MHF & \posme{} \\
 \midrule
-Sequential time     & \checkmark & \checkmark &   & \checkmark \\
-Memory-hard         &   &   & \checkmark & \checkmark \\
-Mutable state       &   &   &   & \checkmark \\
-Efficient verify    & \checkmark & \checkmark &   & \checkmark \\
-No trusted setup    &   & \checkmark & \checkmark & \checkmark \\
+Sequential time     & \checkmark & \checkmark & $\times$ & \checkmark \\
+Memory-hard         & $\times$ & $\times$ & \checkmark & \checkmark \\
+Mutable state       & $\times$ & $\times$ & $\times$ & \checkmark \\
+Efficient verify    & \checkmark & \checkmark & $\times$ & \checkmark \\
+No trusted setup    & $\times$ & \checkmark & \checkmark & \checkmark \\
 ASIC bound          & none & none & 8--16$\times$ & ${\sim}2{\times}$ \\
 \bottomrule
 \end{tabular*}
 \label{tab:compare}
 \end{table}
 
-\posme{} fills this gap. A persistent mutable arena \emph{is} the
+\posme{} fills this gap. Mutability is essential: in a static
+arena, any block can be recomputed from the seed in $O(1)$, so
+the adversary need not store the arena at all. A \emph{mutable}
+arena forces storage because block values evolve unpredictably
+during execution. The persistent mutable arena \emph{is} the
 computation state. Each step reads $d$ blocks at addresses
 determined by the previous read's hash output (pointer chasing),
 modifies the arena in-place, and chains a \emph{causal hash}
@@ -437,6 +441,15 @@ Hash & $H$ & BLAKE3 & Fixed \\
 \end{tabular*}
 \label{tab:params}
 \end{table}
+
+\textbf{Recursion depth.} At $R{=}3$ with $d{=}8$, each challenged
+step opens $d^R{=}512$ nodes of the causal web. An adversary
+fabricating a single block must produce 512 mutually consistent
+causal hashes, each requiring a valid writer cursor. At $R{=}2$
+(64 nodes), a fabricator has more room to construct
+locally-consistent fakes. The cost grows as $d^R$: higher $R$
+provides exponentially stronger soundness but linearly larger
+proofs.
 
 \section{Limitations and Open Problems}
 
