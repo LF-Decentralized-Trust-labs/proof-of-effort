@@ -307,7 +307,10 @@ and a logarithmic skip-link (A\[floor(i/2)\]). This creates a
 dependency DAG of depth log(N) and width N, requiring
 Omega(sqrt(N)) space to evaluate (the DAG cannot be streamed
 in constant space because each block depends on a block
-approximately N/2 positions behind it).
+approximately N/2 positions behind it). A custom initialization
+is used rather than Argon2id because Argon2id's fixed internal
+graph does not provide this skip-link structure; the logarithmic
+back-references are necessary for the space-hardness property.
 
 The Verifier can independently compute root\_0 and T\_0 from the
 seed, providing a trusted anchor for all subsequent verification.
@@ -534,6 +537,11 @@ For Q=128, d=8, R=3, N=2^24, K=2^24:
 | Cursor replays | 128 * 512 * 8 = ~524K hashes |
 | Total | ~2.1M hashes, ~6ms |
 
+The ~6ms estimate assumes a modern desktop CPU (~350M BLAKE3
+hashes/second). On constrained platforms (mobile: 60-300ms;
+WASM: 120ms-600ms), verification is slower but still practical.
+No memory allocation beyond the proof data is required.
+
 # Security Analysis {#security}
 
 ## Threat Model {#threat-model}
@@ -584,7 +592,8 @@ produce a different T\_c, then T\_c' != T\_c, contradicting
 acceptance. The adversary has K steps at which to attempt this,
 giving the union bound K \* epsilon\_cr.
 
-A full proof appears in the companion analysis document.
+A full derivation is provided in the companion
+analysis (to appear as IACR ePrint).
 
 ## Recomputation Cost {#recomp-cost}
 
@@ -656,8 +665,9 @@ d \* (1 + (1-alpha) \* (2\*rho + 1)). Summing over K steps gives
 the bound.
 
 This bound assumes optimal cursor storage (adversary stores all
-K cursors). A full derivation and optimality analysis appear in
-the companion analysis document.
+K cursors). A full derivation and optimality analysis for
+alternative cursor strategies is provided in the companion
+analysis (to appear as IACR ePrint).
 
 | rho = K/N | alpha=0 penalty | alpha=0.5 penalty |
 |---|---|---|
@@ -724,6 +734,13 @@ These are empirical values for 2024-era memory technology, not
 formal bounds. The approximately 2x ratio reflects the current
 DDR5-to-HBM3 latency gap {{JESD79-5}}. With aggressive
 controller optimization: up to 3x.
+
+An adversary with on-die SRAM (~1-5ns access) could cache a
+fraction of hot blocks. However, with 1 GiB arena and typical
+ASIC SRAM budgets (8-32 MiB), the SRAM hit rate for uniform
+random addresses is 0.8-3.1%, providing negligible benefit.
+Larger SRAM allocations are economically prohibitive (1 GiB of
+on-die SRAM costs orders of magnitude more than 1 GiB of DRAM).
 
 For comparison, bandwidth-hard constructions (Argon2id) have
 empirical ASIC advantage of 8-16x {{Biryukov2016}}
