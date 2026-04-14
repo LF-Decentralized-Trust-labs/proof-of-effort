@@ -244,22 +244,15 @@ At step $t$ (Fig.~\ref{fig:pointer-chase}):
 \begin{enumerate}
 \item \textbf{Pointer-chase reads.} Set
 $\texttt{cursor} \gets T_{t-1}$. For $j = 0, \ldots, d{-}1$:
-\vspace{-0.5em}
 \begin{align}
-a_j &= H(\text{``addr''} \| \texttt{cursor} \| j) \bmod N \\
-\texttt{cursor} &\gets H(\texttt{cursor} \| A[a_j].\texttt{data} \| A[a_j].\texttt{causal})
+a_j &= H(\text{``addr''} \| \texttt{cursor} \| j) \bmod N \notag \\
+\texttt{cursor} &\gets H(\texttt{cursor} \| A[a_j]) \notag
 \end{align}
-\vspace{-1em}
 
 \item \textbf{Symbiotic write.} At
 $w = H(\text{``write''} \| \texttt{cursor}) \bmod N$:
-\vspace{-0.5em}
-\begin{align}
-d' &= H(d_{\text{old}} \| c \| h_{\text{old}}) \\
-h' &= H(h_{\text{old}} \| c \| t)
-\end{align}
-where $d', h'$ are new data/causal, $c$ is cursor.
-\vspace{-1em}
+$d' {=} H(d_{\text{old}} \| c \| h_{\text{old}})$,\;
+$h' {=} H(h_{\text{old}} \| c \| t)$.
 
 \item \textbf{Commit.}
 $T_t = H(T_{t-1} \| t \| \texttt{cursor} \| \texttt{root}_t)$
