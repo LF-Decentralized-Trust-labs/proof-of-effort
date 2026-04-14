@@ -259,8 +259,13 @@ density $\rho$. PoSME exceeds Argon2id at $\rho > 0.5$.}
 \end{figure}
 
 Write density $\rho = K/N$ must be $\geq 1$ ($K \geq N$) for
-meaningful resistance. Values $\rho \geq 4$ ($10{\times}$
-penalty) are recommended. The bound assumes optimal cursor
+meaningful resistance. We recommend $\rho \geq 4$ because at
+this point the TMTO penalty ($10{\times}$) exceeds the ASIC
+advantage (${\sim}2{\times}$) by $5{\times}$: a storage-reducing
+adversary is strictly worse off than one with faster hardware.
+Verification cost is independent of $\rho$ (it depends on $Q$,
+$d$, $R$, $N$ only), so increasing $\rho$ adds Prover wall-clock
+time with no Verifier penalty. The bound assumes optimal cursor
 storage; sparse cursors strictly increase adversary cost.
 
 \subsection{Dynamic Pebbling}\label{sec:pebbling}
@@ -442,14 +447,15 @@ Hash & $H$ & BLAKE3 & Fixed \\
 \label{tab:params}
 \end{table}
 
-\textbf{Recursion depth.} At $R{=}3$ with $d{=}8$, each challenged
-step opens $d^R{=}512$ nodes of the causal web. An adversary
-fabricating a single block must produce 512 mutually consistent
-causal hashes, each requiring a valid writer cursor. At $R{=}2$
-(64 nodes), a fabricator has more room to construct
-locally-consistent fakes. The cost grows as $d^R$: higher $R$
-provides exponentially stronger soundness but linearly larger
-proofs.
+\textbf{Recursion depth.} At $R{=}2$, the Verifier opens a
+challenged step's $d$ reads and each read's writer---but not the
+writers' reads. An adversary can fabricate a block $b$ by choosing
+an arbitrary writer step $w$ with a plausible cursor, since $w$'s
+own reads are never checked. At $R{=}3$, the Verifier also opens
+$w$'s $d$ reads and \emph{their} writers, forcing the adversary
+to produce $d^3{=}512$ mutually consistent causal hashes. The
+cost of fabrication grows as $d^R$; higher $R$ provides
+exponentially stronger soundness but linearly larger proofs.
 
 \section{Limitations and Open Problems}
 
