@@ -332,9 +332,11 @@ platforms (Table~\ref{tab:crossplat}), confirming the
 latency-dominance claim is machine-independent. Step times varied
 2.3$\times$ (1783--4047\,ns), but the hash fraction remained in
 a tight band because both hash and memory scale together on any
-given machine.
+given machine. Fig.~\ref{fig:scaling} shows step cost increasing
+with arena size as the working set exceeds L3 cache, transitioning
+from cache-bound to memory-bound behavior.
 
-\begin{table}[t]
+\begin{table}[!ht]
 \centering
 \caption{Cross-platform benchmark (1\,GiB arena, $\rho{=}1$).
 Hash fraction is consistently $< 3.5\%$.}
@@ -353,13 +355,17 @@ Google Colab (AMD EPYC) & 3585 & 1.5 \\
 \end{table}
 
 To directly measure the adversary's hardware advantage, we ran
-the pointer-chase loop on GPU cores accessing GPU memory (HBM/GDDR).
+the PoSME pointer-chase loop as a CUDA kernel on GPU cores
+accessing GPU memory (HBM/GDDR), comparing against the host CPU
+running the identical algorithm on system DRAM. The results
+(Table~\ref{tab:gpu}) were striking: GPUs are not merely
+comparable to CPUs---they are dramatically \emph{worse}.
 
-\begin{table}[t]
+\begin{table}[b]
 \centering
 \caption{CPU vs GPU pointer-chase (64\,MiB arena, 64K steps).
 GPUs are 14--19$\times$ \emph{slower} than the host CPU.}
-\begin{tabular}{@{}lrrr@{}}
+\begin{tabular*}{\columnwidth}{@{\extracolsep{\fill}}lrrr@{}}
 \toprule
 GPU & CPU (ns) & GPU (ns) & Ratio \\
 \midrule
@@ -368,7 +374,7 @@ A100 (HBM2e) & 6431 & 120636 & 0.05$\times$ \\
 \textbf{H100 (HBM3)} & \textbf{5903} & \textbf{82270} & \textbf{0.07}$\boldsymbol{\times}$ \\
 L4 (GDDR6) & 5383 & 98990 & 0.05$\times$ \\
 \bottomrule
-\end{tabular}
+\end{tabular*}
 \label{tab:gpu}
 \end{table}
 
