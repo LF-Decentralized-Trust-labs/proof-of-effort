@@ -302,9 +302,12 @@ root_0 = MerkleRoot(A)
 T_0 = H("PoSME-transcript-v1" || s || root_0)
 ~~~
 
-The initialization references both the preceding block and a
-logarithmic skip-link (floor(i/2)), ensuring all blocks are
-entangled and the arena cannot be initialized in constant space.
+The initialization references both the preceding block (A\[i-1\])
+and a logarithmic skip-link (A\[floor(i/2)\]). This creates a
+dependency DAG of depth log(N) and width N, requiring
+Omega(sqrt(N)) space to evaluate (the DAG cannot be streamed
+in constant space because each block depends on a block
+approximately N/2 positions behind it).
 
 The Verifier can independently compute root\_0 and T\_0 from the
 seed, providing a trusted anchor for all subsequent verification.
@@ -315,33 +318,28 @@ At each step t in {1, ..., K}:
 
 ~~~ pseudocode
 STEP(t):
-    // 1. Determine reads-per-step
-    d_t = d
-    if t mod C == 0:
-        d_t = 4 * d              // committed step
-
-    // 2. Pointer-chase reads (data-dependent)
+    // 1. Pointer-chase reads (data-dependent)
     cursor = T_{t-1}
     addrs = []
-    for j in 0..d_t-1:
+    for j in 0..d-1:
         a = OS2IP(XOF(cursor, j)) mod N
         addrs.append(a)
         val = A[a]
         cursor = H(cursor || val.data || val.causal)
 
-    // 3. Write with symbiotic binding
-    w = OS2IP(XOF(cursor, d_t)) mod N
+    // 2. Write with symbiotic binding
+    w = OS2IP(XOF(cursor, d)) mod N
     old = A[w]
     new_data = H(old.data || cursor || old.causal)
     new_causal = H(old.causal || cursor || I2OSP(t, 4))
     A[w] = {data: new_data, causal: new_causal}
 
-    // 4. Update commitments
+    // 3. Update commitments
     root_t = MerkleUpdate(root_{t-1}, w, A[w])
     T_t = H(T_{t-1} || I2OSP(t, 4) || cursor || root_t)
 
-    // 5. Log step
-    log[t] = {d_t, addrs, reads, w, old, A[w], cursor, root_t}
+    // 4. Log step
+    log[t] = {addrs, reads, w, old, A[w], cursor, root_t}
 ~~~
 
 ### Pointer-Chase Addressing {#address-gen}
@@ -365,19 +363,6 @@ data). Neither can be independently fabricated. An adversary
 forging data must know old\_causal; forging causal must know the
 cursor; computing the cursor requires reading d blocks with
 their causal hashes.
-
-### Committed Steps {#committed-steps}
-
-Every C-th step reads 4\*d blocks instead of d. These committed
-steps have 4x the causal dependencies of normal steps, creating
-hard checkpoints in the computation. An adversary who attempts
-to reconstruct a committed step from a checkpoint must trace
-4\*d causal chains instead of d, amplifying the reconstruction
-cost by 4x at these points.
-
-The committed step interval C SHOULD be chosen so that the
-expected number of committed steps among Q challenges is at
-least 4: C <= K / (4 \* Q / K) = K^2 / (4 \* Q).
 
 ### Transcript Chain {#transcript-chain}
 
@@ -435,7 +420,7 @@ make_step_proof(step, depth):
                 merkle_path: MerklePath(root_{step-1}, w)},
         writers: []
     }
-    for j in 0..d_t-1:
+    for j in 0..d-1:
         sp.reads.append({
             addr, block, merkle_path:
                 MerklePath(root_{step-1}, addr)})
@@ -487,27 +472,22 @@ verify_step(sp, C_roots, root_0, params):
                         sp.root_after,
                         sp.root_chain_paths[1])
 
-    // B. Determine if committed step
-    d_t = params.d
-    if sp.step_id mod params.C == 0:
-        d_t = 4 * params.d
-
-    // C. Verify read Merkle proofs
-    for j in 0..d_t-1:
+    // B. Verify read Merkle proofs
+    for j in 0..d-1:
         assert MerkleVerify(sp.root_before,
             sp.reads[j].addr, sp.reads[j].block,
             sp.reads[j].merkle_path)
 
     // D. Replay pointer-chase
     cursor = sp.cursor_in
-    for j in 0..d_t-1:
+    for j in 0..d-1:
         a = OS2IP(XOF(cursor, j)) mod N
         assert a == sp.reads[j].addr
         cursor = H(cursor || sp.reads[j].block.data
                            || sp.reads[j].block.causal)
 
     // E. Verify symbiotic write
-    w = OS2IP(XOF(cursor, d_t)) mod N
+    w = OS2IP(XOF(cursor, d)) mod N
     assert w == sp.write.addr
     assert MerkleVerify(sp.root_before, w,
                         sp.write.old, sp.write.merkle_path)
@@ -528,10 +508,10 @@ verify_step(sp, C_roots, root_0, params):
     // If another challenged step c' has cursor_in == T_c,
     // verify they match. If sp.step_id == K, verify
     // T_c == T_K (the public final transcript).
-    stored_transcripts[sp.step_id] = T_c
+    storedranscripts[sp.step_id] = T_c
 
     // H. Recursive causal provenance
-    for j in 0..d_t-1:
+    for j in 0..d-1:
         verify_writer(sp.writers[j], sp.reads[j],
                       C_roots, root_0, params)
 ~~~
@@ -556,6 +536,23 @@ For Q=128, d=8, R=3, N=2^24, K=2^24:
 
 # Security Analysis {#security}
 
+## Threat Model {#threat-model}
+
+The adversary is a probabilistic polynomial-time algorithm with
+random oracle access to H. The adversary receives the public
+seed s and parameters (N, K, d, Q, R). Its goal is to produce
+(T\_K, C\_roots, proof) that passes VERIFY ({{verify-procedure}})
+while either:
+
+1. **Forgery:** producing T\_K' != T\_K (the honestly computed
+   transcript), or
+2. **Space reduction:** using less than N \* B bits of arena
+   storage at some point during computation.
+
+The adversary may use custom hardware with faster memory (lower
+latency) than the honest Prover. The ASIC resistance analysis
+({{asic-resistance}}) bounds the resulting speedup.
+
 ## Forgery Prevention {#soundness}
 
 The causal hash mechanism prevents block value fabrication.
@@ -572,15 +569,22 @@ ALL K arena roots before challenges are derived. C\_roots is an
 input to the Fiat-Shamir challenge derivation, so the Prover
 cannot fabricate roots after seeing challenges.
 
-This is a SOUNDNESS property: it prevents the adversary from
-producing a valid-looking proof without executing the computation.
-It reduces to collision resistance of H: if an adversary produces
-T\_K' != T\_K with a valid proof, there exists a step c where the
-local state diverges. This requires either a collision in H
-(the transcript chain produces the same T\_c from different
-inputs) or a collision in the Merkle commitment. Both occur with
-probability at most K \* epsilon\_H, where epsilon\_H is the
-collision probability of H.
+**Theorem 1 (Soundness).** Any adversary producing
+(T\_K', C\_roots', proof') with T\_K' != T\_K that passes VERIFY
+has advantage at most K \* epsilon\_cr, where epsilon\_cr is the
+collision-finding advantage against H.
+
+**Proof sketch.** If verification passes with T\_K' != T\_K, there
+exists a step c where T\_{c-1}' = T\_{c-1} but T\_c' != T\_c (the
+first divergence). At step c, the Verifier checks that T\_c =
+H(T\_{c-1} \|\| c \|\| cursor \|\| root\_c). If the adversary's
+inputs differ from the honest inputs but produce the same T\_c,
+this is a collision in H. If the adversary's inputs differ and
+produce a different T\_c, then T\_c' != T\_c, contradicting
+acceptance. The adversary has K steps at which to attempt this,
+giving the union bound K \* epsilon\_cr.
+
+A full proof appears in the companion analysis document.
 
 ## Recomputation Cost {#recomp-cost}
 
@@ -619,29 +623,41 @@ recomputable in O(1) from the seed. Only written blocks require
 write chain traversal for recomputation. The expected write chain
 length for a modified block is rho, costing O(rho) hashes.
 
-| rho = K/N | Blocks modified | Recomp cost/miss | TMTO effect |
+| rho = K/N | Blocks modified | Recomp cost/miss | alpha=0 TMTO ratio |
 |---|---|---|---|
-| < 1 | < 63% | O(1) | Weak: most blocks free |
-| 1 | 63% | O(1) | Moderate |
-| 4 | 98% | O(4) | Strong |
-| 16 | ~100% | O(16) | Very strong |
+| 0.25 | 22% | O(1) | 2.5x |
+| 1 | 63% | O(1) | 4x |
+| 4 | 98% | O(4) | 10x |
+| 16 | ~100% | O(16) | 34x |
 
 K MUST be at least N (rho >= 1) for meaningful TMTO resistance.
 Values of rho >= 4 are RECOMMENDED.
 
 ### Per-Step Recomputation Cost
 
-An adversary storing alpha \* N arena blocks must still compute
-the full K-step transcript chain ({{sequential-floor}}). At
-each step, d blocks are read. Each read missing the stored set
-(probability 1-alpha per read, since addresses are uniform in
-the ROM) requires write-chain traversal at expected cost
-2\*rho + 1 hashes. The per-step cost becomes
-d \* (1 + (1-alpha) \* (2\*rho + 1)), giving the TMTO ratio:
+**Theorem 2 (TMTO).** In the random oracle model, any adversary
+storing alpha \* N arena blocks and all K cursors (K \* 32 bytes)
+performs expected computation at least:
 
 ~~~ artwork
-T_adv / T_honest >= 1 + (1-alpha) * (2*rho + 1)
+T_adv >= K * d * (1 + (1-alpha) * (2*rho + 1))
 ~~~
+
+giving a TMTO ratio of T\_adv / T\_honest >= 1 + (1-alpha) \* (2\*rho + 1).
+
+**Proof sketch.** The adversary computes the K-step transcript
+chain (Theorem 1 of the companion analysis: Omega(K) sequential
+floor). At each step, d blocks are read at addresses uniform in
+\[N\] (random oracle property). Each read misses the stored set
+with probability 1-alpha. Each miss requires traversing the
+block's write chain (expected length rho) for both data and
+causal hash, costing 2\*rho + 1 hashes. The per-step cost is
+d \* (1 + (1-alpha) \* (2\*rho + 1)). Summing over K steps gives
+the bound.
+
+This bound assumes optimal cursor storage (adversary stores all
+K cursors). A full derivation and optimality analysis appear in
+the companion analysis document.
 
 | rho = K/N | alpha=0 penalty | alpha=0.5 penalty |
 |---|---|---|
@@ -649,8 +665,7 @@ T_adv / T_honest >= 1 + (1-alpha) * (2*rho + 1)
 | 4 | 10x | 5.5x |
 | 16 | 34x | 17.5x |
 
-The penalty scales linearly with rho. Committed steps (4\*d
-reads) quadruple the miss rate at committed step positions.
+The penalty scales linearly with rho.
 
 This bound assumes the adversary stores all K cursors
 (K \* 32 bytes; 512 MiB for K = 2^26). Storing all cursors is
@@ -660,17 +675,6 @@ intervals of L steps instead pays an additional L \* d \*
 (1 + (1-alpha) \* (2\*rho + 1)) hashes per cursor miss. Sparse
 cursor storage strictly increases the adversary's cost; the
 bound above is a LOWER bound on the TMTO penalty.
-
-### Space-Time Product
-
-In the random oracle model, the adversary's space-time product:
-
-~~~ artwork
-M * T >= Omega(N * K * d * min(1, rho))
-~~~
-
-For rho >= 1 (K >= N), this equals Omega(N \* K \* d), matching
-the honest prover. No adversary can reduce both space and time.
 
 ### Dynamic Pebbling Game {#pebbling-game}
 
@@ -700,7 +704,15 @@ in rho, not exponential.
 
 ## ASIC Resistance {#asic-resistance}
 
-PoSME is latency-bound. Each pointer-chase iteration costs:
+PoSME is designed to be latency-dominated: hash computation
+constitutes less than 10% of per-step cost, making the
+bottleneck memory random-access latency rather than computation
+throughput. This is a structural property of the construction
+(it holds for any instantiation where H is significantly faster
+than a DRAM random read).
+
+The specific advantage ratio depends on the memory technology
+available to the adversary. Current measurements:
 
 | Component | Consumer DDR5 | ASIC (HBM3) | Ratio |
 |---|---|---|---|
@@ -708,15 +720,18 @@ PoSME is latency-bound. Each pointer-chase iteration costs:
 | BLAKE3 hash | ~3ns | ~0.3ns | 10x |
 | **Total** | **~38ns** | **~20.3ns** | **~1.9x** |
 
-The bottleneck is memory latency in both cases. The ASIC
-advantage is bounded by the DRAM random-access latency ratio:
-approximately 1.75-2x for DDR5 vs HBM3 {{JESD79-5}}, or up to
-3x with aggressive controller optimization.
+These are empirical values for 2024-era memory technology, not
+formal bounds. The approximately 2x ratio reflects the current
+DDR5-to-HBM3 latency gap {{JESD79-5}}. With aggressive
+controller optimization: up to 3x.
 
-This is tighter than bandwidth-hard constructions (8-16x for
-Argon2id {{Biryukov2016}}{{RenDevadas2017}}) and more durable
-across technology generations because memory latency improves
-more slowly than bandwidth.
+For comparison, bandwidth-hard constructions (Argon2id) have
+empirical ASIC advantage of 8-16x {{Biryukov2016}}
+{{RenDevadas2017}}. The structural argument for PoSME's
+durability: memory latency is constrained by DRAM cell sensing
+time and signal propagation, which improve more slowly than
+bandwidth (wider buses, more channels) across technology
+generations.
 
 ## Sequentiality {#sequentiality}
 
@@ -746,7 +761,6 @@ posme-params = {
     3 => uint,                    ; reads-per-step (d)
     4 => uint,                    ; challenges (Q)
     5 => uint,                    ; recursion-depth (R)
-    6 => uint,                    ; committed-step-interval (C)
 }
 
 step-proof = {
@@ -798,7 +812,6 @@ writer-proof = {
 | Reads per step | d | 8 | MUST be >= 4 |
 | Challenges | Q | 128 | MUST be >= 64 |
 | Recursion depth | R | 3 | MUST be >= 2 |
-| Committed interval | C | 2^12 (4096) | MUST be >= 256 |
 | Hash function | H | BLAKE3 | Fixed |
 
 ## Parameter Validation {#param-validation}
@@ -812,7 +825,6 @@ Verifiers MUST reject proofs with parameters below these minimums:
 | d | 4 | Below this, causal fan-out is insufficient |
 | Q | 64 | Below this, detection probability < 2^{-64} |
 | R | 2 | Below this, causal verification is shallow |
-| C | 256 | Below this, committed steps are too frequent |
 
 ## Performance Estimates {#performance}
 
@@ -851,15 +863,14 @@ arena initializations with reduced effective working sets.
 
 ## Verification Complexity {#verify-complexity}
 
-O(1) verification under hash-only assumptions is impossible for
-sequential pointer-chasing computations. K adaptive state
-transitions inject K \* log(d) bits of entropy; a constant-size
-hash-only proof cannot certify this. The tightest achievable
-verification without algebraic assumptions is O(Q \* d^R \* log N)
-as specified in this document. O(log^2 K) verification is
-achievable via FRI/STARK-based commitment (requiring field
-arithmetic but no trusted setup) and is left as a future
-optimization.
+We conjecture that O(1) verification under hash-only assumptions
+is not achievable for sequential pointer-chasing computations
+of the type PoSME specifies. The verification complexity in this
+document is O(Q \* d^R \* log N). O(log^2 K) verification is
+believed achievable via FRI/STARK-based commitment (requiring
+field arithmetic but no trusted setup) and is left as a future
+optimization. A formal impossibility proof for constant-size
+hash-only verification of PoSME remains open.
 
 ## Verifier Resource Limits {#verifier-limits}
 
