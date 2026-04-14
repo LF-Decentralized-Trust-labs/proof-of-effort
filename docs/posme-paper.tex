@@ -89,10 +89,11 @@ graphs. \posme{}'s DAG is dynamic (Section~\ref{sec:pebbling}).
 
 \begin{figure}[t]
 \centering
+\resizebox{\columnwidth}{!}{%
 \begin{tikzpicture}[
-  node distance=0.4cm,
-  box/.style={draw, rounded corners, minimum width=1.8cm,
-              minimum height=0.6cm, font=\footnotesize},
+  node distance=0.3cm,
+  box/.style={draw, rounded corners, minimum width=1.4cm,
+              minimum height=0.5cm, font=\scriptsize},
   arr/.style={->, thick}
 ]
 \node[box, fill=blue!10] (cursor0) {$T_{t-1}$};
@@ -100,7 +101,7 @@ graphs. \posme{}'s DAG is dynamic (Section~\ref{sec:pebbling}).
 \node[box, right=of read0, fill=green!10] (hash0) {$H(\cdot)$};
 \node[box, right=of hash0, fill=orange!15] (read1) {Read $a_1$};
 \node[box, right=of read1, fill=green!10] (hash1) {$H(\cdot)$};
-\node[right=0.2cm of hash1, font=\footnotesize] (dots) {$\cdots$};
+\node[right=0.15cm of hash1, font=\scriptsize] (dots) {$\cdots$};
 
 \draw[arr] (cursor0) -- (read0);
 \draw[arr] (read0) -- (hash0);
@@ -108,11 +109,12 @@ graphs. \posme{}'s DAG is dynamic (Section~\ref{sec:pebbling}).
 \draw[arr] (read1) -- (hash1);
 \draw[arr] (hash1) -- (dots);
 
-\node[below=0.6cm of read0, font=\scriptsize, text width=1.8cm,
-      align=center] {addr depends\\on cursor};
-\node[below=0.6cm of hash0, font=\scriptsize, text width=1.8cm,
-      align=center] {cursor depends\\on block};
-\end{tikzpicture}
+\node[below=0.4cm of read0, font=\tiny, text width=1.4cm,
+      align=center] {addr from\\cursor};
+\node[below=0.4cm of hash0, font=\tiny, text width=1.4cm,
+      align=center] {cursor from\\block};
+\end{tikzpicture}%
+}
 \caption{Pointer-chase data dependency within one step. Each
 address depends on the hash of the previous read. No lookahead
 is possible.}
@@ -145,9 +147,10 @@ a_j &= H(\text{``addr''} \| \texttt{cursor} \| j) \bmod N \\
 $w = H(\text{``write''} \| \texttt{cursor}) \bmod N$:
 \vspace{-0.5em}
 \begin{align}
-\texttt{new.data} &= H(\texttt{old.data} \| \texttt{cursor} \| \texttt{old.causal}) \\
-\texttt{new.causal} &= H(\texttt{old.causal} \| \texttt{cursor} \| t)
+d' &= H(d_{\text{old}} \| c \| h_{\text{old}}) \\
+h' &= H(h_{\text{old}} \| c \| t)
 \end{align}
+where $d', h'$ are new data/causal, $c$ is cursor.
 \vspace{-1em}
 
 \item \textbf{Commit.}
@@ -348,7 +351,7 @@ accelerators (GPUs) are strictly \emph{worse} than consumer CPUs.
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  width=\columnwidth, height=4.5cm,
+  width=0.97\columnwidth, height=4.5cm,
   xlabel={Arena size},
   ylabel={Avg step time (ns)},
   xmin=0, xmax=5, ymin=0, ymax=5000,
@@ -360,10 +363,10 @@ accelerators (GPUs) are strictly \emph{worse} than consumer CPUs.
 ]
 \addplot[blue, very thick, mark=*] coordinates
   {(1,1871)(2,1063)(3,1333)(4,1630)(5,1783)};
-\addlegendentry{Apple M-series}
+\addlegendentry{\scriptsize Apple M}
 \addplot[red, very thick, mark=square*] coordinates
   {(1,2756)(2,2660)(3,2942)(4,3863)(5,4047)};
-\addlegendentry{Cloud x86}
+\addlegendentry{\scriptsize Cloud x86}
 \end{axis}
 \end{tikzpicture}
 \caption{Step time vs arena size. Cost increases as the arena
