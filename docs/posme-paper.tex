@@ -151,23 +151,23 @@ Symbiotic binding creates bidirectional dependency: new data
 incorporates the old causal hash, and the new causal hash
 incorporates the cursor.
 
+\newcommand{\algcmt}[1]{\hfill\makebox[2.8cm][l]{\textit{// #1}}}
 \begin{algorithm}[h]
 \caption{$\textsc{Step}(t, A, T_{t-1})$}\label{alg:step}
 \begin{algorithmic}[1]
 \STATE $c \gets T_{t-1}$
 \FOR{$j = 0$ \TO $d-1$}
-  \STATE $a_j \gets H(\text{``addr''} \| c \| j) \bmod N$
-  \STATE $(d_j, h_j) \gets A[a_j]$ \hfill\textit{// DRAM read (${\sim}45$\,ns)}
-  \STATE $c \gets H(c \| d_j \| h_j)$ \hfill\textit{// hash (${\sim}3$\,ns)}
+  \STATE $a_j \gets H(\text{``addr''} \| c \| j) \bmod N$ \algcmt{address}
+  \STATE $(d_j, h_j) \gets A[a_j]$ \algcmt{DRAM (45\,ns)}
+  \STATE $c \gets H(c \| d_j \| h_j)$ \algcmt{hash (3\,ns)}
 \ENDFOR
-\STATE $w \gets H(\text{``write''} \| c) \bmod N$
-\STATE $(d_w, h_w) \gets A[w]$
-\STATE $A[w].\text{data} \gets H(d_w \| c \| h_w)$
-    \hfill\textit{// symbiotic}
-\STATE $A[w].\text{causal} \gets H(h_w \| c \| t)$
-\STATE $\text{root}_t \gets \textsc{MerkleUpdate}(\text{root}_{t-1}, w, A[w])$
-\STATE $T_t \gets H(T_{t-1} \| t \| c \| \text{root}_t)$
-\RETURN $(T_t, \text{root}_t)$
+\STATE $w \gets H(\text{``write''} \| c) \bmod N$ \algcmt{write addr}
+\STATE $(d_w, h_w) \gets A[w]$ \algcmt{read old}
+\STATE $A[w].d \gets H(d_w \| c \| h_w)$ \algcmt{symbiotic}
+\STATE $A[w].h \gets H(h_w \| c \| t)$ \algcmt{causal}
+\STATE $r_t \gets \textsc{Merk.Upd}(r_{t-1}, w, A[w])$ \algcmt{commit}
+\STATE $T_t \gets H(T_{t-1} \| t \| c \| r_t)$ \algcmt{transcript}
+\RETURN $(T_t, r_t)$
 \end{algorithmic}
 \end{algorithm}
 
