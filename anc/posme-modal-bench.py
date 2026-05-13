@@ -10,6 +10,7 @@ Requires: Modal account (https://modal.com). Run `modal setup` first.
 import modal
 import os
 import sys
+import traceback
 
 app = modal.App("posme-bench")
 
@@ -87,8 +88,9 @@ def main():
     for f in futures:
         try:
             results.append(f.get())
-        except Exception as e:
+        except (modal.exception.Error, RuntimeError, TimeoutError, ConnectionError) as e:
             results.append(f"\n  [FAILED: {e}]\n")
+            traceback.print_exc()
 
     sys.stdout.write("\n" + "=" * 62 + "\n")
     sys.stdout.write("  POSME MULTI-ARCHITECTURE BENCHMARK RESULTS\n")

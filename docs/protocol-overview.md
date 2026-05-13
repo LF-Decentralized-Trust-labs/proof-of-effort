@@ -11,7 +11,7 @@ architecture mapping, see [architecture.md](architecture.md).
 
 ## Purpose
 
-The CCPoE protocol produces tamper-evident evidence that a human
+The CPoE protocol produces tamper-evident evidence that a human
 authored a document through a genuine creative process, rather than
 generating it with AI and back-filling fake timing data. It works by
 instrumenting the authoring environment to capture behavioral
@@ -51,7 +51,7 @@ environmental conditions, making replay attacks harder.
 ## Wire Format
 
 The evidence is packaged as a CBOR-encoded Evidence Packet tagged with
-semantic tag 1129336656 ("CPOP"). The packet contains the document
+semantic tag 1129336645 ("CPoE"). The packet contains the document
 reference (content hash, not content), the checkpoint chain,
 attestation tier, and optional fields for presence challenges
 (QR-based out-of-band human verification), channel binding (TLS
@@ -121,13 +121,11 @@ Verifiable Credentials, CAWG, and EU AI Act compliance frameworks.
 
 ## Reference Implementation
 
-The Rust implementation provides two crates:
+The Rust reference implementation lives in `impl/posme/` (core library)
+and `impl/posme-ref/` (CLI reference binary). The core library provides:
 
-- **[cpoe-jitter](../crates/cpoe-jitter/)**: `no_std`-compatible
-  entropy collection with HMAC-based (pure/deterministic) and
-  hardware-based (TSC/CNTVCT timing) jitter engines, an append-only
-  evidence chain with HMAC integrity, and a human-model validator.
-- **[cpoe-protocol](../crates/cpoe-protocol/)**: Wire types matching
-  the CDDL schema, CBOR/JSON codec with size-limited decoding,
-  evidence builder with causality locks, forensic analysis engine,
-  C2PA manifest generation, and Written Authorship Report encoding.
+- Sequential Work Function (SWF) with BLAKE3-based pointer chasing
+- Merkle tree commitment and Fiat-Shamir sampled proof generation
+- Proof verification against seed and parameters
+
+See `impl/posme/src/lib.rs` for the main API entry points.

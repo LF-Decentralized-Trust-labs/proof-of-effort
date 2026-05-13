@@ -1,6 +1,6 @@
 ---
 v: 3
-docname: draft-condrey-cpoe-appraisal-latest
+docname: draft-condrey-cpoe-appraisal-00
 title: "Cryptographic Proof of Effort (CPoE): Forensic Appraisal and Security Model"
 abbrev: CPoE Appraisal
 category: exp
@@ -44,20 +44,11 @@ normative:
         surname: Condrey
     date: 2026-02
     seriesinfo:
-      Internet-Draft: draft-condrey-cpoe-protocol-06
+      Internet-Draft: draft-condrey-cpoe-protocol-00
 
 informative:
   RFC9106:
   RFC9334:
-  CFRG-SWF:
-    title: "Sequential Work Function (SWF): Memory-Hard Iterative Proofs with Merkle-Sampled Verification"
-    author:
-      - fullname: David Condrey
-        initials: D.
-        surname: Condrey
-    date: 2026
-    seriesinfo:
-      Internet-Draft: draft-condrey-cfrg-swf-00
   RATS-HAT:
     title: "Hardware Attestation of Time (HAT): TPM-Based Temporal Binding for Remote Attestation"
     author:
@@ -494,7 +485,7 @@ Composite Assessment:
 
 A Verifier MUST perform the following procedure to appraise a CPoE Evidence Packet:
 
-1. *Structural Validation:* The Verifier MUST reject with verdict invalid (4) any Evidence Packet that: (a) fails CBOR decoding, (b) lacks CBOR tag 1129336656, (c) has version != 1, (d) is missing mandatory fields (keys 1-6 in evidence-packet, keys 1-9 in each checkpoint), or (e) contains CBOR types that do not match the CDDL schema.
+1. *Structural Validation:* The Verifier MUST reject with verdict invalid (4) any Evidence Packet that: (a) fails CBOR decoding, (b) lacks CBOR tag 1129336645, (c) has version != 1, (d) is missing mandatory fields (keys 1-6 in evidence-packet, keys 1-9 in each checkpoint), or (e) contains CBOR types that do not match the CDDL schema.
 
 2. *Chain Integrity:* Verify the hash link (using the Evidence Packet's selected hash function H, as defined in {{CPoE-Protocol}}) between all checkpoints. For continuation packets (previous-packet-ref present), additionally verify that the first checkpoint's prev-hash equals the final checkpoint-hash of the preceding Evidence Packet and that checkpoint sequence numbers are globally monotonic across the series. Any break invalidates the entire Evidence Packet (or series). The Verifier MUST set the verdict to invalid (4). The warnings field SHOULD include the checkpoint sequence number where the break was detected.
 
@@ -560,7 +551,7 @@ Cross-device validation (OOB-PC):
 
 Attester-to-Verifier comparison:
 : The Verifier MUST NOT reject Evidence solely because
-  Attester-generated pop-timestamp values differ from the
+  Attester-generated cpoe-timestamp values differ from the
   Verifier's own wall clock. Temporal validation is primarily
   relative: the Verifier checks intra-chain ordering,
   duration plausibility, and cross-checkpoint consistency. If
@@ -600,7 +591,7 @@ Cognitive Load Correlation (CLC):
 : Verifiers MUST correlate timing patterns with semantic complexity. Human authors exhibit increased inter-keystroke intervals (IKI) and pause frequency during composition of semantically complex segments compared to simple connective text {{Dhakal2018}}. Verifiers MUST compute the Pearson correlation between segment semantic complexity and mean IKI. Evidence with r < 0.2 (or r < 0.1 in assistive mode) MUST be flagged as a Semantic Mismatch. Semantic complexity per checkpoint is estimated as the normalized compression ratio of the inserted text: complexity = 1 - (compressed_length / raw_length), where compression uses the DEFLATE algorithm (RFC 1951) on the UTF-8 encoded insertion. Higher values indicate more complex, less repetitive content. The CLC metric coefficient r is computed as Pearson's correlation between per-checkpoint semantic complexity and per-checkpoint mean inter-keystroke interval across all checkpoints in the session.
 
 Mechanical Turk Detection:
-: Verifiers MUST compute C_intra (Pearson correlation between pause duration and subsequent edit complexity within each checkpoint). C_intra is computed per checkpoint as: C_intra = standard_deviation(IKI) / mean(IKI), where IKI is the set of inter-keystroke intervals within that checkpoint. Pause duration refers to inter-keystroke intervals exceeding 500 milliseconds. Edit complexity is the character-level Levenshtein distance between the document state at checkpoint start and checkpoint end, normalized by checkpoint character count. C_intra values below 0.15 MUST be flagged as indicating robotic pacing, where an automated system maintains a machine-clocked editing rate independent of content demands.{{Monrose2000}}{{Monaco2018}} Checkpoints containing receipt structures (key 13) MUST have their associated paste events excluded from C_intra computation.
+: Verifiers MUST compute IKI-CoV (coefficient of variation of inter-keystroke intervals within each checkpoint). IKI-CoV is computed per checkpoint as: IKI-CoV = standard_deviation(IKI) / mean(IKI), where IKI is the set of inter-keystroke intervals within that checkpoint. Pause duration refers to inter-keystroke intervals exceeding 500 milliseconds. Edit complexity is the character-level Levenshtein distance between the document state at checkpoint start and checkpoint end, normalized by checkpoint character count. IKI-CoV values below 0.15 MUST be flagged as indicating robotic pacing, where an automated system maintains a machine-clocked editing rate independent of content demands.{{Monrose2000}}{{Monaco2018}} Checkpoints containing receipt structures (key 13) MUST have their associated paste events excluded from IKI-CoV computation.
 
 Error Topology Analysis:
 : Verifiers SHOULD analyze error patterns for consistency with human cognitive processing {{Salthouse1986}}: localized corrections near recent insertions, fractal self-similarity in revision patterns, and deletion-to-insertion ratios consistent with natural composition. Evidence exhibiting unnaturally low error rates (below 1 correction per 500 characters {{Dhakal2018}}) or randomly distributed errors lacking positional correlation SHOULD be flagged.{{ScholaWriteAugmented}}
@@ -681,14 +672,31 @@ verdict:
 1. *Multi-flag threshold:* If two or more independent
    forensic mechanisms trigger flags, the Verifier MUST assign
    the suspicious verdict regardless of checkpoint coverage.
-   A contradiction arises when two or more forensic mechanisms
-   produce opposing assessments of the same behavioral evidence
-   (e.g., one mechanism flags synthetic timing while another
-   confirms natural revision patterns). When contradictory
-   results occur, the Verifier MUST assign the more conservative
-   verdict. Specifically: if any mechanism triggers a flag, the
-   flag stands regardless of non-triggering mechanisms.
-   Non-triggering mechanisms do not cancel triggered flags.
+   A contradiction exists when two forensic mechanisms in
+   different independence classes produce opposing verdicts for
+   the same checkpoint range: one mechanism's flag assigns
+   "suspicious" while another mechanism's non-triggering
+   supports "authentic". Specifically, a contradiction is
+   detected when:
+
+   a. At least one mechanism triggers a forensic flag
+      (suspicious indicator), AND
+   b. At least one mechanism in a DIFFERENT independence class
+      produces a metric value in the top 20th percentile of the
+      authentic distribution for the same checkpoint range.
+
+   Example: SNR analysis (spectral class) triggers spectral
+   flatness > 0.9, while CLC analysis (temporal class) shows
+   cognitive-load correlation r > 0.3, indicating genuine human
+   cognitive engagement. These opposing signals constitute a
+   contradiction.
+
+   When a contradiction is detected, Verifiers MUST assign
+   "inconclusive" rather than "suspicious" or "authentic".
+   Non-contradicted flags (where no opposing mechanism in a
+   different independence class produces a top-20th-percentile
+   authentic metric) stand as-is; non-triggering mechanisms in
+   the same independence class do not cancel triggered flags.
 
 2. *Sustained single-flag threshold:* If exactly one
    forensic mechanism triggers, the Verifier MUST assign the
@@ -1046,7 +1054,7 @@ tag 1129791826 (encoding ASCII "CWAR"). The CDDL notation
 {{RFC8610}} defines the wire format:
 
 ~~~ cddl
-pop-war = #6.1129791826(attestation-result)
+cpoe-war = #6.1129791826(attestation-result)
 
 attestation-result = {
     1 => uint,                    ; version (must be 1)
@@ -1060,7 +1068,7 @@ attestation-result = {
     ? 9 => [+ absence-claim],     ; absence claims (1+ when present)
     ? 10 => [* tstr],             ; warnings
     11 => bstr .cbor COSE_Sign1,   ; verifier-signature
-    12 => pop-timestamp,          ; created (appraisal timestamp)
+    12 => cpoe-timestamp,          ; created (appraisal timestamp)
     ? 13 => forensic-summary,     ; forensic assessment summary
     ? 14 => confidence-tier,      ; baseline confidence level
     ? 15 => effort-attribution,   ; human-to-tool attribution
@@ -1137,8 +1145,8 @@ absence-type = &(
 )
 
 time-window = {
-    1 => pop-timestamp,           ; start
-    2 => pop-timestamp,           ; end
+    1 => cpoe-timestamp,           ; start
+    2 => cpoe-timestamp,           ; end
 }
 
 ; Behavioral Baseline Verification
@@ -1159,7 +1167,7 @@ baseline-digest = {
     8 => streaming-stats,         ; pause-stats
     9 => bstr .size 32,           ; session-merkle-root (MMR)
     10 => confidence-tier,        ; baseline maturity
-    11 => pop-timestamp,          ; computed-at
+    11 => cpoe-timestamp,          ; computed-at
     12 => bstr .size 32,          ; identity-fingerprint
 }
 
@@ -1187,21 +1195,21 @@ self-receipt = {
     1 => tstr,                    ; tool-id (source environment)
     2 => hash-value / compact-ref, ; output-commit
     3 => hash-value / compact-ref, ; evidence-ref (source packet)
-    4 => pop-timestamp,           ; transfer-time
+    4 => cpoe-timestamp,           ; transfer-time
 }
 
 tool-receipt = {
     1 => tstr,                    ; tool-id (provider URI)
     2 => hash-value,              ; output-commit
     ? 3 => hash-value,            ; input-ref (prompt hash)
-    4 => pop-timestamp,           ; issued-at
+    4 => cpoe-timestamp,           ; issued-at
     5 => bstr .cbor COSE_Sign1,   ; tool-signature
     ? 6 => uint,                  ; output-char-count
 }
 
 ; Shared type definitions reproduced from [CPoE-Protocol] for reader
 ; convenience. In case of conflict, [CPoE-Protocol] is authoritative.
-pop-timestamp = uint                ; epoch milliseconds (no tag 1; see [CPoE-Protocol])
+cpoe-timestamp = uint                ; epoch milliseconds (no tag 1; see [CPoE-Protocol])
 hash-value = {
     1 => hash-algorithm,
     2 => hash-digest,              ; length must match algorithm output
@@ -1235,7 +1243,7 @@ attestation-tier = &(
 
 The evidence-ref field MUST contain a hash-value computed as
 SHA-256 over the CBOR-encoded evidence-packet structure
-(including CBOR tag 1129336656), excluding any COSE_Sign1
+(including CBOR tag 1129336645), excluding any COSE_Sign1
 wrapper. This binds the Attestation Result to a specific
 Evidence Packet.
 
@@ -1402,7 +1410,7 @@ Result (WAR).
 
 The policy inputs are:
 
-* The Evidence Packet itself (CBOR tag 1129336656)
+* The Evidence Packet itself (CBOR tag 1129336645)
 * The CPoE specification (this document and {{CPoE-Protocol}}),
   which defines SWF parameters, forensic thresholds, and
   profile requirements
@@ -1981,7 +1989,7 @@ This appendix is normative. The following constraints summarize the verification
 When checkpoint key 13 contains receipt structures, the
 Verifier MUST validate them as follows. Paste events
 accompanied by a verified receipt (either type) MUST be
-excluded from C_intra, perplexity scoring, and Mechanical
+excluded from IKI-CoV, perplexity scoring, and Mechanical
 Turk detection analysis.
 
 AI Tool Receipts (tool-receipt):

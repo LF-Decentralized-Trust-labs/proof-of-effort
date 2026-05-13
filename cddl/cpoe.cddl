@@ -30,7 +30,7 @@ evidence-packet = {
     1  => uint,                   ; version (MUST be 1)
     2  => tstr,                   ; profile-uri
     3  => uuid,                   ; packet-id (16 bytes, >=4 non-zero)
-    4  => pop-timestamp,          ; created
+    4  => cpoe-timestamp,          ; created
     5  => document-ref,           ; document
     6  => [3* checkpoint],        ; checkpoints (min 3, max 10000)
     ? 7  => attestation-tier,
@@ -50,7 +50,7 @@ evidence-packet = {
 checkpoint = {
     1  => uint,                   ; sequence
     2  => uuid,                   ; checkpoint-id (16 bytes)
-    3  => pop-timestamp,          ; timestamp
+    3  => cpoe-timestamp,          ; timestamp
     4  => hash-value,             ; content-hash
     5  => uint,                   ; char-count
     6  => edit-delta,             ; delta
@@ -87,8 +87,8 @@ document-ref = {
 process-proof = {
     1 => proof-algorithm,
     2 => proof-params,
-    3 => bstr,                    ; input (max 64 bytes)
-    4 => bstr,                    ; merkle-root (max 64 bytes)
+    3 => bstr .size (1..64),        ; input
+    4 => bstr .size (32..64),       ; merkle-root
     5 => [+ merkle-proof],        ; sampled-proofs (max 1000)
     6 => uint,                    ; claimed-duration (ms)
 }
@@ -105,7 +105,7 @@ proof-params = {
 merkle-proof = {
     1 => uint,                    ; leaf-index
     2 => [+ bstr .size 32],       ; sibling-path (SHA-256, max depth 64)
-    3 => bstr,                    ; leaf-value (max 64 bytes)
+    3 => bstr .size (1..64),        ; leaf-value
 }
 
 ; ============================================================
@@ -115,7 +115,7 @@ merkle-proof = {
 jitter-binding = {
     1 => [+ uint],                ; intervals (ms, max 100000)
     2 => uint,                    ; entropy-estimate (centibits)
-    3 => bstr,                    ; jitter-seal (HMAC, max 64 bytes)
+    3 => bstr .size (32..64),       ; jitter-seal (HMAC)
 }
 
 edit-delta = {
@@ -139,7 +139,7 @@ physical-state = {
 }
 
 inertial-sample = [
-    pop-timestamp,
+    cpoe-timestamp,
     int,                          ; x-axis (micro-g)
     int,                          ; y-axis (micro-g)
     int,                          ; z-axis (micro-g)
@@ -150,7 +150,7 @@ physical-liveness = {
     2 => bstr .size 32,           ; entropy-anchor
 }
 
-thermal-sample = [pop-timestamp, int]  ; (timestamp, millidegree delta)
+thermal-sample = [cpoe-timestamp, int]  ; (timestamp, millidegree delta)
 
 ; ============================================================
 ; Hardware-Anchored Time (HAT)
@@ -196,7 +196,7 @@ baseline-digest = {
     8  => streaming-stats,        ; pause-stats
     9  => bstr .size 32,          ; session-merkle-root (MMR)
     10 => confidence-tier,        ; baseline maturity
-    11 => pop-timestamp,          ; computed-at
+    11 => cpoe-timestamp,          ; computed-at
     12 => bstr .size 32,          ; identity-fingerprint
 }
 
@@ -231,7 +231,7 @@ confidence-tier = &(
 presence-challenge = {
     1 => bstr .size (16..256),    ; challenge-nonce
     2 => bstr,                    ; device-signature (COSE_Sign1)
-    3 => pop-timestamp,           ; response-time
+    3 => cpoe-timestamp,           ; response-time
 }
 
 profile-declaration = {
@@ -258,14 +258,14 @@ self-receipt = {
     1 => tstr,                    ; tool-id
     2 => hash-value,              ; output-commit
     3 => hash-value,              ; evidence-ref
-    4 => pop-timestamp,           ; transfer-time
+    4 => cpoe-timestamp,           ; transfer-time
 }
 
 tool-receipt = {
     1 => tstr,                    ; tool-id
     2 => hash-value,              ; output-commit
     ? 3 => hash-value,            ; input-ref
-    4 => pop-timestamp,           ; issued-at
+    4 => cpoe-timestamp,           ; issued-at
     5 => bstr,                    ; tool-signature (COSE_Sign1)
     ? 6 => uint,                  ; output-char-count
 }
@@ -276,8 +276,8 @@ tool-receipt = {
 
 active-probe = {
     1 => probe-type,
-    2 => pop-timestamp,           ; stimulus-time
-    3 => pop-timestamp,           ; response-time
+    2 => cpoe-timestamp,           ; stimulus-time
+    3 => cpoe-timestamp,           ; response-time
     4 => bstr,                    ; stimulus-data
     5 => bstr,                    ; response-data
     ? 6 => uint,                  ; response-latency (ms)
@@ -306,7 +306,7 @@ attestation-result = {
     ? 9  => [+ absence-claim],    ; (max 100)
     ? 10 => [* tstr],             ; warnings (max 100)
     11 => bstr,                   ; verifier-signature (COSE_Sign1)
-    12 => pop-timestamp,          ; created
+    12 => cpoe-timestamp,          ; created
     ? 13 => forensic-summary,
     ? 14 => confidence-tier,
     ? 15 => effort-attribution,
@@ -389,8 +389,8 @@ absence-type = &(
 )
 
 time-window = {
-    1 => pop-timestamp,           ; start
-    2 => pop-timestamp,           ; end
+    1 => cpoe-timestamp,           ; start
+    2 => cpoe-timestamp,           ; end
 }
 
 ; ============================================================
@@ -410,6 +410,7 @@ content-tier = &(
     maximum:  3,
 )
 
+; NOTE: keep in sync with cddl/swf.cddl (canonical source)
 proof-algorithm = &(
     swf-sha256:             10,
     swf-argon2id:           20,
@@ -443,7 +444,7 @@ feature-id = &(
 ; ============================================================
 
 uuid = bstr .size 16
-pop-timestamp = uint              ; epoch milliseconds
+cpoe-timestamp = uint .gt 0         ; epoch milliseconds (zero is invalid)
 hash-value = {
     1 => hash-algorithm,
     2 => bstr,                    ; digest (length per algorithm)

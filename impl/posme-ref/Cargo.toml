@@ -1,7 +1,7 @@
 [package]
 name = "posme-ref"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
 description = "Reference implementation of PoSME (Proof of Sequential Memory Execution)"
 license = "Apache-2.0"
 

@@ -11,6 +11,7 @@ Usage:
 import modal
 import os
 import sys
+import traceback
 
 app = modal.App("posme-cuda")
 
@@ -87,5 +88,6 @@ def main():
     for name, f in futures:
         try:
             sys.stdout.write(f.get() + "\n")
-        except Exception as e:
+        except (modal.exception.Error, RuntimeError, TimeoutError, ConnectionError) as e:
             sys.stdout.write(f"\n  [{name} FAILED: {e}]\n\n")
+            traceback.print_exc()

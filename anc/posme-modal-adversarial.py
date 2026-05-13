@@ -13,6 +13,7 @@ Usage:
 import modal
 import os
 import sys
+import traceback
 
 app = modal.App("posme-adversarial")
 
@@ -141,8 +142,9 @@ def main():
                     pct = float(line.split(":")[1].strip().rstrip("%"))
                     if pct > worst_hash_pct:
                         worst_hash_pct = pct
-        except Exception as e:
+        except (modal.exception.Error, RuntimeError, TimeoutError, ConnectionError) as e:
             sys.stdout.write(f"\n  [{name} FAILED: {e}]\n\n")
+            traceback.print_exc()
 
     sys.stdout.write("=" * 62 + "\n")
     sys.stdout.write("  VERDICT\n")
