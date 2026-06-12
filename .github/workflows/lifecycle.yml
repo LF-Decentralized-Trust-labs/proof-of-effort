@@ -33,9 +33,18 @@ jobs:
           # Maintainer count and org count from MAINTAINERS.md table
           # Table rows start with "| " and contain "@" (GitHub ID column)
           MAINTAINER_ROWS=$(grep -E '^\| .+@' MAINTAINERS.md | grep -v 'emeritus' | grep -v 'GitHub ID' || true)
-          MAINTAINER_COUNT=$(echo "$MAINTAINER_ROWS" | grep -c '@' || echo 0)
-          ORG_COUNT=$(echo "$MAINTAINER_ROWS" | awk -F'|' '{print $NF}' | sed 's/^ *//;s/ *$//' | sort -u | grep -c '.' || echo 0)
-          MAINTAINER_LIST=$(echo "$MAINTAINER_ROWS" | awk -F'|' '{gsub(/^ +| +$/,"",$2); gsub(/^ +| +$/,"",$NF); printf "%s (%s), ", $2, $NF}' | sed 's/, $//')
+          if [ -z "$MAINTAINER_ROWS" ]; then
+            MAINTAINER_COUNT=0
+            ORG_COUNT=0
+            MAINTAINER_LIST="none"
+          else
+            MAINTAINER_COUNT=$(echo "$MAINTAINER_ROWS" | grep -c '@' || true)
+            MAINTAINER_COUNT=${MAINTAINER_COUNT:-0}
+            ORG_COUNT=$(echo "$MAINTAINER_ROWS" | awk -F'|' '{print $(NF-1)}' | sed 's/^ *//;s/ *$//' | sort -u | grep -c '.' || true)
+            ORG_COUNT=${ORG_COUNT:-0}
+            MAINTAINER_LIST=$(echo "$MAINTAINER_ROWS" | awk -F'|' '{gsub(/^ +| +$/,"",$2); gsub(/^ +| +$/,"",$(NF-1)); printf "%s (%s), ", $2, $(NF-1)}' | sed 's/, $//')
+            MAINTAINER_LIST=${MAINTAINER_LIST:-"none"}
+          fi
 
           # Contributor count (exclude bots)
           CONTRIBUTOR_COUNT=$(git shortlog -sn --all | grep -v -E '\[bot\]|ID Bot|dependabot' | wc -l | tr -d ' ')
@@ -122,7 +131,7 @@ jobs:
           fi
           update_section "release-count" "$RC_CHECK" \
             "**At least one release** — published artifacts exist" \
-            "${TOTAL_RELEASES} crate release(s)"
+            "${TOTAL_RELEASES} release(s)"
 
           # Yearly releases (graduation: 2/year)
           if [ "$YEARLY_RELEASES" -ge 2 ]; then
