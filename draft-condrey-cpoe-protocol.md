@@ -1,6 +1,6 @@
 ---
 v: 3
-docname: draft-condrey-cpoe-protocol-00
+docname: draft-condrey-cpoe-protocol-latest
 title: "Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"
 abbrev: CPoE Protocol
 category: exp

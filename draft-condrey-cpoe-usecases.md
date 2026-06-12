@@ -1,6 +1,6 @@
 ---
 v: 3
-docname: draft-condrey-cpoe-usecases-00
+docname: draft-condrey-cpoe-usecases-latest
 title: "Cryptographic Proof of Effort (CPoE): Use Cases and Deployment Considerations"
 abbrev: CPoE Use Cases
 category: info

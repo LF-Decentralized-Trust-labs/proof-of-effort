@@ -1,6 +1,6 @@
 ---
 v: 3
-docname: draft-condrey-cpoe-appraisal-00
+docname: draft-condrey-cpoe-appraisal-latest
 title: "Cryptographic Proof of Effort (CPoE): Forensic Appraisal and Security Model"
 abbrev: CPoE Appraisal
 category: exp
@@ -640,6 +640,8 @@ Inhibition Response Test:
 Dynamic Latency Injection (Visual Feedback Loop Test):
 : Attesters that support active probes MAY implement a visual feedback latency challenge that exploits the closed-loop nature of human typing. Human typists rely on visual feedback from the screen; their motor control continuously adjusts based on observed character rendering. Automated injection scripts operate open-loop and are indifferent to display state. The Attester introduces an artificial delay (RECOMMENDED: 150-500 ms) to the rendering of typed characters at an unpredictable moment during active composition. The delay MUST NOT affect the actual keystroke capture timestamps, only the visual presentation. The Attester records: (a) the timestamp when the latency injection begins, (b) the IKI series during the injection window (RECOMMENDED: 3-8 seconds), and (c) the IKI series in the 5 seconds preceding the injection (pre-injection baseline). A human typist will exhibit measurable behavioral adaptation during the injection window: increased mean IKI (slowing down), increased IKI variance (hesitation and self-correction), and often a brief pause (100-300 ms) as the sensorimotor loop detects and adapts to the unexpected feedback delay. An injection script will show no statistically significant change in IKI distribution between the pre-injection baseline and the injection window, since it does not process visual feedback. The Verifier MUST compare the mean IKI and variance between the pre-injection and injection windows using a paired t-test or Wilcoxon signed-rank test. Evidence where the injection window shows no significant change (p > 0.05) from the pre-injection baseline despite a rendering delay exceeding 200 ms MUST be flagged as potential automated input. The latency injection MUST occur at unpredictable intervals (RECOMMENDED: 1-3 times per session, uniformly random timing). The injection duration and magnitude SHOULD vary between probes to prevent anticipatory adaptation by sophisticated scripts that monitor their own output latency. This mechanism belongs to the out-of-band independence class. The latency injection data MUST be recorded in the active-probe structure using probe-type 5 (latency-injection). When no latency-injection probes are present, Verifiers MUST skip this mechanism.
 
+### Conformance Requirement
+
 A conforming Verifier MUST evaluate all forensic mechanisms for
 which the Evidence Packet contains sufficient data. Verifiers
 MAY implement additional analysis mechanisms beyond those
@@ -750,7 +752,7 @@ divergence) checks.
 This section defines the activity-based signal-to-noise ratio, which
 measures productive editing activity versus idle or mechanical noise
 within each evidence window. This metric is distinct from the
-spectral flatness SNR defined in {{snr-analysis}}, which operates on
+spectral flatness SNR (the "SNR" forensic mechanism), which operates on
 inter-keystroke interval frequency distributions. Both are informative
 and complement the normative entropy checks:
 

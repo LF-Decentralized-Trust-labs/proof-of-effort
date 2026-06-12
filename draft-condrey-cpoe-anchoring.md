@@ -1,6 +1,6 @@
 ---
 v: 3
-docname: draft-condrey-cpoe-anchoring-00
+docname: draft-condrey-cpoe-anchoring-latest
 title: "Cryptographic Proof of Effort (CPoE): Temporal Anchoring Extensions"
 abbrev: CPoE Anchoring
 category: exp
