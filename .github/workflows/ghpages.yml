@@ -67,7 +67,7 @@ jobs:
         steps.fix-lint.outcome != 'skipped' &&
         github.event.pull_request &&
         github.event.pull_request.head.repo.full_name == github.repository
-      uses: parkerbxyz/suggest-changes@1dca834e5b0f48239dd6d0ddc2df247dae4052cf # v3
+      uses: parkerbxyz/suggest-changes@2f6dfa025f552ae33ae42533057f3c6bee7d6537 # v3
       with:
         token: ${{ github.token }}
 
