@@ -1,0 +1,13 @@
+# Build artifacts
+posme-bench
+*.o
+*.d
+rustup-init.exe
+__pycache__/
+.venv/
+texput.log
+
+# Keep pre-compiled binaries (explicitly tracked)
+!posme-bench-macos-arm64
+!posme-bench-macos-x64
+!posme-bench-windows-x64.exe

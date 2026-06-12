@@ -1,0 +1,63 @@
+; SPDX-License-Identifier: Apache-2.0
+;
+; Proof of Sequential Memory Execution (PoSME) -- CDDL
+; Canonical definition for draft-condrey-cfrg-posme
+
+; ============================================================
+; Arena Block
+; ============================================================
+
+arena-block = {
+    1 => bstr .size 32,           ; data
+    2 => bstr .size 32,           ; causal-hash
+}
+
+; ============================================================
+; PoSME Proof Structure
+; ============================================================
+
+posme-proof = {
+    1 => posme-params,
+    2 => bstr .size 32,           ; final-transcript (T_K)
+    3 => bstr .size 32,           ; final-root (root_K)
+    4 => [+ step-proof],          ; challenged-steps
+}
+
+posme-params = {
+    1 => uint,                    ; arena-blocks (N)
+    2 => uint,                    ; total-steps (K)
+    3 => uint,                    ; reads-per-step (d)
+    4 => uint,                    ; challenges (Q)
+    5 => uint,                    ; recursion-depth (R)
+}
+
+step-proof = {
+    1 => uint,                    ; step-id
+    2 => bstr .size 32,           ; cursor-in (T_{t-1})
+    3 => bstr .size 32,           ; cursor-out (cursor_t)
+    4 => bstr .size 32,           ; root-before (root_{t-1})
+    5 => bstr .size 32,           ; root-after (root_t)
+    6 => [+ read-witness],        ; reads (d entries)
+    7 => write-witness,           ; write
+    8 => [* writer-proof],        ; recursive provenance
+}
+
+read-witness = {
+    1 => uint,                    ; address
+    2 => arena-block,             ; block value at read time
+    3 => [+ bstr .size 32],       ; merkle-path (against root-before)
+}
+
+write-witness = {
+    1 => uint,                    ; address
+    2 => arena-block,             ; old-block (before write)
+    3 => arena-block,             ; new-block (after write)
+    4 => [+ bstr .size 32],       ; merkle-path (against root-before)
+}
+
+writer-proof = {
+    1 => uint,                    ; type: 0=init, 1=step
+    2 => uint,                    ; writer-step-id (0 if init)
+    ? 3 => step-proof,            ; writer step witness (if type=1)
+    ? 4 => [+ bstr .size 32],     ; init merkle-path (if type=0)
+}

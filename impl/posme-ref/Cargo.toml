@@ -1,0 +1,13 @@
+[package]
+name = "posme-ref"
+version = "0.1.0"
+edition = "2021"
+description = "Reference implementation of PoSME (Proof of Sequential Memory Execution)"
+license = "Apache-2.0"
+
+[dependencies]
+blake3 = "1"
+
+[profile.release]
+opt-level = 3
+lto = true
