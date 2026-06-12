@@ -1,0 +1,46 @@
+; SPDX-License-Identifier: Apache-2.0
+;
+; Sequential Work Function (SWF) -- Standalone CDDL
+; Canonical definition for draft-condrey-cfrg-swf
+;
+; This file contains the SWF-specific subset of the CPoE CDDL schema.
+; The parent schema (cpoe.cddl) embeds these definitions in the
+; broader Evidence Packet structure.
+
+; ============================================================
+; SWF Proof Structure
+; ============================================================
+
+process-proof = {
+    1 => proof-algorithm,
+    2 => proof-params,
+    3 => bstr,                    ; input (max 64 bytes)
+    4 => bstr,                    ; merkle-root (max 64 bytes)
+    5 => [+ merkle-proof],        ; sampled-proofs (max 1000)
+    6 => uint,                    ; claimed-duration (ms)
+}
+
+proof-params = {
+    1 => uint,                    ; time-cost
+    2 => uint,                    ; memory-cost (KiB)
+    3 => uint,                    ; parallelism
+    4 => uint,                    ; steps
+    ? 5 => uint,                  ; waypoint-interval (Mode 10)
+    ? 6 => uint,                  ; waypoint-memory (KiB, Mode 10)
+}
+
+merkle-proof = {
+    1 => uint,                    ; leaf-index
+    2 => [+ bstr .size 32],       ; sibling-path (SHA-256, max depth 64)
+    3 => bstr,                    ; leaf-value (max 64 bytes)
+}
+
+; ============================================================
+; SWF Algorithm Identifiers
+; ============================================================
+
+proof-algorithm = &(
+    swf-sha256:             10,
+    swf-argon2id:           20,
+    swf-argon2id-entangled: 21,
+)

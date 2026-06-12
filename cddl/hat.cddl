@@ -1,0 +1,19 @@
+; SPDX-License-Identifier: Apache-2.0
+;
+; Hardware Attestation of Time (HAT) -- Standalone CDDL
+; Canonical definition for draft-condrey-rats-hat
+;
+; This file contains the HAT-specific subset of the CPoE CDDL schema.
+; The parent schema (cpoe.cddl) embeds this definition in the
+; checkpoint structure at key 15.
+
+; ============================================================
+; HAT Proof Structure
+; ============================================================
+
+hat-proof = {
+    1 => bstr,                    ; time-before (TPMS_TIME_ATTEST_INFO)
+    2 => bstr,                    ; time-after
+    3 => bstr,                    ; sig-before (AIK signature)
+    4 => bstr,                    ; sig-after
+}
