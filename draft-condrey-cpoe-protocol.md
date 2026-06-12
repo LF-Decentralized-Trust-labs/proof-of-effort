@@ -1,11 +1,12 @@
 ---
 v: 3
-docname: draft-condrey-cpop-protocol-latest
-title: "Cryptographic Proof of Process (CPoP): Architecture and Evidence Format"
-abbrev: CPoP Protocol
+docname: draft-condrey-cpoe-protocol-00
+title: "Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"
+abbrev: CPoE Protocol
 category: exp
 ipr: trust200902
 submissiontype: independent
+date: 2026-05
 area: Security
 workgroup: Individual Submission
 keyword:
@@ -43,20 +44,56 @@ normative:
   RFC8949:
   RFC9052:
   RFC9106:
+  PoSME:
+    title: "Proof of Sequential Memory Execution (PoSME)"
+    author:
+      - fullname: David Condrey
+        initials: D.
+        surname: Condrey
+    date: 2026-05
+    seriesinfo:
+      Internet-Draft: draft-condrey-posme-00
   RFC9266:
   RFC9334:
   RFC9711:
 
 informative:
-  CPoP-Appraisal:
-    title: "Cryptographic Proof of Process (CPoP): Forensic Appraisal and Security Model"
+  CPoE-Anchoring:
+    title: "Cryptographic Proof of Effort (CPoE): Temporal Anchoring Extensions"
     author:
       - fullname: David Condrey
         initials: D.
         surname: Condrey
-    date: 2026-02
+    date: 2026-05
     seriesinfo:
-      Internet-Draft: draft-condrey-cpop-appraisal-04
+      Internet-Draft: draft-condrey-cpoe-anchoring-00
+  CPoE-UseCases:
+    title: "Cryptographic Proof of Effort (CPoE): Use Cases and Deployment Considerations"
+    author:
+      - fullname: David Condrey
+        initials: D.
+        surname: Condrey
+    date: 2026-05
+    seriesinfo:
+      Internet-Draft: draft-condrey-cpoe-usecases-00
+  CPoE-Appraisal:
+    title: "Cryptographic Proof of Effort (CPoE): Forensic Appraisal and Security Model"
+    author:
+      - fullname: David Condrey
+        initials: D.
+        surname: Condrey
+    date: 2026-05
+    seriesinfo:
+      Internet-Draft: draft-condrey-cpoe-appraisal-00
+  RATS-HAT:
+    title: "Hardware Attestation of Time (HAT): TPM-Based Temporal Binding for Remote Attestation"
+    author:
+      - fullname: David Condrey
+        initials: D.
+        surname: Condrey
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-condrey-hat-00
   RFC3161:
   RFC3552:
   RFC6838:
@@ -217,19 +254,6 @@ informative:
     date: 2016
     seriesinfo:
       "IEEE EuroS&P": "pp. 292-302"
-  RenDevadas2017:
-    title: "Bandwidth Hard Functions for ASIC Resistance"
-    target: "https://doi.org/10.1007/978-3-319-70500-2_16"
-    author:
-      - fullname: Ling Ren
-        initials: L.
-        surname: Ren
-      - fullname: Srinivas Devadas
-        initials: S.
-        surname: Devadas
-    date: 2017
-    seriesinfo:
-      "TCC 2017, LNCS": "10677, pp. 466-492"
   JESD79-4:
     title: "DDR4 SDRAM Standard"
     target: "https://www.jedec.org/standards-documents/docs/jesd79-4a"
@@ -246,14 +270,6 @@ informative:
     date: 2020
     seriesinfo:
       JEDEC: "JESD79-5D"
-  JESD238:
-    title: "High Bandwidth Memory (HBM3) DRAM"
-    target: "https://www.jedec.org/standards-documents/docs/jesd238b01"
-    author:
-      - org: JEDEC Solid State Technology Association
-    date: 2022
-    seriesinfo:
-      JEDEC: "JESD238A"
   Takens1981:
     title: "Detecting Strange Attractors in Turbulence"
     target: "https://doi.org/10.1007/BFb0091924"
@@ -436,24 +452,26 @@ informative:
 
 --- abstract
 
-This document specifies the Cryptographic Proof of Process (CPoP) Evidence Framework, a specialized profile of Remote Attestation Procedures (RATS) designed to validate the provenance of effort in digital authorship. Unlike traditional provenance, which tracks file custody, CPoP attests to the continuous physical process of creation by entangling content hashes with temporal, behavioral, and physical constraints. Technical specifications for wire formats, sequential work functions, and hardware-anchored trust are provided.
+This document specifies the Cryptographic Proof of Effort (CPoE) Evidence Framework, a specialized profile of Remote Attestation Procedures (RATS) designed to attest to human cognitive involvement in digital content creation. Unlike traditional provenance, which tracks file custody, CPoE captures behavioral signals during the authoring process -- keystroke dynamics, cognitive load patterns, editing trajectories, and error correction topology -- and binds them into a cryptographic evidence chain that is computationally expensive to forge. The behavioral signals serve as the primary authentication mechanism; a time-locked Sequential Work Function (SWF) prevents retroactive fabrication of evidence by forcing real wall-clock time between checkpoints. Technical specifications for wire formats, behavioral binding, sequential work functions, and hardware-anchored trust are provided.
 
 --- to_be_removed_note_Discussion_Venues
 
 Source for this draft and an issue tracker can be found at
-<https://github.com/writerslogic/draft-condrey-cpop>.
+<https://github.com/LF-Decentralized-Trust-labs/proof-of-effort>.
 
 --- middle
 
 # Introduction {#introduction}
 
-The rapid proliferation of generative artificial intelligence has created an authenticity crisis in digital discourse. While traditional provenance tracks the "custody of pixels," it fails to attest to the human-driven process of creation. This document specifies the Cryptographic Proof of Process (CPoP) protocol, which extends the RATS architecture {{RFC9334}} to validate the "provenance of effort."
+The rapid proliferation of generative artificial intelligence has created an authenticity crisis in digital discourse. While traditional provenance tracks the "custody of pixels," it fails to attest to the human-driven process of creation. This document specifies the Cryptographic Proof of Effort (CPoE) protocol, which extends the RATS architecture {{RFC9334}} to provide cryptographic attestation of human cognitive involvement in content creation.
 
-Unlike traditional attestation which captures static system state, CPoP attests to a continuous physical process. Its Sequential Work Function (SWF) enforces temporal monotonicity, jitter seals bind behavioral entropy (human inter-keystroke timing) to the checkpoint chain, and entangled MACs bind physical state (thermodynamics) to the document's evolution.
+CPoE does not measure computational work or quantify how "hard" someone worked. "Effort" in this context refers to the observable behavioral evidence of a human cognitive process: the characteristic patterns of inter-keystroke timing that exhibit biological motor noise (1/f spectral properties, Hurst exponent H in 0.55-0.85), cognitive load correlation between typing cadence and content complexity, error correction topology consistent with human self-monitoring, and editing trajectories that reflect compositional rather than transcriptive behavior. These behavioral signals are the primary authentication mechanism.
 
-By entangling content hashes with these physical constraints, this protocol enables an Attester to generate an Evidence Packet (.cpop) that imposes quantifiable cost on forgery of authorship claims, preserving privacy by design without disclosing document content. The formal threat model, including the adversarial Attester assumption that distinguishes CPoP from standard RATS deployments, is defined in {{threat-model}}.
+The protocol captures these signals during authoring and binds them into a hash-chained sequence of checkpoints. Each checkpoint entangles the document's content hash, behavioral entropy (jitter binding), and physical state markers with a time-locked Sequential Work Function (SWF) proof. The SWF uses memory-hard Argon2id computation to prevent retroactive fabrication: an adversary cannot generate valid Evidence without spending real wall-clock time proportional to the claimed authorship duration. The behavioral analysis and the time-lock operate as independent, complementary layers -- the SWF prevents backdating while the behavioral signals prevent behavioral spoofing.
 
-This document is a companion to {{CPoP-Appraisal}}, which specifies the Verifier's forensic appraisal logic, the Attestation Result (WAR) wire format, and the quantitative security model. Implementers of Verifier components require both documents.
+By entangling content hashes with behavioral and physical constraints, this protocol enables an Attester to generate an Evidence Packet (.cpoe) that imposes quantifiable cost on forgery of authorship claims, preserving privacy by design without disclosing document content. The formal threat model, including the adversarial Attester assumption that distinguishes CPoE from standard RATS deployments, is defined in {{threat-model}}.
+
+This document is a companion to {{CPoE-Appraisal}}, which specifies the Verifier's forensic appraisal logic, the Attestation Result (WAR) wire format, and the quantitative security model. Implementers of Verifier components require both documents.
 
 # Requirements Language {#requirements-language}
 
@@ -461,235 +479,35 @@ This document is a companion to {{CPoP-Appraisal}}, which specifies the Verifier
 
 # Problem Statement {#problem-statement}
 
-Digital documents lack creation-process provenance. Existing
-cryptographic mechanisms address complementary aspects -- COSE
-signatures {{RFC9052}} prove key possession, trusted timestamps
-{{RFC3161}} prove temporal existence, and media provenance
-standards {{C2PA}} track post-creation custody -- but none
-reveals how a document was produced or evolved during authorship.
+Digital documents lack creation-process provenance. Existing cryptographic mechanisms prove complementary properties -- COSE signatures {{RFC9052}} prove key possession, trusted timestamps {{RFC3161}} prove temporal existence, media provenance standards {{C2PA}} track post-creation custody -- but none reveals how a document was produced or evolved during authorship.
 
-Non-cryptographic approaches have emerged to address this gap,
-but each carries fundamental limitations:
+Non-cryptographic alternatives each carry fundamental limitations. Surveillance-based methods (screen recording, keystroke logging) are privacy-invasive, require trust in a third-party archive, and cannot be independently verified. Detection-based methods (stylometric classifiers, AI-content detectors) operate on finished output, are probabilistic, degrade as generative models improve, and exhibit systematic bias against non-native speakers {{Liang2023}}. Proprietary solutions (e.g., {{GPTZero}}, {{AG-Human-Authored}}, {{Amazon-KDP-AI}}) lack openness, independent verifiability, or both.
 
-Surveillance-based methods:
-: Screen recording, keystroke logging, and similar monitoring
-  capture the authoring process but are inherently
-  privacy-invasive, require continuous trust in a third-party
-  archive, and produce evidence that cannot be independently
-  verified without access to the surveillance
-  infrastructure.
+The need spans sectors: clinical documentation {{HHS-AI-RFI}}, AI agent attribution {{NIST-AI-Agents-RFI}}, and publishing workflows all require a standardized, open mechanism to verify how content was produced. Such a mechanism must satisfy four properties:
 
-Detection-based methods:
-: Stylometric classifiers and AI-generated content detectors
-  operate on finished output rather than the creation process.
-  These tools are probabilistic, degrade as generative models
-  improve, are vulnerable to adversarial evasion, and exhibit
-  systematic bias against non-native language speakers
-  {{Liang2023}}. Their outputs do not constitute
-  deterministic, independently reproducible evidence.
-
-Proprietary commercial solutions:
-: Several products have emerged to fill this gap but lack
-  openness, verifiability, or both. GPTZero ships a Chrome
-  extension that records writing replay in Google Docs and
-  analyzes typing patterns using a proprietary algorithm
-  {{GPTZero}}; the analysis is opaque, controlled
-  by the detector rather than the author, and not independently
-  reproducible. The Authors Guild "Human Authored" certification
-  for books relies on author self-attestation with no
-  cryptographic verification {{AG-Human-Authored}}.
-  Amazon requires publishers to disclose AI-generated content on
-  its Kindle Direct Publishing platform but provides no mechanism
-  to verify compliance {{Amazon-KDP-AI}}.
-
-The need for creation-process provenance extends across sectors
-and jurisdictions. AI-assisted authoring is entering clinical
-documentation workflows, prompting the U.S. Department of
-Health and Human Services to seek input on how to maintain
-accountability when AI tools contribute to medical records
-{{HHS-AI-RFI}}. The autonomous content generation
-capabilities of AI agents have led the National Institute of
-Standards and Technology to examine security implications,
-including the attribution of agent-produced output
-{{NIST-AI-Agents-RFI}}. The common requirement across
-these sectors is a standardized, open mechanism to verify how
-content was produced rather than inferring it after the fact.
-Such a mechanism must satisfy four properties:
-
-1. *Privacy-preserving:* Evidence must not require
-   disclosure of document content or invasive behavioral
-   surveillance. Cryptographic hashes, not raw content, must form
-   the evidentiary basis.
-2. *Independently verifiable:* Proofs must be
-   self-contained and deterministically checkable by any Verifier
-   without access to external archives or proprietary
-   systems.
-3. *Tamper-evident:* Evidence must form a cryptographic
-   chain resistant to retroactive modification, reordering, or
-   selective omission.
-4. *Process-documenting:* The mechanism must capture how
-   a document evolved over time, not merely what it contains at a
-   point in time.
+1. *Privacy-preserving:* Cryptographic hashes, not raw content, form the evidentiary basis.
+2. *Independently verifiable:* The cryptographic chain must be deterministically checkable without access to external archives or proprietary systems. Behavioral analysis produces statistical assessments; independent Verifiers may reach different confidence levels from the same data.
+3. *Tamper-evident:* Evidence must form a cryptographic chain resistant to retroactive modification, reordering, or selective omission.
+4. *Process-documenting:* The mechanism must capture how a document evolved over time, not merely what it contains at a point in time.
 
 # Use Cases {#use-cases}
 
-The provenance gap identified in
-{{problem-statement}} has concrete consequences
-across multiple domains. Where detection-based methods have been
-deployed as substitutes for process evidence, the results have
-been problematic: Liang et al. found that GPT detectors
-misclassified over 61% of essays by non-native English writers
-as AI-generated {{Liang2023}}, and courts have
-begun
-ruling that sanctions based solely on AI detection scores lack
-valid evidentiary basis. The following use cases illustrate how
-process attestation addresses needs that neither content
-detection nor custody-based provenance can satisfy.
-
-Importantly, CPoP does not assert that human-authored content is
-inherently superior to AI-generated content. The value of
-process attestation lies in transparency: enabling Relying
-Parties to make informed trust decisions appropriate to their
-context. In some contexts, AI-generated content is entirely
-acceptable or even preferred; in others, stakeholders require
-assurance about the nature and extent of human involvement.
-CPoP provides the evidentiary basis for these decisions without
-imposing a policy preference.
-
-## Creative Industries and Labor Rights {#uc-creative-industries}
-
-Professional guilds and labor organizations in the creative
-industries have established contractual frameworks governing
-AI use in content production. The Writers Guild of America's
-2023 Minimum Basic Agreement provides that AI-generated
-material cannot be credited as "literary material" and
-requires studios to disclose when materials provided to
-writers incorporate AI-generated content. Similar provisions
-exist in SAG-AFTRA agreements for digital replicas and
-synthetic performers, and the Authors Guild has published
-model contract clauses addressing AI use.
-
-These contractual obligations currently lack a standardized
-technical enforcement mechanism. A screenwriter's authoring
-application acts as the Attester, producing an Evidence
-Packet (.cpop) that documents the writing process. When the
-writer uses AI tools for research or drafting, the Tool
-Receipt Protocol defined in {{CPoP-Appraisal}}
-records each AI contribution with a signed receipt binding
-the tool's output to the evidence chain. The studio or guild
-acts as the Relying Party, consuming the Attestation Result
-(.cwar) to verify compliance with contractual AI disclosure
-requirements. The Attestation Result includes the
-human-to-machine effort ratio, providing quantified
-attribution rather than a binary human-or-AI determination.
-
-## Academic Integrity {#uc-academic-integrity}
-
-Educational institutions face a dilemma: post-hoc AI
-detectors produce probabilistic scores that cannot
-reliably distinguish AI-generated text from the writing of
-non-native speakers, students with certain disabilities,
-or those with concise writing styles
-{{Liang2023}}. Sanctions based on detector
-output alone have been overturned by courts as lacking valid
-evidentiary basis, with affected families incurring
-substantial legal costs. Institutions that rely on these
-tools expose themselves to litigation under due process and
-civil rights frameworks.
-
-CPoP inverts this model. Rather than accusing students based
-on statistical analysis of their output, it enables students
-to voluntarily submit affirmative evidence of their authorship
-process. The student's writing environment acts as the
-Attester, producing an Evidence Packet over the course of
-the assignment. The institution's learning management system
-acts as the Relying Party, evaluating whether the submitted
-evidence is consistent with the claimed authorship timeline
-and effort. Participation is opt-in: CPoP serves as a
-provenance tool that rewards transparency, not a surveillance
-mechanism that presumes guilt.
-
-This use case requires particular attention to privacy.
-Behavioral telemetry constitutes biometric data; the privacy
-protections defined in
-{{privacy-considerations}} (jitter
-quantization, data minimization, and Verifier data
-retention limits) are essential safeguards. Institutions
-deploying CPoP should establish clear data governance policies
-and ensure students retain control over their Evidence
-Packets.
-
-## Journalism and News Provenance {#uc-journalism}
-
-Major news organizations including the Associated Press and
-BBC have adopted editorial policies requiring human oversight
-of AI-assisted content production, and several have
-co-founded initiatives to combat AI-generated disinformation.
-These policies require reporters to disclose AI tool use but
-lack a machine-verifiable mechanism for enforcement.
-
-A reporter's authoring application acts as the Attester,
-producing Evidence Packets during article composition. The
-news organization's editorial system acts as the Verifier,
-appraising the evidence before publication. The resulting
-Attestation Result can be embedded in the article's metadata
-for downstream consumers (fact-checkers, aggregators, and
-readers) who act as secondary Relying Parties. When reporters
-use AI tools for research or drafting, Tool Receipts document
-each contribution, preserving an auditable record of the
-human editorial process that complements C2PA media
-provenance for any associated images or video.
-
-## Legal and Evidentiary Standards {#uc-legal-evidentiary}
-
-CPoP Evidence Packets are designed to align with existing
-legal standards for digital evidence authentication. The
-U.S. Federal Rules of Evidence already provide a framework:
-Rule 901(b)(9) admits evidence about "a process or system,
-showing it produces an accurate result," and Rules 902(13)
-and 902(14) (amended 2017) establish that hash-authenticated
-electronic records and certified process outputs are
-self-authenticating. CPoP's hash-chained evidence structure,
-cryptographic signatures, and deterministic verification
-procedures map naturally to these evidentiary requirements.
-
-Regulatory frameworks are also converging on mandatory AI
-content disclosure. The EU AI Act (Article 50) requires
-disclosure of AI-generated content published on matters of
-public interest, with enforcement beginning August 2026.
-These obligations create demand for a standardized technical
-mechanism that can produce verifiable, machine-readable
-attestation of how content was produced.
-
-In this use case, a filer's authoring environment acts as the
-Attester, producing Evidence Packets bound to a hardware
-Secure Element (T3 or T4 tier) for non-repudiation. The
-regulatory body or court acts as the Relying Party, consuming
-Attestation Results that include forgery cost estimates to
-quantify the economic assurance of the evidence.
-
-## Content Platforms and Marketplaces {#uc-content-marketplace}
-
-Content platforms may distinguish between human-authored and
-AI-generated submissions for editorial placement, pricing,
-or labeling purposes. Authors act as Attesters, submitting
-Evidence Packets alongside their content. The platform's
-Verifier produces Attestation Results that inform trust
-decisions.
-
-Absence Proofs as defined in {{CPoP-Appraisal}}
-enable the platform to identify submissions that lack
-process evidence, indicating unknown provenance rather
-than necessarily AI generation. The forgery cost bounds
-in the Attestation Result provide a quantitative basis for
-graduated trust: platforms can distinguish between content
-with strong process evidence, content with partial evidence,
-and content with no provenance at all, rather than relying
-on a binary authentic-or-not classification.
+The provenance gap identified in {{problem-statement}} has
+concrete consequences across multiple domains: creative
+industries (WGA/SAG-AFTRA contractual AI disclosure),
+academic integrity (false AI detection accusations affecting
+non-native speakers and disabled students), journalism
+(editorial AI oversight policies lacking technical
+enforcement), legal proceedings (evidentiary standards for
+digital authorship under FRE Rules 901/902), regulatory
+compliance (EU AI Act Article 50), and content platforms
+(graduated trust based on process evidence rather than binary
+classification). Detailed use case analysis is provided in
+{{CPoE-UseCases}}.
 
 # Scope and Applicability {#scope-and-applicability}
 
-CPoP is designed as a voluntary, author-initiated mechanism.
+CPoE is designed as a voluntary, author-initiated mechanism.
 The following normative constraints define its intended scope
 of use and apply to all conforming implementations:
 
@@ -698,7 +516,7 @@ of use and apply to all conforming implementations:
   external party may activate evidence collection without
   the author's explicit consent.
 * Implementations MUST NOT be deployed as proctoring
-  or surveillance mechanisms. CPoP does not capture screen
+  or surveillance mechanisms. CPoE does not capture screen
   content, camera input, biometric identification, or
   application activity outside the authoring environment.
 * The author MUST retain sole control over whether to
@@ -710,21 +528,49 @@ of use and apply to all conforming implementations:
   input patterns may reflect assistive technologies,
   non-Latin input methods, or individual variation
   rather than forgery (see
-  {{CPoP-Appraisal}}).
+  {{CPoE-Appraisal}}).
+* Implementations MUST support the assistive-mode
+  feature flag (feature ID 60). When assistive-mode is
+  declared in the profile-declaration, Verifiers MUST
+  adjust behavioral thresholds to accommodate assistive
+  input methods (switch access, eye-tracking, voice
+  dictation with manual correction, screen readers with
+  keyboard navigation). Users with motor disabilities,
+  neurodivergent typing patterns, or non-standard input
+  devices may produce behavioral signals outside the
+  population norms cited in this specification (e.g.,
+  Hurst exponent outside 0.55-0.85, atypical IKI
+  distributions). The assistive-mode flag signals that
+  the Verifier SHOULD rely primarily on temporal binding
+  (SWF) and content evolution analysis rather than
+  motor-signal forensics for these sessions.
 
-Whether any institution or platform requires CPoP evidence
+CPoE Evidence Packets attest to a single author's behavioral
+signals. Collaborative authoring (multiple authors editing
+the same document simultaneously) is not addressed by this
+specification. In collaborative environments, each author
+SHOULD generate a separate Evidence Packet covering their
+individual contributions. Mechanisms for partitioning
+authorship attribution in collaborative sessions (e.g.,
+per-author checkpoint streams, contribution-level Evidence)
+are deferred to future work.
+
+Whether any institution or platform requires CPoE evidence
 as a condition of participation is a policy decision outside
-the scope of this protocol. CPoP provides a technical
+the scope of this protocol. CPoE provides a technical
 mechanism for producing verifiable evidence; it does not
-mandate that evidence be produced or consumed.
+mandate that evidence be produced or consumed. Institutions
+deploying CPoE SHOULD ensure that requiring Evidence does
+not create barriers for users who rely on assistive
+technologies or non-standard input methods.
 
 # System Model {#system-model}
 
-This section defines the CPoP system model in terms of the RATS architecture {{RFC9334}} and identifies where CPoP diverges from standard remote attestation assumptions.
+This section defines the CPoE system model in terms of the RATS architecture {{RFC9334}} and identifies where CPoE diverges from standard remote attestation assumptions.
 
 ## RATS Entity Roles {#rats-entity-roles}
 
-CPoP maps to RATS entity roles {{RFC9334}} as follows. Verifier and Relying Party follow standard RATS definitions; the remaining roles have CPoP-specific characteristics:
+CPoE maps to RATS entity roles {{RFC9334}} as follows. Verifier and Relying Party follow standard RATS definitions; the remaining roles have CPoE-specific characteristics:
 
 Attester:
 : The authoring application and its host platform. Unlike traditional RATS deployments, the Attester is operated by the entity whose claims are being verified (the author).
@@ -736,62 +582,62 @@ Endorser:
 : Hardware manufacturers that issue TPM endorsement certificates and platform attestation credentials for T3/T4 tiers.
 
 Reference Value Provider:
-: The CPoP specification itself (behavioral patterns, SWF parameters) and calibration services that provide updated forensic baselines.
+: The CPoE specification itself (behavioral patterns, SWF parameters) and calibration services that provide updated forensic baselines.
 
 Target Environment:
 : The document editor session and its content state. The Target Environment is measured by the Attesting Environment at each checkpoint via content hashing and behavioral telemetry capture.
 
 ## Compatibility with RATS Architecture {#rats-compatibility}
 
-CPoP extends RATS from device state attestation to process attestation, verifying that a physical process (human authorship) occurred as claimed. The fundamental problem structure is identical: an Attester generates Evidence, conveys it to a Verifier, and the Verifier produces Attestation Results for Relying Parties.
+CPoE extends RATS from device state attestation to process attestation, verifying that a physical process (human authorship) occurred as claimed. The fundamental problem structure is identical: an Attester generates Evidence, conveys it to a Verifier, and the Verifier produces Attestation Results for Relying Parties.
 
-CPoP implements a critical trust inversion: in traditional remote attestation, the adversary is external (malware, network attackers). In CPoP, the Attester is operated by the author, and the primary adversary is the Attester operator themselves. This inversion shapes the security model:
+CPoE implements a critical trust inversion: in traditional remote attestation, the adversary is external (malware, network attackers). In CPoE, the Attester is operated by the author, and the primary adversary is the Attester operator themselves. This inversion shapes the security model:
 
 * Evidence must be unforgeable by the entity generating it
 * Temporal claims must be bound to physical constraints the Attester cannot circumvent
 * Behavioral entropy must be computationally expensive to simulate
 * Hardware attestation provides value only when the hardware root of trust is genuinely inaccessible to the Attester operator
 
-The RATS architecture accommodates this through its layered trust model and configurable Appraisal Policies ({{RFC9334}}). The companion appraisal document ({{CPoP-Appraisal}}) defines domain-specific verification procedures. The rationale for Experimental status is provided in {{experimental-status-rationale}}.
+The RATS architecture accommodates this through its layered trust model and configurable Appraisal Policies ({{RFC9334}}). The companion appraisal document ({{CPoE-Appraisal}}) defines domain-specific verification procedures. The rationale for Experimental status is provided in {{experimental-status-rationale}}.
 
 ## Adversarial Attester as RATS Profile {#adversarial-attester-profile}
 
-CPoP constitutes a RATS profile in which the standard Attester-operator trust assumption is explicitly relaxed. RFC 9334 Section 3 defines Attester roles functionally (the entity producing Evidence) without requiring the operator to be trusted. CPoP leverages this by treating the Attester operator as the primary adversary and relying on physics-based constraints, memory-hard functions, and hardware trust anchors (at T3/T4) rather than Attester honesty.
+CPoE constitutes a RATS profile in which the standard Attester-operator trust assumption is explicitly relaxed. RFC 9334 Section 3 defines Attester roles functionally (the entity producing Evidence) without requiring the operator to be trusted. CPoE leverages this by treating the Attester operator as the primary adversary and relying on physics-based constraints, memory-hard functions, and hardware trust anchors (at T3/T4) rather than Attester honesty.
 
-This profile is analogous to anti-cheat and DRM attestation patterns where the platform operator is adversarial, and differs from traditional RATS deployments (firmware integrity, supply chain verification) where external compromise is the primary threat. Implementations and Verifier policies MUST account for this trust model when interpreting CPoP Evidence.
+This profile is analogous to anti-cheat and DRM attestation patterns where the platform operator is adversarial, and differs from traditional RATS deployments (firmware integrity, supply chain verification) where external compromise is the primary threat. Implementations and Verifier policies MUST account for this trust model when interpreting CPoE Evidence.
 
 ## Evidence Format and EAT Relationship {#evidence-eat-relationship}
 
-CPoP Evidence Packets use a domain-specific CBOR structure (tag 1129336656) rather than CWT/JWT-wrapped EAT tokens. This design reflects the fundamental difference between CPoP Evidence and traditional EAT claims:
+CPoE Evidence Packets use a domain-specific CBOR structure (tag 1129336645) rather than CWT/JWT-wrapped EAT tokens. This design reflects the fundamental difference between CPoE Evidence and traditional EAT claims:
 
-* EAT ({{RFC9711}}) models entity state as a set of claims at a point in time. CPoP Evidence models a continuous physical process as an ordered sequence of checkpoints with SWF proofs, behavioral entropy, and physical state bindings.
+* EAT ({{RFC9711}}) models entity state as a set of claims at a point in time. CPoE Evidence models a continuous physical process as an ordered sequence of checkpoints with SWF proofs, behavioral entropy, and physical state bindings.
 * The checkpoint chain structure (sequential process-proofs, hash-linked deltas, jitter bindings) has no natural representation in the EAT claims model.
-* Wrapping each checkpoint as a separate EAT would lose the cryptographic chain integrity that is central to CPoP's security properties.
+* Wrapping each checkpoint as a separate EAT would lose the cryptographic chain integrity that is central to CPoE's security properties.
 
-The EAT profile URI "urn:ietf:params:rats:eat:profile:pop:1.0" applies to the Attestation Result (WAR) format defined in {{CPoP-Appraisal}}, which carries EAT-compatible claims (verdict, attestation tier, forensic assessments). The Evidence Packet uses its own profile URI "urn:ietf:params:ccpop:profile:1.0" to identify the CPoP Evidence format. Generic EAT tooling cannot parse CPoP Evidence without CPoP-specific support, but can consume WAR Attestation Results via the EAR compatibility mapping defined in {{CPoP-Appraisal}}.
+The EAT profile URI "urn:ietf:params:rats:eat:profile:cpoe:1.0" applies to the Attestation Result (WAR) format defined in {{CPoE-Appraisal}}, which carries EAT-compatible claims (verdict, attestation tier, forensic assessments). The Evidence Packet uses its own profile URI "urn:ietf:params:cpoe:profile:1.0" to identify the CPoE Evidence format. Generic EAT tooling cannot parse CPoE Evidence without CPoE-specific support, but can consume WAR Attestation Results via the EAR compatibility mapping defined in {{CPoE-Appraisal}}.
 
 ## Reference Value Trust Model {#reference-value-trust}
 
-The Reference Value Provider role in CPoP differs from traditional RATS deployments where RVPs supply known-good platform measurements from a trusted supply chain. In CPoP, Reference Values take two forms:
+The Reference Value Provider role in CPoE differs from traditional RATS deployments where RVPs supply known-good platform measurements from a trusted supply chain. In CPoE, Reference Values take two forms:
 
 Specification-defined values:
-: SWF parameters, forensic thresholds, and profile requirements defined in this document and {{CPoP-Appraisal}}. These are static and trusted by virtue of the specification itself.
+: SWF parameters, forensic thresholds, and profile requirements defined in this document and {{CPoE-Appraisal}}. These are static and trusted by virtue of the specification itself.
 
 Author-generated behavioral baselines:
-: Per-author behavioral profiles (baseline-digest) accumulated across sessions within the Attesting Environment. These are self-asserted by the Attester and MUST NOT be treated as trusted Reference Values. The baseline-digest is signed by the Evidence Packet's signing key and bound to the author identity via identity-fingerprint, but at T1/T2 tiers the signing key is software-controlled and the baseline could be synthetically constructed (see {{baseline-forgery}}).
+: Per-author behavioral profiles (baseline-digest) accumulated across sessions within the Attesting Environment. These are self-asserted by the Attester and MUST NOT be treated as trusted Reference Values. The baseline-digest is signed by the Evidence Packet's signing key and bound to the author identity via identity-fingerprint, but at T1/T2 tiers the signing key is software-controlled and the baseline could be synthetically constructed (see {{attack-taxonomy}}).
 
 Verifiers MUST treat behavioral baselines as corroborative evidence whose weight scales with the confidence-tier (population-reference through mature), not as independent attestation of authenticity. The forensic mechanisms (SNR, CLC, error topology) operate independently of baseline data and provide the primary discrimination between biological and synthetic authoring.
 
 # Protocol Overview {#protocol-overview}
 
-This section provides an end-to-end overview of the CPoP protocol, mapping the message flow to the RATS passport model and illustrating the lifecycle of an Evidence Packet from creation through appraisal.
+This section provides an end-to-end overview of the CPoE protocol, mapping the message flow to the RATS passport model and illustrating the lifecycle of an Evidence Packet from creation through appraisal.
 
 ## Passport Model Message Flow {#passport-model}
 
-CPoP follows the RATS passport model ({{RFC9334}}, Section 8.1; {{RATS-Models}}):
+CPoE follows the RATS passport model ({{RFC9334}}, Section 8.1; {{RATS-Models}}):
 
 ~~~ ascii-art
-+----------+  .cpop   +-----------+  .cwar   +-----------+
++----------+  .cpoe   +-----------+  .cwar   +-----------+
 | Attester +--------->+  Verifier +--------->+  Relying  |
 | (Author/ |Evidence  |           |Attestation|   Party   |
 |    AE)   |          |           | Results  |(Publisher)|
@@ -805,12 +651,12 @@ CPoP follows the RATS passport model ({{RFC9334}}, Section 8.1; {{RATS-Models}})
                |       Provider          |
                +-------------------------+
 ~~~
-{: #fig-passport-model title="CPoP Passport Model Message Flow"}
+{: #fig-passport-model title="CPoE Passport Model Message Flow"}
 
-The CPoP-specific message flow is:
+The CPoE-specific message flow is:
 
-1. The Attester (authoring application running in the Attesting Environment) collects behavioral telemetry during content creation and generates an Evidence Packet (.cpop) containing SWF proofs, jitter bindings, and physical state markers.
-2. The Evidence Packet is conveyed to a Verifier, which appraises chain integrity, temporal ordering, behavioral entropy, and content binding per the procedures defined in {{CPoP-Appraisal}}.
+1. The Attester (authoring application running in the Attesting Environment) collects behavioral telemetry during content creation and generates an Evidence Packet (.cpoe) containing SWF proofs, jitter bindings, and physical state markers.
+2. The Evidence Packet is conveyed to a Verifier, which appraises chain integrity, temporal ordering, behavioral entropy, and content binding per the procedures defined in {{CPoE-Appraisal}}.
 3. The Verifier produces a Cryptographic Written Authorship Report (.cwar) containing EAT claims, forensic assessment scores, and forgery cost estimates.
 4. The Relying Party (publisher, reader, or automated platform) consumes the WAR to make trust decisions about the claimed authorship provenance.
 
@@ -820,7 +666,7 @@ Note: In some deployments, the Relying Party (e.g., a content management system 
 
 ## Evidence Lifecycle {#evidence-lifecycle}
 
-The following sequence illustrates the end-to-end lifecycle of a CPoP attestation session:
+The following sequence illustrates the end-to-end lifecycle of a CPoE attestation session:
 
 ~~~ ascii-art
  Author        Attester (AE)          Verifier         Relying Party
@@ -851,9 +697,9 @@ The following sequence illustrates the end-to-end lifecycle of a CPoP attestatio
    |                |                     |                  |
    | end session    |                     |                  |
    +--------------->| SEAL: sign chain,   |                  |
-   |                | emit .cpop file     |                  |
+   |                | emit .cpoe file     |                  |
    |                |                     |                  |
-   |                | .cpop (Evidence)    |                  |
+   |                | .cpoe (Evidence)    |                  |
    |                +-------------------->|                  |
    |                |                     | appraise:        |
    |                |                     | chain, SWF,      |
@@ -867,7 +713,7 @@ The following sequence illustrates the end-to-end lifecycle of a CPoP attestatio
 ~~~
 {: #fig-evidence-lifecycle title="Evidence Packet Lifecycle"}
 
-Attesters SHOULD use checkpoint intervals between 10 and 120 seconds (default 30 seconds). Verifiers MUST accept Evidence with any positive checkpoint interval but MAY flag intervals outside this range in warnings. Each checkpoint interval produces one link in the hash chain. The SWF computation runs continuously during the interval, binding the author's behavioral entropy and the platform's physical state to the elapsed wall-clock time. At session end or rollover boundary, the Attester seals the chain into a .cpop Evidence Packet. For long-running authoring projects, the Session Continuation mechanism ({{session-continuation}}) allows a series of Evidence Packets to be cryptographically linked.
+Attesters SHOULD use checkpoint intervals between 10 and 120 seconds (default 30 seconds). Verifiers MUST accept Evidence with any positive checkpoint interval but MAY flag intervals outside this range in warnings. When behavioral entropy capture is active (ENHANCED or MAXIMUM content tier), each checkpoint SHOULD contain jitter-binding data from at least 20 inter-keystroke intervals. Checkpoints with fewer than 20 intervals provide insufficient data for behavioral analysis; the Attester SHOULD extend the checkpoint interval rather than emit a low-entropy checkpoint. Verifiers MUST accept checkpoints with any number of intervals (including zero for paste-only intervals) but SHOULD flag checkpoints with fewer than 20 intervals as providing no behavioral assurance. Each checkpoint interval produces one link in the hash chain. The SWF computation runs continuously during the interval, binding the author's behavioral entropy and the platform's physical state to the elapsed wall-clock time. At session end or rollover boundary, the Attester seals the chain into a .cpoe Evidence Packet. For long-running authoring projects, the Session Continuation mechanism ({{session-continuation}}) allows a series of Evidence Packets to be cryptographically linked.
 
 ## Session Continuation {#session-continuation}
 
@@ -926,96 +772,30 @@ initial packet.
 
 ## Behavioral Baseline Verification {#behavioral-baseline}
 
-The Attester MAY include a baseline-verification structure
-(evidence-packet key 19) that enables Verifiers to assess
-behavioral consistency across writing sessions by the same
-author. This mechanism strengthens authorship attribution
-by comparing a session's behavioral summary against an
-accumulated baseline digest.
+The Attester MAY include a baseline-verification structure (evidence-packet key 19) that enables Verifiers to assess behavioral consistency across writing sessions by the same author. A baseline-verification contains a session-behavioral-summary (IKI histogram, coefficient of variation, Hurst exponent, cognitive pause frequency, duration, keystroke count) and optionally a baseline-digest summarizing the author's historical profile with a COSE_Sign1 signature. When baseline-verification is present, the identity-fingerprint within the baseline MUST match the Evidence Packet's identity-fingerprint. Verifiers MUST reject Evidence where these values differ.
 
-A baseline-verification structure contains a
-session-behavioral-summary capturing the current session's
-typing metrics (IKI histogram, coefficient of variation,
-Hurst exponent, cognitive pause frequency, duration, and
-keystroke count). Optionally, it includes a baseline-digest
-summarizing the author's historical behavioral profile and
-a COSE_Sign1 signature over the CBOR-encoded digest. When
-baseline-verification is present, the identity-fingerprint
-within the baseline MUST match the Evidence Packet's
-identity-fingerprint. Verifiers MUST reject Evidence where
-these values differ.
+The identity-fingerprint MUST be computed as SHA-256(public-key) where public-key is the raw bytes of the author's signing key. The baseline-digest aggregates per-session statistics using Welford's online algorithm (streaming-stats). The session-merkle-root field contains a Merkle Mountain Range root over incorporated session hashes; Attesters without MMR tracking MUST set it to 32 zero bytes, and Verifiers MUST NOT elevate confidence-tier based on a zero value.
 
-The baseline-digest aggregates per-session statistics using
-Welford's online algorithm (streaming-stats) for numerically
-stable incremental computation of mean and variance. The
-identity-fingerprint field MUST equal SHA-256 of the author's
-Ed25519 public key, binding the digest to the signing
-identity. The identity-fingerprint MUST be computed as
-SHA-256(canonical-identity) where canonical-identity is the
-UTF-8 encoded author identifier used for signing. For
-COSE_Sign1-wrapped Evidence, this is the Subject field of the
-signing certificate or the COSE Key ID (kid). The exact
-identifier form MUST be consistent across all Evidence Packets
-from the same author. The session-merkle-root field contains the root of
-a Merkle Mountain Range over hashes of all sessions
-incorporated into the digest, enabling efficient append-only
-proof of session inclusion. Attesters that have not yet
-implemented session-level MMR tracking MUST set
-session-merkle-root to 32 zero bytes. Verifiers MUST treat
-a zero session-merkle-root as providing no session inclusion
-proof and MUST NOT elevate the confidence-tier based on it.
-
-The confidence-tier field indicates the maturity of the
-baseline. Attesters and Verifiers use the following
-thresholds:
-
-population-reference (1):
-: 0-4 sessions observed. Comparison is limited to
-  population-level human-vs-machine discrimination.
-
-emerging (2):
-: 5-9 sessions. Meaningful per-author consistency
-  emerges.
-
-established (3):
-: 10-19 sessions. Author identity is distinguishable
-  from other authors.
-
-mature (4):
-: 20 or more sessions. Full authorship attribution
-  with high confidence.
-
-During initial enrollment (fewer than one prior session),
-the Attester MUST omit the baseline-digest and
-digest-signature fields, including only the
-session-behavioral-summary. The Verifier treats enrollment
-packets as contributing to baseline accumulation without
-performing baseline comparison.
-
-When a baseline-digest is present, the digest-signature
-field MUST also be present. Verifiers MUST verify the
-COSE_Sign1 signature over the CBOR-encoded baseline-digest
-and MUST verify that the identity-fingerprint equals
-SHA-256 of the Evidence Packet's signing key.
+The confidence-tier indicates baseline maturity: population-reference (1, 0-4 sessions), emerging (2, 5-9), established (3, 10-19), mature (4, 20+). During initial enrollment (no prior sessions), the Attester MUST omit baseline-digest and digest-signature. When baseline-digest is present, digest-signature MUST also be present; Verifiers MUST verify the COSE_Sign1 signature and that identity-fingerprint equals SHA-256 of the signing key.
 
 # Threat Model {#threat-model}
 
 This section defines the adversary model following the methodology of {{RFC3552}} and incorporating insights from RATS security analysis {{Sardar-RATS}}. The threat model assumes a Dolev-Yao style adversary {{Dolev-Yao}} with domain-specific constraints.
 
-The following table maps CPoP threat categories to the RATS threat analysis in {{Sardar-RATS}} and {{RFC9334}} Section 12:
+The following table maps CPoE threat categories to the RATS threat analysis in {{Sardar-RATS}} and {{RFC9334}} Section 12:
 
-| RATS Threat Category | CPoP Coverage | CPoP Mechanism |
+| RATS Threat Category | CPoE Coverage | CPoE Mechanism |
 |---|---|---|
 | Compromised Attester | Primary threat ({{adversarial-attester}}) | SWF time-binding, behavioral entropy, hardware isolation (T3/T4) |
 | Spoofed Attestation Results | WAR signature verification | COSE_Sign1 over WAR, Verifier identity binding |
-| Evidence replay | {{replay-attack}} | Physical freshness anchors, entangled VDF mode |
-| Man-in-the-middle | {{diversion-attack}} | TLS channel binding (EKM), SEAT platform attestation |
+| Evidence replay | {{attack-taxonomy}} | Physical freshness anchors, entangled VDF mode |
+| Man-in-the-middle | {{attack-taxonomy}} | TLS channel binding (EKM), SEAT platform attestation |
 | Compromised Verifier | Out of scope (trusted Verifier assumption) | Relying Party MAY cross-verify with multiple Verifiers |
-| Supply chain attack on AE | {{ae-spoofing}} | T3/T4 hardware attestation; T1/T2 accept this risk |
+| Supply chain attack on AE | {{attack-taxonomy}} | T3/T4 hardware attestation; T1/T2 accept this risk |
 
 ## Adversarial Attester Model {#adversarial-attester}
 
-The PRIMARY threat in CPoP is an adversarial Attester -- an author who controls the Attesting Environment and seeks to generate Evidence for content they did not authentically author. This inverts the standard RATS trust assumption where the Attester is trusted to report honestly.
+The PRIMARY threat in CPoE is an adversarial Attester -- an author who controls the Attesting Environment and seeks to generate Evidence for content they did not authentically author. This inverts the standard RATS trust assumption where the Attester is trusted to report honestly.
 
 The adversarial Attester has the following capabilities:
 
@@ -1028,13 +808,13 @@ The adversarial Attester has the following capabilities:
 The adversary is constrained by:
 
 * *Physics:* Cannot violate thermodynamic laws or accelerate hardware beyond physical limits
-* *Memory bandwidth:* MHSF computations are bounded by available memory bandwidth
+* *Memory bandwidth:* SWF computations are bounded by available memory bandwidth
 * *Hardware isolation:* In T3/T4 tiers, cannot extract keys from Secure Elements without physical tampering
 * *Economic rationality:* Will not expend resources exceeding the value of successful forgery
 
 ## Security Goals {#security-goals}
 
-CPoP provides the following authentication properties, defined in terms of adversary advantage:
+CPoE provides the following authentication properties, defined in terms of adversary advantage:
 
 Temporal Authenticity:
 : Given Evidence claiming authorship duration D, an adversary cannot produce valid Evidence in time significantly less than D. Formally: Adv_temporal = Pr\[Verify(E) = accept AND Time(Generate(E)) < D - epsilon\] is negligible for meaningful epsilon.
@@ -1050,84 +830,29 @@ Non-repudiation (T3/T4):
 
 ## Attack Taxonomy {#attack-taxonomy}
 
-The following attacks are in scope for CPoP defenses:
+The following attacks are in scope for CPoE defenses. Cross-references to individual attacks (e.g., {{attack-taxonomy}}) refer to rows in this table and the corresponding defense analysis in {{security-considerations}}.
 
-### Retype Attack {#retype-attack}
+{: #retype-attack}
+{: #replay-attack}
+{: #behavioral-transplant}
+{: #relay-attack}
+{: #swf-acceleration}
+{: #ae-spoofing}
+{: #baseline-forgery}
+{: #late-initialization}
+{: #diversion-attack}
 
-The canonical forgery attack against CPoP: an adversary generates content using AI or other assistance, then retypes the pre-existing content while collecting "authentic" behavioral telemetry. This attack exploits the gap between typing existing text and composing original text.
-
-CPoP defends against retype attacks through:
-
-* *Cognitive Load Correlation:* Authentic composition exhibits increased inter-keystroke intervals during high-complexity passages. Retyping known text shows uniform timing regardless of content complexity. Evidence with semantic-timing correlation r < 0.2 is flagged for additional scrutiny (see {{sec-retype-defense}}).
-* *Error Topology:* Authentic authoring exhibits characteristic error patterns (hesitations, deletions near recent insertions, self-corrections). Retyping from reference exhibits either unnaturally low error rates or artificially injected errors lacking positional correlation.
-* *Semantic-Temporal Binding:* The SWF proof binds the document's semantic evolution to wall-clock time. Retyping requires real-time effort proportional to document length, even if content was pre-generated.
-
-Retype attacks remain economically viable for short documents. The forgery cost scales with document length and checkpoint frequency, providing graduated assurance rather than binary security.
-
-### Replay Attack {#replay-attack}
-
-Attempting to reuse previously valid Evidence for new claims. Defeated by Physical Freshness anchors that bind Evidence to non-reproducible physical state (thermal trajectories, kernel entropy samples). Entangled VDF Mode (`swf-argon2id-entangled`) further closes the parallel generation attack surface by creating a strict cryptographic dependency on the completion of the previous interval's memory-hard function, preventing an adversary from pre-computing SWF proofs in parallel.
-
-### Relay Attack {#relay-attack}
-
-Forwarding challenges or Evidence between a legitimate author and an adversary's session. In CPoP, this manifests as claiming credit for another author's work. Defeated by hardware-bound signing (T3/T4) and out-of-band presence challenges that verify physical proximity.
-
-### SWF Acceleration Attack {#swf-acceleration}
-
-Using specialized hardware to compute SWF proofs faster than consumer hardware. Mitigated by Argon2id's memory-hardness (computation bounded by memory bandwidth, not ALU throughput) and Hardware-Anchored Time in T3/T4 tiers.
-
-### AE Spoofing {#ae-spoofing}
-
-Presenting a virtualized or modified Attesting Environment as genuine. In T1/T2 tiers, this is possible and Evidence SHOULD be weighted accordingly. T3/T4 tiers require hardware attestation that is difficult to spoof without physical access to the Secure Element.
-
-### Baseline Forgery {#baseline-forgery}
-
-An adversarial Attester manufactures a synthetic baseline by
-performing enrollment sessions using the same synthetic
-behavioral patterns intended for subsequent forgery. This
-attack is feasible because the baseline-digest is accumulated
-and signed entirely within the Attesting Environment. The
-adversary can establish a "consistent" but entirely synthetic
-baseline, then present forgery sessions that match it.
-
-This attack is mitigated by:
-
-* *Baseline is non-verdict:* Baseline comparison modulates
-  Verifier confidence but does not constitute an independent
-  forensic flag (see {{CPoP-Appraisal}}). The forensic
-  mechanisms (SNR, CLC, perplexity, cadence analysis) operate
-  independently of baseline data.
-* *Cross-metric consistency:* An adversary must simultaneously
-  maintain consistent IKI histograms, coefficient of
-  variation, Hurst exponent, and cognitive pause frequency
-  across all forged sessions. Synthesizing coherent values
-  for all four metrics is substantially harder than spoofing
-  any single metric.
-* *Hardware binding (T3/T4):* When the signing key is
-  hardware-bound, the adversary cannot create a separate
-  baseline under a different key and swap it in.
-
-Verifiers MUST NOT treat baseline consistency as independent
-evidence of authenticity. The confidence-tier field reflects
-statistical robustness of the baseline, not trustworthiness
-of the Attesting Environment.
-
-### Diversion Attack {#diversion-attack}
-
-An adversary redirects Evidence intended for one Verifier to a different Verifier or Relying Party context. CPoP Evidence Packets do not inherently bind to a specific Verifier identity. To mitigate this, implementations SHOULD use the TLS Exported Keying Material (EKM) mechanism defined in {{RFC9266}} to bind Evidence to the transport session.
-
-When the Attester conveys Evidence over TLS, it SHOULD populate the optional channel-binding field (key 11) in the evidence-packet structure as follows:
-
-1. The Attester calls the TLS exporter function with label "EXPORTER-CPoP-channel-binding" and an empty context value, requesting 32 bytes of output.
-2. The Attester sets binding-type to 1 (tls-exporter) and binding-value to the 32-byte EKM output.
-3. The Verifier, upon receiving the Evidence Packet, calls the same TLS exporter function on its side of the connection and compares the result to the binding-value in the channel-binding field.
-4. If the values do not match, the Verifier MUST reject the Evidence Packet as potentially diverted.
-
-The EKM label "EXPORTER-CPoP-channel-binding" is specific to this protocol. The empty context ensures the binding depends solely on the TLS session keys, which are unique per connection.
-
-For offline verification (where no TLS session exists between Attester and Verifier), the channel-binding field is absent and Relying Parties SHOULD evaluate Evidence provenance through out-of-band channels.
-
-When CPoP Evidence is conveyed over an attested TLS channel, implementations MAY leverage the SEAT exported authenticator mechanism {{SEAT-EXPAT}} to combine platform attestation (proving the Attesting Environment's integrity) with CPoP process attestation (proving the authorship process). The TLS channel binding described above is compatible with the SEAT evidence binding approach, which derives binding values from TLS exporters. At T3/T4 tiers, SEAT platform attestation provides the hardware trust anchor that corroborates CPoP's Attesting Environment claims.
+| Attack | Description | Primary Defense | Tier |
+|---|---|---|---|
+| Retype | Adversary generates content externally, then retypes it while collecting "authentic" telemetry | Cognitive load correlation, error topology analysis, semantic-temporal SWF binding ({{sec-retype-defense}}) | All |
+| Replay | Reusing previously valid Evidence for new claims | Physical Freshness anchors; entangled mode prevents parallel pre-computation | T2+ |
+| Behavioral Transplant | Extracting behavioral data from legitimate Evidence and inserting into forged Evidence | Jitter-tag and entangled-binding HMACs keyed from SWF output ({{jitter-tag-computation}}, {{entangled-binding}}); SWF seed incorporates jitter intervals | All |
+| Relay | Forwarding challenges or Evidence between a legitimate author and adversary session | Hardware-bound signing (T3/T4), out-of-band presence challenges | T3/T4 |
+| SWF Acceleration | Specialized hardware computes SWF proofs faster than consumer hardware | Argon2id memory-hardness; HAT in T3/T4 tiers | All |
+| AE Spoofing | Virtualized or modified Attesting Environment presented as genuine | Hardware attestation (T3/T4); T1/T2 Evidence weighted accordingly | T3/T4 |
+| Baseline Forgery | Synthetic baseline manufactured via enrollment with forged behavioral patterns | Baseline is non-verdict; cross-metric consistency required; hardware key binding (T3/T4). Verifiers MUST NOT treat baseline consistency as independent evidence of authenticity. | All |
+| Late Initialization | Content generated externally, then CPoE capture initiated on completed document | Retype defenses, witness-anchored nonce binding ({{CPoE-Anchoring}}), beacon binding. T1 without external anchoring provides no start-time assurance. | T2+ |
+| Diversion | Evidence redirected to unintended Verifier or Relying Party | TLS EKM channel binding ({{RFC9266}}) via "EXPORTER-CPoE-channel-binding" label in evidence-packet key 11. SEAT {{SEAT-EXPAT}} MAY combine platform and process attestation at T3/T4. | All |
 
 ## Out-of-Scope Threats {#out-of-scope-threats}
 
@@ -1139,23 +864,23 @@ The following threats are explicitly out of scope:
 
 # Core Principles and Claims {#core-principles}
 
-Building on the threat model defined above, CPoP operates on five primary constraints:
+Building on the threat model defined above, CPoE operates on five primary constraints, ordered by their role in the security model:
 
-* Physics-based Cost: Memory-Hard Sequential Functions (MHSF) establish an economic lower bound on forgery, ensuring consumer hardware remains competitive with specialized ASICs.
-* Physical Freshness: Replay and simulation attacks are defeated by anchoring sessions to irreversible physical markers (Thermal Trajectories and Kernel Entropy pools). Every session incorporates Non-deterministic Physical Freshness sampled within the AE at the start of the sequential work function execution.
-* Biological Binding: Captured human motor-signal randomness (jitter) serves as the non-deterministic seed for the SWF proof.
+* Behavioral Authentication (Primary): Human motor-signal entropy -- inter-keystroke timing, cognitive load correlation, error correction patterns, and editing trajectories -- provides the primary evidence of human cognitive involvement. These behavioral signals exhibit characteristic statistical properties (1/f spectral noise, long-range dependence, content-correlated pauses) that are computationally expensive to simulate across all dimensions simultaneously.
+* Time-Locked Binding (Complementary): Memory-hard Sequential Work Functions (SWF) establish a temporal floor on evidence generation. The SWF does not prove authorship; it prevents an adversary from fabricating behavioral evidence retroactively by forcing real wall-clock time between checkpoints. This is a time-lock, not a proof of work.
+* Physical Freshness: Replay and simulation attacks are defeated by anchoring sessions to non-reproducible physical markers (kernel entropy deltas, platform-specific observables). Every session incorporates non-deterministic physical freshness sampled within the AE.
 * Out-of-Band Presence: Utilizing secondary physical devices (e.g., smartphone QR scans) to bridge the digital-physical gap and ensure a human is in the loop.
 * Asymmetric Verification: The sequential work function allows proofs to be verified probabilistically via Merkle-sampled audit proofs, ensuring scalability and DoS resistance.
 
 # Protocol Rationale and Terminology {#rationale-and-terminology}
 
-The Cryptographic Proof of Process (CPoP) framework follows the RATS architecture while introducing domain-specific extensions for physical process attestation.
+The Cryptographic Proof of Effort (CPoE) framework follows the RATS architecture while introducing domain-specific extensions for physical process attestation.
 
-CPoP Evidence Packet (.cpop):
-: An Attester artifact containing SWF Merkle trees, jitter seals, and physical liveness markers (CBOR tag 1129336656, encoding ASCII "CPOP").
+CPoE Evidence Packet (.cpoe):
+: An Attester artifact containing SWF Merkle trees, jitter seals, and physical liveness markers (CBOR tag 1129336645, encoding ASCII "CPOE").
 
 WAR Result (.cwar):
-: A Verifier Attestation Result containing signed EAT claims and forensic assessments (CBOR tag 1129791826). The WAR format is specified in {{CPoP-Appraisal}}.
+: A Verifier Attestation Result containing signed EAT claims and forensic assessments (CBOR tag 1129791826). The WAR format is specified in {{CPoE-Appraisal}}.
 
 SWF:
 : Sequential Work Function. For Argon2id modes (20/21), a chain of iterated Argon2id evaluations each individually memory-hard. For SHA-256 mode (10), a single Argon2id evaluation followed by iterated SHA-256 hashing. See {{swf-construction}}.
@@ -1182,11 +907,11 @@ CHECKPOINTING:
 : The current event block is frozen and the AE computes the SWF over the entangled seed (previous hash, current jitter, physical markers). No new events are accepted into the current block during SWF computation. On successful completion, the checkpoint is appended to the chain and the AE transitions back to CAPTURING. If checkpoint computation fails, the Attester MUST discard the failed checkpoint and return to CAPTURING from the last successful checkpoint state. The Attester SHOULD record the failure in the limitations field (evidence-packet key 8).
 
 FINALIZING:
-: The Attester generates a final checkpoint, signs the transcript root with the Attester's signing key (hardware-bound for T3/T4; software-managed for T1/T2), and prepares the transport container (.cpop). On completion, the AE transitions to IDLE. If finalization fails, the Attester MUST retry or emit a partial Evidence Packet with a "finalization-incomplete" limitation.
+: The Attester generates a final checkpoint, signs the transcript root with the Attester's signing key (hardware-bound for T3/T4; software-managed for T1/T2), and prepares the transport container (.cpoe). On completion, the AE transitions to IDLE. If finalization fails, the Attester MUST retry or emit a partial Evidence Packet with a "finalization-incomplete" limitation.
 
 # Evidence Content Tiers {#evidence-tiers}
 
-CPoP Evidence Packets are classified by the depth of behavioral and forensic data collected:
+CPoE Evidence Packets are classified by the depth of behavioral and forensic data collected:
 
 CORE (Tier Value 1):
 : Checkpoint chain with SWF proofs, hash-based content binding, and physical freshness anchors. Proves temporal ordering and content integrity.
@@ -1197,7 +922,7 @@ ENHANCED (Tier Value 2):
 MAXIMUM (Tier Value 3):
 : All ENHANCED components plus entangled MACs binding physical state, error topology analysis, edit graph histograms ({{edit-graph-histograms}}), and forgery cost bounds. Provides the strongest available evidence.
 
-CPoP Evidence is classified along two orthogonal axes. Evidence Content
+CPoE Evidence is classified along two orthogonal axes. Evidence Content
 Tier (CORE/ENHANCED/MAXIMUM) determines the depth of behavioral and
 forensic data collected. Attestation Assurance Level (T1-T4) determines
 the strength of hardware trust anchoring. These axes are independent:
@@ -1212,7 +937,7 @@ including NIST SP 800-63B Authenticator Assurance Levels (AAL),
 ISO/IEC 29115 Levels of Assurance (LoA), and Entity Attestation Token
 (EAT) security levels as defined in {{RFC9711}}.
 
-| CPoP Tier | NIST AAL | EAT Security Level (RFC 9711) |
+| CPoE Tier | NIST AAL | EAT Security Level (RFC 9711) |
 |---|---|---|
 | T1: Software-Only | AAL1 | unrestricted (1) |
 | T2: Attested Software | AAL2 | restricted (2) |
@@ -1222,7 +947,7 @@ ISO/IEC 29115 Levels of Assurance (LoA), and Entity Attestation Token
 T3 and T4 both map to EAT security level "hardware" (4) because the EAT
 specification does not distinguish PUF-level binding from standard
 TPM key binding. EAT security level "secure-restricted" (3) is not used
-because CPoP tiers define hardware binding in terms of key isolation and
+because CPoE tiers define hardware binding in terms of key isolation and
 anti-tamper properties, not the firmware/software security boundary that
 "secure-restricted" describes. Relying Parties requiring finer-grained
 assurance distinctions SHOULD use the attestation-tier value (T1-T4)
@@ -1258,7 +983,7 @@ Discrete TPM + PUF binding + Enclave execution. Anti-tamper evidence required. E
 
 # Profile Architecture {#profile-architecture}
 
-The CPoP specification defines three implementation profiles that establish Mandatory-to-Implement (MTI) requirements for interoperability.
+The CPoE specification defines three implementation profiles that establish Mandatory-to-Implement (MTI) requirements for interoperability.
 
 | Feature ID | Feature Name | CORE | ENHANCED | MAXIMUM |
 |---|---|---|---|---|
@@ -1277,31 +1002,28 @@ Feature IDs 1-9 are reserved for core protocol features. IDs 50-99 are reserved 
 
 A conforming Attester MUST implement at least the CORE profile. A conforming Verifier MUST be capable of validating all three profiles. Verifiers MUST reject Evidence containing unrecognized integer keys in the range 0-99 (reserved for this specification). Verifiers MUST ignore unrecognized keys with values 100 or greater. Verifiers receiving an Evidence Packet with version greater than 1 MUST reject the packet unless they implement the corresponding protocol version.
 
-The profile-uri field in an Evidence Packet MUST be set to "urn:ietf:params:ccpop:profile:1.0" for Evidence conforming to this specification. This URI identifies the CPoP Evidence format and is distinct from the EAT profile URI "urn:ietf:params:rats:eat:profile:pop:1.0", which identifies CPoP Attestation Results (see {{evidence-eat-relationship}}).
+The profile-uri field in an Evidence Packet MUST be set to "urn:ietf:params:cpoe:profile:1.0" for Evidence conforming to this specification. This URI identifies the CPoE Evidence format and is distinct from the EAT profile URI "urn:ietf:params:rats:eat:profile:cpoe:1.0", which identifies CPoE Attestation Results (see {{evidence-eat-relationship}}).
 
 In the document-ref structure, byte-length is the length in bytes of the UTF-8 encoded document, and char-count is the number of Unicode scalar values (code points).
 
 If the Evidence Packet omits the attestation-tier field, the Verifier
-MUST assess the tier from the evidence content: T1 if no hardware
+MUST derive the tier from evidence content: T1 if no hardware
 attestation is present, T2 if platform attestation hooks are
 detected, T3 if TPM key binding is verified, T4 if anti-tamper
-evidence and PUF binding are confirmed. When attestation-tier is
-absent, the Verifier MUST derive the tier from evidence content:
-T1 if no COSE_Sign1 wrapper is present, T2 if software-signed,
-T3/T4 based on HAT proof presence. The attestation-tier field is
+evidence and PUF binding are confirmed. The attestation-tier field is
 informational; Verifiers MUST NOT rely on it as authoritative
 when contradicted by the evidence content.
 
 # Evidence Format and CDDL {#wire-format}
 
-Evidence Packets are CBOR-encoded {{RFC8949}} and identified by semantic tag 1129336656. The CDDL notation {{RFC8610}} is used to define the wire format.
+Evidence Packets are CBOR-encoded {{RFC8949}} and identified by semantic tag 1129336645. The CDDL notation {{RFC8610}} is used to define the wire format.
 
 ~~~ cddl
 ; CBOR tag wrappers
-pop-evidence = #6.1129336656(evidence-packet)
-pop-war = #6.1129791826(attestation-result)
+cpoe-evidence = #6.1129336645(evidence-packet)
+cpoe-war = #6.1129791826(attestation-result)
 
-; Stub: full attestation-result definition in [CPoP-Appraisal]
+; Stub: full attestation-result definition in [CPoE-Appraisal]
 attestation-result = {* int => any}
 
 ; Primary structures
@@ -1309,7 +1031,7 @@ evidence-packet = {
     1 => uint,                    ; version (must be 1)
     2 => tstr,                    ; profile-uri
     3 => uuid,                    ; packet-id
-    4 => pop-timestamp,           ; created
+    4 => cpoe-timestamp,           ; created
     5 => document-ref,            ; document
     6 => [3* checkpoint],         ; checkpoints (min 3)
     ? 7 => attestation-tier,      ; T1-T4
@@ -1324,13 +1046,14 @@ evidence-packet = {
     ; keys 16-17 reserved for future use
     ? 18 => physical-liveness,    ; physical-liveness markers
     ? 19 => baseline-verification, ; behavioral baseline verification
+    ? 20 => witness-service,      ; witness service declaration (T2+)
     * int => any,                  ; extension fields
 }
 
 checkpoint = {
     1 => uint,                    ; sequence (monotonic)
     2 => uuid,                    ; checkpoint-id
-    3 => pop-timestamp,           ; timestamp (local)
+    3 => cpoe-timestamp,           ; timestamp (local)
     4 => hash-value,              ; content-hash
     5 => uint,                    ; char-count
     6 => edit-delta,              ; delta
@@ -1339,12 +1062,13 @@ checkpoint = {
     9 => process-proof,           ; SWF proof
     ? 10 => jitter-binding,         ; behavioral-entropy (ENHANCED+)
     ? 11 => physical-state,         ; physical-state binding (ENHANCED+)
-    ? 12 => hash-digest,             ; entangled-binding (ENHANCED+)
+    ? 12 => hash-digest,             ; entangled-binding (HMAC output; ENHANCED+)
     ? 13 => [+ receipt],             ; receipts (self or tool)
     ? 14 => [+ active-probe],        ; active liveness probes
     ? 15 => hat-proof,               ; HAT temporal proof (T3/T4)
     ? 16 => beacon-anchor,           ; public randomness anchor (optional)
     ? 17 => bstr .size 32,           ; verifier-nonce (interactive mode)
+    ? 18 => witness-anchor,          ; witness-anchored nonce (T2+)
     * int => any,                    ; extension fields
 }
 
@@ -1365,6 +1089,12 @@ process-proof = {
     5 => [+ merkle-proof],        ; sampled proofs
     6 => uint,                     ; claimed-duration (milliseconds)
 }
+
+Verifiers MUST reject checkpoints where the claimed-duration value is
+zero or exceeds twice the elapsed wall-clock time between the current
+checkpoint timestamp and the previous checkpoint timestamp. When
+hardware attestation (HAT) is available, Verifiers SHOULD cross-check
+claimed-duration against the HAT-attested interval.
 
 ; Subsidiary type definitions
 attestation-tier = &(
@@ -1437,7 +1167,7 @@ physical-state = {
 }
 
 inertial-sample = [
-    pop-timestamp,                ; sample time (milliseconds)
+    cpoe-timestamp,                ; sample time (milliseconds)
     int,                          ; x-axis (micro-g)
     int,                          ; y-axis (micro-g)
     int,                          ; z-axis (micro-g)
@@ -1449,14 +1179,14 @@ physical-liveness = {
 }
 
 thermal-sample = [
-    pop-timestamp,                ; sample time
+    cpoe-timestamp,                ; sample time
     int,                          ; temperature delta (millidegrees)
 ]
 
 presence-challenge = {
     1 => bstr .size (16..256),    ; challenge-nonce (128+ bits)
-    2 => bstr,                    ; device-signature (must be COSE_Sign1)
-    3 => pop-timestamp,           ; response-time
+    2 => bstr .cbor COSE_Sign1,    ; device-signature
+    3 => cpoe-timestamp,           ; response-time
 }
 
 profile-declaration = {
@@ -1479,22 +1209,22 @@ self-receipt = {
     1 => tstr,                    ; tool-id (source environment)
     2 => hash-value / compact-ref, ; output-commit
     3 => hash-value / compact-ref, ; evidence-ref (source packet)
-    4 => pop-timestamp,           ; transfer-time
+    4 => cpoe-timestamp,           ; transfer-time
 }
 
 tool-receipt = {
     1 => tstr,                    ; tool-id (provider URI)
     2 => hash-value,              ; output-commit
     ? 3 => hash-value,            ; input-ref (prompt hash)
-    4 => pop-timestamp,           ; issued-at
+    4 => cpoe-timestamp,           ; issued-at
     5 => bstr .cbor COSE_Sign1,   ; tool-signature
     ? 6 => uint,                  ; output-char-count
 }
 
 active-probe = {
     1 => probe-type,              ; challenge category
-    2 => pop-timestamp,           ; stimulus-time
-    3 => pop-timestamp,           ; response-time
+    2 => cpoe-timestamp,           ; stimulus-time
+    3 => cpoe-timestamp,           ; response-time
     4 => bstr,                    ; stimulus-data (challenge payload)
     5 => bstr,                    ; response-data (captured response)
     ? 6 => uint,                  ; response-latency (milliseconds)
@@ -1524,7 +1254,7 @@ baseline-digest = {
     8 => streaming-stats,         ; pause-stats
     9 => bstr .size 32,           ; session-merkle-root (MMR)
     10 => confidence-tier,        ; baseline maturity
-    11 => pop-timestamp,          ; computed-at
+    11 => cpoe-timestamp,          ; computed-at
     12 => bstr .size 32,          ; identity-fingerprint
 }
 
@@ -1554,7 +1284,7 @@ confidence-tier = &(
 
 ; Base types
 uuid = bstr .size 16
-pop-timestamp = uint              ; epoch milliseconds (no tag 1; see protocol §6.7)
+cpoe-timestamp = uint              ; epoch milliseconds (no tag 1; see protocol §6.7)
 hash-digest = bstr .size 32 /        ; SHA-256
               bstr .size 48 /        ; SHA-384
               bstr .size 64          ; SHA-512
@@ -1574,18 +1304,18 @@ hash-algorithm = &(
 )
 ~~~
 
-The attestation-result type used in the pop-war tag wrapper is
+The attestation-result type used in the cpoe-war tag wrapper is
 defined as a stub above for CDDL completeness; the full
-definition appears in {{CPoP-Appraisal}}.
+definition appears in {{CPoE-Appraisal}}.
 
 To ensure cross-architecture determinism, all temporal and entropy measurements MUST be encoded as unsigned integers (`uint`). Timestamps and durations are expressed in milliseconds. Entropy estimates are expressed in centibits (1/100th of a bit).
 
-pop-timestamp is a bare unsigned integer representing milliseconds since
+cpoe-timestamp is a bare unsigned integer representing milliseconds since
 the Unix epoch (1970-01-01T00:00:00Z). CBOR tag 1 is not used because
-RFC 8949 Section 3.4.2 defines it as epoch seconds; CPoP requires
+RFC 8949 Section 3.4.2 defines it as epoch seconds; CPoE requires
 millisecond precision for IKI measurements and jitter-binding
-timestamps. pop-timestamp values MUST be positive (greater than zero).
-A pop-timestamp value of zero is invalid. Verifiers MUST reject
+timestamps. cpoe-timestamp values MUST be positive (greater than zero).
+A cpoe-timestamp value of zero is invalid. Verifiers MUST reject
 Evidence Packets containing any zero-valued timestamp.
 
 When hash-salt-mode is author-salted (1), the author generates a
@@ -1642,14 +1372,14 @@ Checkpoint key 13 accepts two receipt types, distinguished by the
 presence of key 5 (tool-signature):
 
 A `self-receipt` records cross-tool composition where content
-originates from another CPoP-enabled authoring environment. The
+originates from another CPoE-enabled authoring environment. The
 tool-id identifies the source environment, output-commit binds
 the pasted content, and evidence-ref references the source
 Evidence Packet. Self-receipt verification is specified in
-{{CPoP-Appraisal}}.
+{{CPoE-Appraisal}}.
 
 A `tool-receipt` records content contributed by an external tool
-(e.g., a large language model) that is not itself a CPoP Attester.
+(e.g., a large language model) that is not itself a CPoE Attester.
 The tool-id MUST be a URI under the tool provider's control. The
 output-commit field contains a hash-value of the tool's generated
 content, using the Evidence Packet's hash algorithm. The optional
@@ -1709,7 +1439,7 @@ edit-graph-input = [
 ]
 
 edit-graph-hash = H(
-    "CPoP-EditGraph-v1" ||
+    "CPoE-EditGraph-v1" ||
     CBOR-encode(edit-graph-input)
 )
 ~~~
@@ -1729,31 +1459,7 @@ SWF seed derivation ({{swf-seed-derivation}}).
 
 ## Edit Graph Histograms {#edit-graph-histograms}
 
-Edit-delta keys 9-11 carry 8-bin histograms summarizing the
-editing trajectory. These fields MUST be present in MAXIMUM
-content tier and MUST be absent in CORE. They MAY be present
-in ENHANCED.
-
-Each histogram is an array of exactly 8 unsigned integers
-representing event counts per bin. The bin boundaries are:
-
-Cursor Trajectory Histogram (key 9):
-: Cumulative cursor travel distance in characters between
-  consecutive samples. Bins: \[0, 50\], \[51, 200\],
-  \[201, 500\], \[501, 1000\], \[1001, 2500\],
-  \[2501, 5000\], \[5001, 10000\], \[10001, +inf\).
-
-Revision Depth Histogram (key 10):
-: Maximum revision depth per edited region. Bins correspond
-  to depths 0 through 6 individually, with bin 7 covering
-  depth 7 and above.
-
-Pause Duration Histogram (key 11):
-: Inter-keystroke pause durations in milliseconds. Pauses
-  below 500ms are excluded. Bins: \[500, 1000\],
-  \[1001, 2000\], \[2001, 5000\], \[5001, 10000\],
-  \[10001, 30000\], \[30001, 60000\], \[60001, 300000\],
-  \[300001, +inf\).
+Edit-delta keys 9-11 carry 8-bin histograms summarizing the editing trajectory. These fields MUST be present in MAXIMUM content tier and MUST be absent in CORE. They MAY be present in ENHANCED. The edit graph is represented as a set of histograms over operation types (cursor trajectory, revision depth) and inter-event timing (pause duration). Each histogram is an array of exactly 8 unsigned integers representing event counts per bin. The histogram bin boundaries and computation procedure are specified in {{CPoE-Appraisal}}.
 
 The device-signature in a presence-challenge MUST be a COSE_Sign1
 structure {{RFC9052}} covering the challenge-nonce.
@@ -1776,7 +1482,7 @@ probes (type 3) measure pointing accuracy to on-screen targets.
 The response-latency field, when present, MUST equal
 (response-time minus stimulus-time) in milliseconds. Verifiers
 appraise active-probe responses as specified in
-{{CPoP-Appraisal}}.
+{{CPoE-Appraisal}}.
 
 Per-checkpoint physical-state (checkpoint key 11) captures instantaneous
 thermal and entropy measurements. Packet-level physical-liveness
@@ -1794,7 +1500,7 @@ m/s^2) on three orthogonal axes. Inertial data captures mechanical
 shockwaves from physical keystrokes, enabling cross-modal
 verification: the Verifier can assess whether the digital IKI
 signal is consistent with physical keystroke impulses by computing
-cross-spectral coherence (see {{CPoP-Appraisal}}). In T1/T2 tiers,
+cross-spectral coherence (see {{CPoE-Appraisal}}). In T1/T2 tiers,
 inertial data is software-reported and MUST NOT be treated as
 unforgeable; its value is limited to increasing the dimensionality
 of data an adversary must fabricate consistently. In T3/T4 tiers
@@ -1814,7 +1520,7 @@ squared differences from the mean), min, and max for each
 tracked metric. This representation supports numerically
 stable incremental updates without retaining raw sample data.
 Appraisal of baseline-verification data is specified in
-{{CPoP-Appraisal}}.
+{{CPoE-Appraisal}}.
 
 ## Checkpoint Hash Computation {#checkpoint-hash-computation}
 
@@ -1822,7 +1528,7 @@ The checkpoint-hash field MUST be computed as follows:
 
 ~~~ pseudocode
 checkpoint-hash = H(
-    "CPoP-Checkpoint-v1" ||
+    "CPoE-Checkpoint-v1" ||
     prev-hash ||
     content-hash ||
     CBOR-encode(edit-delta) ||
@@ -1832,11 +1538,11 @@ checkpoint-hash = H(
 )
 ~~~
 
-Where H is the Evidence Packet's selected hash function, \|\| denotes concatenation, and CBOR-encode produces deterministic CBOR per Section 4.2.1 of {{RFC8949}}. The UTF-8 Domain Separation Tag (DST) prefix "CPoP-Checkpoint-v1" MUST be prepended as the first input to prevent cross-context hash collisions. When edit-graph-hash (edit-delta key 5) is present, it is already included within the CBOR-encoded edit-delta and requires no separate term in the checkpoint-hash computation.
+Where H is the Evidence Packet's selected hash function, \|\| denotes concatenation, and CBOR-encode produces deterministic CBOR per Section 4.2.1 of {{RFC8949}}. The UTF-8 Domain Separation Tag (DST) prefix "CPoE-Checkpoint-v1" MUST be prepended as the first input to prevent cross-context hash collisions. When edit-graph-hash (edit-delta key 5) is present, it is already included within the CBOR-encoded edit-delta and requires no separate term in the checkpoint-hash computation.
 
 For the first checkpoint in the initial Evidence Packet of a series (or a standalone packet), prev-hash MUST be set to H(CBOR-encode(document-ref)). This anchors the chain to the document identity. For the first checkpoint in a continuation packet (previous-packet-ref present), prev-hash MUST be set to the final checkpoint-hash of the preceding Evidence Packet (see {{session-continuation}}).
 
-When jitter-binding and physical-state fields are absent (CORE profile), the checkpoint-hash MUST be computed without those terms: checkpoint-hash = H("CPoP-Checkpoint-v1" \|\| prev-hash \|\| content-hash \|\| CBOR-encode(edit-delta) \|\| process-proof.merkle-root).
+When jitter-binding and physical-state fields are absent (CORE profile), the checkpoint-hash MUST be computed without those terms: checkpoint-hash = H("CPoE-Checkpoint-v1" \|\| prev-hash \|\| content-hash \|\| CBOR-encode(edit-delta) \|\| process-proof.merkle-root).
 
 ## Checkpoint Computation Order {#checkpoint-computation-order}
 
@@ -1847,7 +1553,7 @@ The fields within a checkpoint MUST be computed in the following order:
 3. Derive the shared PRK and per-field keys via the two-stage HKDF hierarchy ({{key-derivation-hierarchy}}).
 4. Compute the jitter-tag using the tag-key and jitter-binding.intervals as HMAC input. Assemble the jitter-binding structure (intervals, entropy-estimate, jitter-tag).
 5. Compute the entangled-binding using the binding-key and prev-hash, content-hash, jitter-binding, and physical-state as HMAC input.
-6. Compute the checkpoint-hash over the DST "CPoP-Checkpoint-v1", prev-hash, content-hash, edit-delta, jitter-binding, physical-state, and merkle-root.
+6. Compute the checkpoint-hash over the DST "CPoE-Checkpoint-v1", prev-hash, content-hash, edit-delta, jitter-binding, physical-state, and merkle-root.
 
 This ordering ensures that each subsequent computation can reference the outputs of prior steps. Implementations MUST follow this order to produce interoperable checkpoints.
 
@@ -1856,7 +1562,7 @@ This ordering ensures that each subsequent computation can reference the outputs
 For T3 and T4 Attestation Tiers, Evidence Packets MUST be wrapped
 in a COSE_Sign1 envelope {{RFC9052}}. For T1 and T2 tiers, COSE_Sign1
 wrapping is RECOMMENDED. The COSE_Sign1 payload is the complete
-CBOR-encoded evidence-packet including tag 1129336656; ES256 or
+CBOR-encoded evidence-packet including tag 1129336645; ES256 or
 EdDSA is RECOMMENDED for the algorithm identifier.
 
 For T3/T4 tiers, the signing key MUST be bound to a hardware
@@ -1868,250 +1574,68 @@ conveyance), the Evidence Packet's integrity relies solely on
 the internal hash chain. Relying Parties MUST evaluate the
 trust implications of unwrapped Evidence.
 
-For online conveyance, COSE_Sign1-wrapped Evidence Packets can be encapsulated within a Conceptual Message Wrapper (CMW) for transport via the SEAT cmw_attestation TLS extension {{SEAT-EXPAT}}. This enables CPoP Evidence to be delivered alongside platform attestation evidence in a single post-handshake authentication exchange, which is the preferred attestation timing model {{SEAT-Timing}}. The SEAT use cases {{SEAT-UseCases}} identify runtime attestation and operation-triggered re-attestation as key requirements, both of which CPoP's continuous checkpoint model satisfies.
+For online conveyance, COSE_Sign1-wrapped Evidence Packets can be encapsulated within a Conceptual Message Wrapper (CMW) for transport via the SEAT cmw_attestation TLS extension {{SEAT-EXPAT}}. This enables CPoE Evidence to be delivered alongside platform attestation evidence in a single post-handshake authentication exchange, which is the preferred attestation timing model {{SEAT-Timing}}. The SEAT use cases {{SEAT-UseCases}} identify runtime attestation and operation-triggered re-attestation as key requirements, both of which CPoE's continuous checkpoint model satisfies.
 
 ## ASCII-Armored Encoding {#ascii-armor}
 
-For transport over text-based protocols, embedding in source
-code repositories, or human-readable archival, Evidence
-Packets and Attestation Results MAY be encoded in an
-ASCII-armored representation. The armored format consists of
-a header line, Base64-encoded payload ({{RFC4648}},
-Section 4), and a footer line.
+Evidence Packets and Attestation Results MAY be encoded in an ASCII-armored representation for text-based transport or archival. The format uses `-----BEGIN CPoE EVIDENCE-----` / `-----END CPoE EVIDENCE-----` boundaries for Evidence Packets (.cpoe) and `-----BEGIN CPoE WAR-----` / `-----END CPoE WAR-----` for Attestation Results (.cwar).
 
-Evidence Packets (.cpop) use the following armor boundaries:
-
-~~~ artwork
------BEGIN POP EVIDENCE-----
-<Base64-encoded CBOR payload>
------END POP EVIDENCE-----
-~~~
-
-Attestation Results (.cwar) use the following armor
-boundaries:
-
-~~~ artwork
------BEGIN POP WAR-----
-<Base64-encoded CBOR payload>
------END POP WAR-----
-~~~
-
-The following rules apply to the armored encoding:
-
-1. The payload MUST be the complete CBOR-encoded structure
-   (including the CBOR semantic tag). When COSE_Sign1 wrapping
-   is present, the entire COSE_Sign1 envelope is the
-   payload.
-2. Base64 line length MUST NOT exceed 76 characters per
-   {{RFC4648}}. Decoders MUST ignore line
-   breaks and whitespace within the Base64 block.
-3. No additional headers or metadata are defined between
-   the header line and the Base64 block. Implementations
-   MUST NOT insert key-value headers (unlike PEM, which
-   permits Proc-Type and DEK-Info headers).
-4. Implementations MUST accept both armored and raw CBOR
-   encodings. The media type for armored Evidence is
-   application/cpop+cbor with a Content-Transfer-Encoding
-   of base64. The media type for armored Attestation Results
-   is application/cwar+cbor with the same transfer
-   encoding.
+The payload is Base64-encoded ({{RFC4648}}, Section 4) with lines not exceeding 76 characters. The payload MUST be the complete CBOR-encoded structure including the CBOR semantic tag (and COSE_Sign1 envelope when present). No key-value headers are permitted between the boundary line and the Base64 block. Implementations MUST accept both armored and raw CBOR encodings.
 
 # Sequential Work Function {#swf-construction}
 
-CPoP uses a Sequential Work Function (SWF) to bind Evidence to sustained computational effort. For `swf-argon2id` (20) and `swf-argon2id-entangled` (21), the SWF consists of iterated Argon2id {{RFC9106}} evaluations, each individually memory-hard, providing ASIC-resistant sequential work. For `swf-sha256` (10), the SWF uses a single Argon2id evaluation followed by iterated SHA-256 hashing, intended for constrained environments where Argon2id is impractical. This construction is NOT a Verifiable Delay Function in the formal sense {{Boneh2018}}; it does not provide efficient public verification of the delay claim from the output alone.
+CPoE uses a Sequential Work Function (SWF) as defined in
+{{PoSME}} to bind Evidence to sustained computational effort.
+The SWF primitive provides three modes: `swf-argon2id` (20),
+`swf-argon2id-entangled` (21), and `swf-sha256` (10). The
+generic SWF construction, Merkle-sampled verification protocol,
+Fiat-Shamir sample derivation, Merkle tree construction,
+security bound, and seed grinding resistance proofs are
+specified normatively in {{PoSME}}. This section specifies only
+the CPoE-specific SWF integration: seed derivation from
+checkpoint data, mandatory parameters, entangled binding, jitter
+tags, and temporal anchoring mechanisms.
 
-Instead, verification relies on Merkle-sampled audit proofs: the Attester commits to a Merkle tree over intermediate states, and the Verifier checks a random subset of state transitions. This provides probabilistic verification in O(k * log n) time where k is the sample count and n is the step count.
+## SWF Construction Summary {#swf-algorithm}
 
-## Construction {#swf-algorithm}
+The SWF construction, verification protocol, Fiat-Shamir sample
+derivation, and Merkle tree construction are defined normatively
+in {{PoSME}}. CPoE implementations MUST conform to the PoSME
+specification for all generic SWF operations. The CPoE-specific
+domain separation tag prefix is "CPoE-" (e.g., "CPoE-salt-v1",
+"CPoE-Fiat-Shamir-v1"). PoSME defines the algorithm; CPoE
+defines the application-specific seed derivation and binding
+computations below.
 
-The SWF is computed as follows.
+## Verification {#swf-verification}
 
-For `swf-argon2id` (20) and `swf-argon2id-entangled` (21):
+Verification procedures for all three modes (10, 20, 21) are
+specified in {{PoSME}}. CPoE Verifiers MUST additionally verify
+the CPoE-specific seed derivation ({{swf-seed-derivation}}) and
+entangled binding ({{entangled-binding-computation}}) after
+completing the generic SWF verification.
 
-~~~ pseudocode
-hash_len = output_length(H)          ; 32, 48, or 64 bytes
-state_0  = Argon2id(seed, salt=H(0x00 || "CPoP-salt-v1" || seed),
-                    t=t, m=m, p=1, len=hash_len)
-for i in 1..steps:
-    state_i = Argon2id(state_{i-1},
-                       salt=H(0x01 || "CPoP-salt-v1" || I2OSP(i, 4)),
-                       t=t, m=m, p=1, len=hash_len)
-merkle_root = MerkleTree(state_0, state_1, ...,
-                         state_steps).root
-~~~
+## Fiat-Shamir and Merkle Construction {#fiat-shamir-sampling}
 
-Each step is a full Argon2id evaluation bounded by memory bandwidth, ensuring ASIC resistance at every link in the chain. The salt for state\_0 MUST be derived from the seed: salt = H(0x00 \|\| "CPoP-salt-v1" \|\| seed). For subsequent steps i >= 1, the salt MUST be H(0x01 \|\| "CPoP-salt-v1" \|\| I2OSP(i, 4)), where I2OSP encodes i as a 4-byte big-endian integer per {{RFC8017}}. The 0x00 and 0x01 type-tag prefixes provide unambiguous domain separation between the seed-derived initial salt and step-indexed salts, preventing collisions even when the seed value equals I2OSP(i, 4) for some i. The Argon2id output length (`len`) MUST equal the output length of H to ensure SWF state sizes are consistent with the selected hash algorithm.
-
-For `swf-sha256` (10):
-
-~~~ pseudocode
-hash_len = 32                        ; SHA-256 fixed
-state_0  = Argon2id(seed, salt=H(0x00 || "CPoP-salt-v1" || seed),
-                    t=t, m=m, p=1, len=hash_len)
-for i in 1..steps:
-    if i mod W == 0:
-        state_i = Argon2id(state_{i-1},
-                           salt=H(0x01 || "CPoP-salt-v1" || I2OSP(i, 4)),
-                           t=1, m=m_waypoint, p=1, len=hash_len)
-    else:
-        state_i = H(state_{i-1})
-merkle_root = MerkleTree(state_0, state_1, ...,
-                         state_steps).root
-~~~
-
-The `swf-sha256` mode uses a single Argon2id initialization followed by iterated SHA-256 hashing with periodic **memory-hard waypoints**. At every W-th step (where W is the waypoint-interval parameter), the Attester MUST compute a full Argon2id evaluation instead of SHA-256, using waypoint-memory (m\_waypoint) as the memory cost. These waypoints bound the ASIC advantage to the Argon2id memory-bandwidth limit at waypoint steps, preventing the ~10,000x speedup that custom SHA-256 ASICs achieve on the intervening steps. Verifiers SHOULD reflect the reduced forgery cost relative to Argon2id-only modes in the forgery-cost-estimate by setting c-swf based on the effective number of Argon2id evaluations (steps / W). When waypoint-interval (proof-params key 5) is absent, the Verifier MUST treat the mode as having no waypoints and apply the lower c-swf bound accordingly.
-
-The merkle-root field (process-proof key 4) MUST contain the Merkle tree root computed over all intermediate states. The final state (state\_steps) is verified as the leaf at index "steps" in the Merkle tree.
-
-## Verification Protocol {#swf-verification}
-
-### Modes 20/21 Verification (Merkle-Sampled) {#verification-modes-20-21}
-
-For `swf-argon2id` (20) and `swf-argon2id-entangled` (21), the
-Verifier MUST:
-
-1. Recompute Argon2id from the declared seed to obtain state\_0.
-2. For each Fiat-Shamir sampled proof in the Merkle tree, verify
-   the sibling path against the committed root using tagged hashing
-   (see {{merkle-tree-construction}}) and recompute the state
-   transition: Argon2id(state\_i,
-   salt=H(0x01 \|\| "CPoP-salt-v1" \|\| I2OSP(i+1, 4)),
-   t=t, m=m, p=1, len=hash\_len). Verify the result equals
-   state\_{i+1}.
-3. Verify the final state (state\_steps) by checking its Merkle
-   proof against the committed root (process-proof key 4,
-   merkle-root). If the final-leaf index is not included in the
-   Fiat-Shamir sample set, the Verifier MUST additionally derive
-   or request a proof for it.
-
-A minimum of 20 sampled proofs is REQUIRED for CORE profile.
-ENHANCED profile requires 50 proofs. MAXIMUM profile requires 100
-proofs.
-
-NOTE: Each sampled proof requires one Argon2id evaluation to
-verify. Verification cost is O(k) Argon2id evaluations, each
-requiring m KiB of memory. For CORE (k=20, m=65536 KiB),
-verification requires approximately 2 seconds on reference
-hardware. Verifiers MUST verify samples sequentially or limit
-concurrent evaluations to avoid excessive memory consumption.
-
-### Mode 10 Verification (Deterministic Full-Chain) {#verification-mode-10}
-
-For `swf-sha256` (10), the Verifier SHOULD perform deterministic
-full-chain verification rather than Merkle-sampled verification.
-The Verifier MUST:
-
-1. Recompute state\_0 = Argon2id(seed,
-   salt=H(0x00 \|\| "CPoP-salt-v1" \|\| seed),
-   t=t, m=m, p=1, len=32).
-2. Recompute the full chain sequentially: for i in 1..steps,
-   if i mod W == 0, compute state\_i =
-   Argon2id(state\_{i-1},
-   salt=H(0x01 \|\| "CPoP-salt-v1" \|\| I2OSP(i, 4)),
-   t=1, m=m\_waypoint, p=1, len=32);
-   otherwise, compute state\_i = H(state\_{i-1}).
-3. Construct the Merkle tree from all recomputed states using
-   tagged hashing ({{merkle-tree-construction}}).
-4. Verify the computed Merkle root equals the committed root
-   (process-proof key 4).
-
-Full-chain verification requires steps/W Argon2id evaluations
-plus steps SHA-256 evaluations. For CORE (W=1000, steps=10000),
-this costs approximately 10 Argon2id evaluations (~1 second) plus
-10,000 SHA-256 evaluations (~1 millisecond). This is comparable
-to or less than Mode 20 sampled verification cost.
-
-Full-chain verification provides deterministic guarantees: all
-waypoints AND all SHA-256 transitions are verified with zero
-false negatives. Unlike Merkle-sampled verification, it is not
-subject to the waypoint sampling gap (where uniform random
-sampling under-represents the rare but expensive waypoint
-steps).
-
-When full-chain verification is impractical (e.g., constrained
-Verifier environments), the Verifier MAY fall back to
-Merkle-sampled verification per {{fiat-shamir-sampling}}. In
-this fallback mode, the Verifier MUST additionally verify all
-waypoint transitions by requesting Merkle proofs for index pairs
-(iW-1, iW) for i in 1..steps/W. This ensures memory-hard
-waypoints are always verified regardless of the Fiat-Shamir
-sample draw. The Attester MUST include these mandatory waypoint
-proofs in addition to the k Fiat-Shamir sampled proofs when the
-Verifier indicates sampled verification mode.
-
-## Fiat-Shamir Sample Derivation {#fiat-shamir-sampling}
-
-Merkle proof sample positions MUST be derived deterministically
-via Fiat-Shamir transform:
-
-~~~ pseudocode
-sample_seed = H(
-    "CPoP-Fiat-Shamir-v1" ||
-    I2OSP(proof-algorithm, 2) ||
-    CBOR-encode(proof-params) ||
-    process-proof.input ||
-    merkle_root
-)
-for j in 0..k-1:
-    okm_j   = HKDF-Expand(sample_seed, I2OSP(j, 4), 4)
-    index_j = OS2IP(okm_j) mod (steps + 1)
-~~~
-
-The sample seed MUST incorporate a versioned domain separation
-tag ("CPoP-Fiat-Shamir-v1") followed by the full proof context:
-the algorithm identifier, all parameters, the SWF input seed, and
-the Merkle root. The DST prefix provides version agility
-consistent with all other hash constructions in the protocol and
-prevents cross-protocol confusion. The algorithm and parameter
-binding prevents cross-algorithm confusion attacks where an
-adversary exploits a seed that produces the same Merkle root under
-a cheaper algorithm. CBOR-encode produces deterministic CBOR per
-Section 4.2.1 of {{RFC8949}}.
-
-Where k is the number of required samples (20 for CORE, 50 for
-ENHANCED, 100 for MAXIMUM). HKDF-Expand is instantiated with H as
-the underlying hash function per {{RFC5869}}. I2OSP
-and OS2IP are the Integer-to-Octet-String and Octet-String-to-Integer
-primitives as defined in {{RFC8017}}. The Attester
-MUST include Merkle proofs for exactly these indices. The Verifier
-recomputes the sample positions from the committed root and seed,
-then verifies only those proofs.
-
-If the derivation produces duplicate indices (index_j equal to a
-previously derived index), the Attester MUST continue generating
-additional indices by incrementing j beyond k-1 until k distinct
-indices are obtained. The Verifier MUST verify that all k sample
-indices are distinct.
-
-Sample indices are in the range \[0, steps\] inclusive.
-Padded Merkle tree leaves (indices greater than steps)
-are never sampled by this derivation.
+Fiat-Shamir sample derivation and Merkle tree construction
+follow {{PoSME}} with the "CPoE-Fiat-Shamir-v1" domain
+separation tag. See {{PoSME}} for the normative specification.
 
 ## SWF Seed Derivation {#swf-seed-derivation}
 
-For `swf-sha256` (10), the SWF seed for each checkpoint
-MUST be derived as:
+To prevent cross-mode seed collisions, the seed derivation
+MUST include the proof-algorithm identifier as the first
+term after the version prefix, providing domain separation
+between modes. The identifier is encoded as a single byte
+via I2OSP(proof-algorithm, 1).
 
-~~~ pseudocode
-seed = H(
-    "CPoP-SWF-Seed-v1" ||
-    prev-hash ||
-    CBOR-encode(jitter-binding.intervals) ||
-    CBOR-encode(physical-state) ||
-    edit-graph-hash
-)
-~~~
-
-The `swf-sha256` mode uses iterated SHA-256 as described
-in {{swf-algorithm}}. When edit-graph-hash is absent, the
-seed MUST be computed without the final term.
-
-For `swf-argon2id` (20), the SWF seed for each
+For `swf-argon2id` (Mode 20), the SWF seed for each
 checkpoint MUST be derived as:
 
 ~~~ pseudocode
 seed = H(
-    "CPoP-SWF-Seed-v1" ||
+    "CPoE-SWF-Seed-v1" ||
+    I2OSP(20, 1) ||
     prev-hash ||
     CBOR-encode(jitter-binding.intervals) ||
     CBOR-encode(physical-state) ||
@@ -2120,33 +1644,16 @@ seed = H(
 ~~~
 
 When edit-graph-hash is absent, the seed MUST be computed
-without the final term.
+without the final term. Mode 10 (`swf-sha256`) uses the
+same derivation with I2OSP(10, 1). Mode 21
+(`swf-argon2id-entangled`) additionally includes
+prev-swf-output (the final Argon2id state from the
+immediately preceding checkpoint) after prev-hash, creating
+a strict cryptographic dependency chain: each checkpoint's
+SWF cannot begin until the previous checkpoint's SWF has
+completed.
 
-For `swf-argon2id-entangled` (21), the Attester MUST
-entangle the previous checkpoint's SWF output. The seed is
-derived as:
-
-~~~ pseudocode
-seed = H(
-    "CPoP-SWF-Seed-v1" ||
-    prev-hash ||
-    prev-swf-output ||
-    CBOR-encode(jitter-binding.intervals) ||
-    CBOR-encode(physical-state) ||
-    edit-graph-hash
-)
-~~~
-
-When edit-graph-hash is absent, the seed MUST be computed
-without the final term.
-
-Where `prev-swf-output` is the final Argon2id state
-from the immediately preceding checkpoint's sequential work
-function computation. This creates a strict cryptographic
-dependency chain: each checkpoint's SWF cannot begin until the
-previous checkpoint's SWF has completed.
-
-When a verifier-nonce is present ({{verifier-nonce-binding}}),
+When a verifier-nonce is present ({{CPoE-Anchoring}}),
 the nonce MUST be inserted into the seed derivation after
 prev-swf-output (for Mode 21) or after prev-hash (for Modes
 10/20), before any behavioral data. When both verifier-nonce and
@@ -2160,7 +1667,7 @@ For the first checkpoint (sequence = 1), all modes use:
 
 ~~~ pseudocode
 seed = H(
-    "CPoP-SWF-Seed-v1" ||
+    "CPoE-SWF-Seed-v1" ||
     CBOR-encode(document-ref) ||
     initial-jitter-sample
 )
@@ -2174,47 +1681,23 @@ behavioral entropy collected before the first checkpoint.
 When jitter-binding and physical-state are absent (CORE profile
 without behavioral data), the seed MUST incorporate at least
 the prev-hash and a locally-generated 32-byte random nonce:
-seed = H("CPoP-SWF-Seed-v1" \|\| prev-hash \|\| local-nonce). For the first
+seed = H("CPoE-SWF-Seed-v1" \|\| prev-hash \|\| local-nonce). For the first
 checkpoint, the nonce provides non-determinism when
 initial-jitter-sample is unavailable. Implementations MUST
 NOT use a fully deterministic seed derivation.
 
-NOTE: The test vectors in {{test-vectors}} use a
-simplified fixed seed for implementation validation. Production
-implementations MUST use the derivation specified above.
-
 ## Merkle Tree Construction {#merkle-tree-construction}
 
-The SWF Merkle tree is constructed over all intermediate states
-using domain-separated hashing following the tagged hash
-construction from {{RFC6962}}:
-
-* Leaf nodes: H(0x00 \|\| state\_i) for i in 0..steps, where
-  leaf-index = i and leaf-value = state\_i. The total number
-  of leaves is (steps + 1). The 0x00 prefix tag identifies
-  leaf-level hashes.
-* Internal nodes: H(0x01 \|\| left\_child \|\| right\_child).
-  The 0x01 prefix tag identifies internal node hashes. This
-  domain separation prevents second-preimage attacks on the
-  tree structure where an adversary constructs an internal
-  node that masquerades as a leaf or vice versa.
-* Padding: If the number of leaves is not a power of 2, the
-  tree is padded with sentinel values: pad\_value =
-  H(0x02 \|\| I2OSP(steps + 1, 4)), repeated until the count
-  reaches the next power of 2. The 0x02 prefix tag and
-  embedded tree size make padding nodes cryptographically
-  distinguishable from both leaf and internal nodes and bind
-  the padding to the specific chain length.
-* The Merkle root is stored in process-proof.merkle-root (key 4).
-
-The final state (state\_steps) is the leaf at
-index "steps" and is verified by checking its Merkle proof
-against the committed root.
+The SWF Merkle tree construction (domain-separated tagged
+hashing per {{RFC6962}} with 0x00/0x01/0x02 prefix tags) is
+specified in {{PoSME}}. The Merkle root is stored in
+process-proof.merkle-root (key 4).
 
 ## Mandatory SWF Parameters {#mandatory-swf-params}
 
 Conforming Attesters SHOULD use the following minimum SWF parameters
-for each Evidence Content Tier. These values are initial calibration
+for each Evidence Content Tier. The underlying SWF algorithm is
+defined in {{PoSME}}; these values are CPoE-specific calibration
 parameters (see {{experimental-status-rationale}}) and may be revised
 based on deployment experience.
 
@@ -2279,11 +1762,11 @@ paradigm per {{RFC5869}}:
 
 ~~~ pseudocode
 PRK = HKDF-Extract(
-    salt = "CPoP-key-derivation-v1",
+    salt = "CPoE-key-derivation-v1",
     IKM  = process-proof.merkle-root || process-proof.input
 )
-binding-key = HKDF-Expand(PRK, "CPoP-entangled-binding-v1", hash_len)
-tag-key     = HKDF-Expand(PRK, "CPoP-jitter-tag-v1", hash_len)
+binding-key = HKDF-Expand(PRK, "CPoE-entangled-binding-v1", hash_len)
+tag-key     = HKDF-Expand(PRK, "CPoE-jitter-tag-v1", hash_len)
 ~~~
 
 The HKDF-Extract step concentrates entropy from the Merkle root
@@ -2338,268 +1821,57 @@ from computing tags over fabricated data. Their security value is
 limited to ensuring internal consistency within an honestly-generated
 checkpoint. See {{security-considerations}}.
 
-## Beacon-Anchored Binding (Optional) {#beacon-binding}
+## Temporal Anchoring Mechanisms {#temporal-anchoring}
 
-Attesters MAY anchor checkpoints to a public randomness beacon to
-provide verifiable temporal ordering without hardware attestation.
-When beacon-anchoring is used, the Attester MUST:
+CPoE defines three temporal anchoring mechanisms that bind
+checkpoints to external time sources, forming a hierarchy of
+increasing assurance:
 
-1. Commit to the checkpoint data (including the SWF Merkle root)
-   before the beacon value is available.
-2. Wait for the beacon to publish the value for the round
-   corresponding to the checkpoint timestamp plus a protocol-defined
-   delay (RECOMMENDED: 60 seconds).
-3. Incorporate the beacon value into the key derivation:
+| Mechanism | Key | Online? | Freshness | Specified In |
+|-----------|-----|---------|-----------|--------------|
+| Beacon-anchor | 16 | No (passive) | Minutes | {{CPoE-Anchoring}} |
+| Witness-anchor | 18 | Yes (1 RTT) | Seconds | {{CPoE-Anchoring}} |
+| Verifier-nonce | 17 | Yes (2 RTT) | Immediate | {{CPoE-Anchoring}} |
 
-~~~ pseudocode
-PRK = HKDF-Extract(
-    salt = "CPoP-key-derivation-v1",
-    IKM  = process-proof.merkle-root ||
-           process-proof.input ||
-           beacon-anchor.beacon-value
-)
-~~~
+An Evidence Packet MAY include any combination. When multiple
+anchoring mechanisms are present, the Verifier SHOULD use the
+strongest available: verifier-nonce > witness-anchor >
+beacon-anchor. Attesters claiming T2 or higher assurance SHOULD
+include a witness-anchor in every checkpoint. The Evidence Packet
+MUST NOT claim a tier higher than T1 if any checkpoint lacks a
+valid witness-anchor.
 
-4. Compute the entangled-binding and jitter-tag using keys derived
-   from the beacon-augmented PRK.
-5. Include the beacon-anchor field (checkpoint key 16) in the
-   checkpoint.
-
-The beacon-anchor structure is:
-
-~~~ cddl
-beacon-anchor = {
-    1 => tstr,          ; beacon-source (URI of beacon service)
-    2 => uint,          ; beacon-round (round number)
-    3 => bstr .size 32, ; beacon-value (randomness output)
-}
-~~~
-
-The Verifier MUST independently fetch the beacon value for the
-declared round from the beacon-source and verify it matches
-beacon-anchor.beacon-value. Verifiers MUST apply a timeout of no
-more than 30 seconds when fetching beacon values. If the beacon
-service is unavailable, the Verifier MUST treat the Evidence as
-non-beacon-anchored and proceed with remaining verification steps.
-The Verifier MUST verify that the beacon round is consistent with
-the checkpoint timestamp plus the protocol-defined delay.
-
-This mechanism transforms T1 temporal ordering from self-reported
-timestamps to externally verifiable time commitments {{HaberStornetta1991}}. The beacon
-value is not predictable at checkpoint creation time, preventing
-retroactive fabrication of Evidence with backdated timestamps.
-
-## Verifier-Nonce Binding (Optional) {#verifier-nonce-binding}
-
-For interactive deployments where the Verifier is online during
-the authoring session, the Attester MAY incorporate a
-Verifier-supplied nonce into each checkpoint's SWF seed. This
-provides the strongest available anti-precomputation guarantee:
-the SWF cannot begin until the Verifier releases the nonce, and
-the Verifier chooses the nonce after the preceding checkpoint is
-submitted.
-
-### Protocol {#verifier-nonce-protocol}
-
-1. The Attester submits checkpoint N-1 to the Verifier.
-2. The Verifier responds with a 32-byte random nonce:
-   verifier-nonce = CSPRNG(32).
-3. The Attester incorporates the nonce into checkpoint N's SWF
-   seed derivation (see {{swf-seed-derivation}}):
-
-~~~ pseudocode
-seed = H(
-    "CPoP-SWF-Seed-v1" ||
-    prev-hash ||
-    prev-swf-output ||          ; Mode 21 only
-    verifier-nonce ||
-    CBOR-encode(jitter-binding.intervals) ||
-    CBOR-encode(physical-state)
-)
-~~~
-
-4. The Attester includes the verifier-nonce in checkpoint key 17.
-5. The Verifier checks that the nonce in the submitted checkpoint
-   matches the nonce it issued.
-
-### Security Properties {#verifier-nonce-security}
-
-The verifier-nonce is strictly stronger than beacon anchoring
-because:
-
-* The nonce is chosen by the Verifier specifically for this
-  Attester and checkpoint, with full 256-bit entropy.
-* The Attester cannot predict the nonce (it is revealed only
-  after the preceding checkpoint is submitted).
-* The Attester cannot precompute the SWF because the seed
-  depends on the nonce.
-* No dependency on external beacon services or network
-  availability.
-
-The verifier-nonce creates a strict request-response dependency
-chain: the Verifier controls the pace of checkpoint production
-by controlling nonce release timing. This is appropriate for
-real-time supervised authoring but not for offline or
-asynchronous workflows.
-
-When both verifier-nonce and beacon-anchoring are used, the
-seed MUST incorporate both values. The two mechanisms are
-complementary: the nonce provides per-Attester freshness, while
-the beacon provides publicly verifiable temporal ordering.
+The full specification of beacon-anchored binding,
+witness-anchored nonce binding (including the witness service
+protocol, nonce expiry, duplicate checks, transparency log, and
+CDDL definitions), and verifier-nonce binding is provided in
+{{CPoE-Anchoring}}.
 
 ## Security Bound {#swf-security}
 
-An adversary who skips fraction f of steps will be detected with probability 1-(1-f)^k where k is the number of sampled proofs. With k=20 and f=0.1, detection probability exceeds 0.878. With k=100 and f=0.05, detection probability exceeds 0.994. This detection probability applies independently to each checkpoint. For a session of N checkpoints, the probability that at least one forged checkpoint is detected is 1 - (1 - p\_detect)^N.
-
-This bound holds under the random oracle model for the selected
-hash function H. The Attester commits to the Merkle root before
-sample positions are derived via the Fiat-Shamir transform. Finding
-a root that biases all k samples away from skipped steps
-requires inverting H, which is computationally infeasible under
-standard assumptions.
-
-### Seed Grinding Resistance {#seed-grinding}
-
-A grinding adversary may try multiple seeds, selecting one where
-the Fiat-Shamir samples avoid skipped steps. This strategy is
-strictly anti-profitable for all skip fractions and sample counts:
-
-Theorem: For any fraction f in (0,1) of skipped steps and sample
-count k >= 2, the expected total work of a grinding adversary
-strictly exceeds honest computation.
-
-Proof sketch: Let n be the step count. Per grinding trial, the
-adversary computes a new seed (negligible cost), executes
-(1-f)\*n steps honestly, fills f\*n positions with invalid data,
-builds the Merkle tree, and derives sample positions. The
-probability of all k samples missing skipped positions is
-(1-f)^k per trial. The expected number of trials is (1-f)^{-k}.
-The expected total work is:
-
-~~~ pseudocode
-W_grind = (1-f)*n * (1-f)^{-k} = n * (1-f)^{1-k}
-~~~
-
-Since k >= 2, the exponent (1-k) <= -1, so (1-f)^{1-k} =
-1 / (1-f)^{k-1} > 1 for all f in (0,1). Therefore W\_grind > n =
-W\_honest.
-
-The grinding overhead is multiplicative and grows rapidly: for
-k=20 and f=0.10, W\_grind is approximately 8.2n (8.2x honest work);
-for k=100 and f=0.05, W\_grind is approximately 131n. Grinding is
-counterproductive because each trial requires computing the full
-honest chain to obtain the Merkle root from which sample positions
-are derived, but the savings from skipping are sublinear in the
-trial count. This result holds regardless of the adversary's
-computational resources.
+The SWF security bound and seed grinding resistance proof are
+specified in {{PoSME}}. In summary: an adversary who skips
+fraction f of steps is detected with probability 1-(1-f)^k where
+k is the number of sampled proofs. Seed grinding is strictly
+anti-profitable for all skip fractions and sample counts (see
+{{PoSME}} for the formal proof). These bounds apply independently
+to each CPoE checkpoint.
 
 ## Hardware-Anchored Time (HAT) {#hat}
 
-In T3/T4 tiers, the AE MUST construct a HAT proof bracketing each
-SWF computation to bind the temporal claim to the TPM's internal
-clock. This prevents "SWF Speed-up" attacks by ensuring that the
-temporal proof is bound to hardware-attested time that the
-adversarial Attester cannot compress or manipulate.
-
-### HAT Proof Construction {#hat-construction}
-
-The Attester MUST obtain TPM-attested time readings before and after
-each SWF computation:
-
-~~~ pseudocode
-T_before = TPM2_GetTime(aikHandle)
-seed = H("CPoP-SWF-Seed-v1" || ... || T_before.attestation)
-... execute SWF ...
-T_after = TPM2_GetTime(aikHandle)
-~~~
-
-The HAT proof structure is:
-
-~~~ cddl
-hat-proof = {
-    1 => bstr,     ; time-before (TPMS_TIME_ATTEST_INFO)
-    2 => bstr,     ; time-after (TPMS_TIME_ATTEST_INFO)
-    3 => bstr,     ; sig-before (AIK signature)
-    4 => bstr,     ; sig-after (AIK signature)
-}
-~~~
-
-The Attester MUST include the hat-proof in checkpoint key 15. The
-SWF seed derivation ({{swf-seed-derivation}}) MUST incorporate the
-T\_before.attestation value, binding the SWF computation to the
-pre-SWF TPM clock reading.
-
-### HAT Verification {#hat-verification}
-
-The Verifier MUST perform the following checks on HAT proofs:
-
-1. Verify both signatures (sig-before, sig-after) against the AIK
-   public key from the TPM Endorsement hierarchy.
-2. Verify that resetCount is identical in both time-before and
-   time-after attestations, confirming no platform reboot occurred
-   between measurements.
-3. Verify T\_before.clockInfo.safe is true, confirming the TPM clock
-   was not disturbed.
-4. Verify the time delta: T\_after.clock - T\_before.clock MUST be
-   greater than or equal to the expected SWF duration for the
-   declared steps and parameters. This bounds the minimum
-   computation time to what the TPM's hardware clock observed.
-5. Verify that process-proof.input (seed) incorporates
-   T\_before.attestation as specified in {{swf-seed-derivation}}.
-6. For checkpoints after the first, verify T\_before.clock is
-   strictly greater than the preceding checkpoint's T\_after.clock,
-   ensuring temporal chain continuity at the hardware level.
-
-The temporal sandwich bounds both acceleration (the SWF cannot
-complete in less time than the TPM clock interval) and replay
-(the TPM clock is monotonic and the resetCount check detects
-reboots). Combined with Mode 21 cryptographic entanglement, this
-creates a double-layered temporal chain: hardware-attested time
-intervals AND cryptographic sequential dependency.
+Hardware-Anchored Time (HAT) binds SWF computations to TPM-attested clock readings at T3/T4 tiers. HAT is specified in {{RATS-HAT}}. Attesters claiming T3/T4 MUST include HAT proofs in checkpoint key 15.
 
 # Experimental Status Rationale {#experimental-status-rationale}
 
-This document and its companion {{CPoP-Appraisal}} are published
-with Experimental status for the following reasons:
+This document and its companion {{CPoE-Appraisal}} are published with Experimental status for the following reasons:
 
-1. *Novel RATS trust model:* CPoP inverts the standard RATS
-   trust assumption by treating the Attester as the primary
-   adversary. This adversarial Attester model has no precedent
-   in IETF attestation standards. Implementation and deployment
-   experience is needed to validate the practical effectiveness
-   of this trust inversion.
+1. *Novel RATS trust model:* The adversarial Attester model inverts standard RATS trust assumptions and requires deployment validation.
+2. *Physical process attestation:* Extending RATS from device state to continuous physical process attestation is a new application area requiring cross-platform validation.
+3. *Calibration parameters:* SWF step counts, checkpoint intervals, and forensic thresholds are initial values subject to revision as memory bandwidth evolves (HBM4, PIM architectures). Verifiers MUST reject Evidence with version greater than 1 unless they implement the corresponding protocol version.
+4. *Ecosystem dependencies:* Tool Receipt key discovery, EAT profile, and SEAT integration reference specifications still in development.
+5. *Forensic thresholds:* MUST-level forensic thresholds in {{CPoE-Appraisal}} may be relaxed to SHOULD based on false positive analysis across diverse author populations.
 
-2. *Physical process attestation:* Extending RATS from device
-   state attestation to continuous physical process attestation
-   is a new application area. The efficacy of SWF-based temporal
-   binding and behavioral entropy capture as anti-forgery
-   mechanisms requires validation across diverse hardware
-   platforms, authoring workflows, and adversarial scenarios.
-
-3. *Calibration parameters:* The SWF step counts, checkpoint
-   intervals, Merkle sample counts, and forensic thresholds
-   defined in this specification are initial values. Field
-   deployment may reveal that adjustments are needed to balance
-   security, performance, and usability across the range of
-   target environments.
-
-4. *Ecosystem dependencies:* The Tool Receipt protocol depends
-   on a tool provider key discovery mechanism that is deferred
-   to a companion document. The EAT profile and SEAT integration
-   points reference specifications that are themselves in
-   development.
-
-5. *Forensic thresholds:* The MUST-level forensic flagging
-   thresholds in {{CPoP-Appraisal}} (spectral flatness, CLC
-   correlation, CoV bounds, etc.) ensure interoperable Verifier
-   behavior for initial deployments but may be relaxed to SHOULD
-   in a future revision based on false positive analysis across
-   diverse author populations.
-
-Implementers are encouraged to report deployment experience,
-particularly regarding SWF performance on diverse hardware,
-false positive rates in forensic assessment, and adversarial
-evasion attempts.
+Implementers are encouraged to report deployment experience, particularly regarding SWF performance, false positive rates, and adversarial evasion attempts.
 
 # IANA Considerations {#iana-considerations}
 
@@ -2610,16 +1882,16 @@ This document requests the following IANA registrations:
 This document requests registration of two CBOR tags in the
 "CBOR Tags" registry per RFC 8949, Section 9.2:
 
-Tag 1129336656:
+Tag 1129336645:
 
 Tag:
-: 1129336656
+: 1129336645
 
 Data Item:
 : map
 
 Semantics:
-: CPoP Evidence Packet (see {{wire-format}} of this document)
+: CPoE Evidence Packet (see {{wire-format}} of this document)
 
 Point of Contact:
 : David Condrey (david@writerslogic.com)
@@ -2636,13 +1908,13 @@ Data Item:
 : map
 
 Semantics:
-: CPoP Attestation Result (see {{CPoP-Appraisal}})
+: CPoE Attestation Result (see {{CPoE-Appraisal}})
 
 Point of Contact:
 : David Condrey (david@writerslogic.com)
 
 Description of Semantics:
-: \[this document\], {{CPoP-Appraisal}}
+: \[this document\], {{CPoE-Appraisal}}
 
 ## Note on SMI Private Enterprise Number {#iana-smi-pen}
 
@@ -2658,16 +1930,16 @@ profile in the "EAT Profiles" registry (or its successor
 registry established by {{RFC9711}} or the EAR specification):
 
 Profile Name:
-: CPoP Attestation Result Profile
+: CPoE Attestation Result Profile
 
 Profile URI:
-: urn:ietf:params:rats:eat:profile:pop:1.0
+: urn:ietf:params:rats:eat:profile:cpoe:1.0
 
 Description:
-: Profile for Cryptographic Proof of Process (CPoP) Attestation
-  Results (WAR format) as defined in {{CPoP-Appraisal}}. The
-  CPoP Evidence Packet format uses a domain-specific CBOR
-  structure (tag 1129336656) that is not an EAT token; this
+: Profile for Cryptographic Proof of Effort (CPoE) Attestation
+  Results (WAR format) as defined in {{CPoE-Appraisal}}. The
+  CPoE Evidence Packet format uses a domain-specific CBOR
+  structure (tag 1129336645) that is not an EAT token; this
   profile URI identifies the Verifier output format. See
   {{evidence-eat-relationship}} for the architectural
   rationale.
@@ -2683,140 +1955,23 @@ Change Controller:
 This document requests provisional registration of the following
 media types in the Standards tree per {{RFC6838}}:
 
-application/cpop+cbor:
-
-Type name:
-: application
-
-Subtype name:
-: cpop+cbor
-
-Required parameters:
-: none
-
-Optional parameters:
-: none
-
-Encoding considerations:
-: binary (CBOR, {{RFC8949}})
-
-Security considerations:
-: See {{security-considerations}} of this document.
-  CPoP Evidence Packets contain cryptographic hashes and timing
-  data but no document content. Receivers MUST validate CBOR
-  structure before processing. Evidence Packets may contain
-  privacy-sensitive behavioral data (keystroke timing).
-
-Interoperability considerations:
-: See {{wire-format}} of this document. Evidence Packets are
-  CBOR-encoded maps tagged with CBOR tag 1129336656.
-
-Published specification:
-: \[this document\]
-
-Applications that use this media type:
-: Authorship attestation systems, content provenance platforms,
-  digital forensics tools, and publishing workflow systems that
-  generate or consume CPoP Evidence Packets.
-
-Fragment identifier considerations:
-: N/A; this media type does not define fragment identifiers.
-
-Additional information:
-
-: Deprecated alias names for this type:
-  : N/A
-
-  Magic number(s):
-  : N/A (identified by CBOR tag 1129336656)
-
-  File extension(s):
-  : .cpop
-
-  Macintosh file type code(s):
-  : N/A
-
-Person & email address to contact for further information:
-: David Condrey (david@writerslogic.com)
-
-Intended usage:
-: COMMON
-
-Restrictions on usage:
-: none
-
-Author:
-: David Condrey
-
-Change controller:
-: David Condrey (david@writerslogic.com)
-
-application/cwar+cbor:
-
-Type name:
-: application
-
-Subtype name:
-: cwar+cbor
-
-Required parameters:
-: none
-
-Optional parameters:
-: none
-
-Encoding considerations:
-: binary (CBOR, {{RFC8949}})
-
-Security considerations:
-: See {{CPoP-Appraisal}}. Attestation Results contain forensic
-  assessment outcomes and forgery cost estimates. Receivers
-  MUST validate CBOR structure and COSE signatures before
-  relying on verdict fields.
-
-Interoperability considerations:
-: See {{CPoP-Appraisal}}. Attestation Results are CBOR-encoded
-  maps tagged with CBOR tag 1129791826.
-
-Published specification:
-: \[this document\], {{CPoP-Appraisal}}
-
-Applications that use this media type:
-: Authorship verification systems, content trust platforms,
-  and relying party applications that consume CPoP Attestation
-  Results (Cryptographic Written Authorship Reports).
-
-Fragment identifier considerations:
-: N/A; this media type does not define fragment identifiers.
-
-Additional information:
-
-: Deprecated alias names for this type:
-  : N/A
-
-  Magic number(s):
-  : N/A (identified by CBOR tag 1129791826)
-
-  File extension(s):
-  : .cwar
-
-  Macintosh file type code(s):
-  : N/A
-
-Person & email address to contact for further information:
-: David Condrey (david@writerslogic.com)
-
-Intended usage:
-: COMMON
-
-Restrictions on usage:
-: none
-
-Author:
-: David Condrey
-
-Change controller:
-: David Condrey (david@writerslogic.com)
+| Field | application/cpoe+cbor | application/cwar+cbor |
+|---|---|---|
+| Subtype name | cpoe+cbor | cwar+cbor |
+| Required parameters | none | none |
+| Optional parameters | none | none |
+| Encoding | binary (CBOR, {{RFC8949}}) | binary (CBOR, {{RFC8949}}) |
+| Security considerations | {{security-considerations}}. Contains cryptographic hashes and timing data, no document content. Receivers MUST validate CBOR structure. May contain privacy-sensitive behavioral data. | {{CPoE-Appraisal}}. Contains forensic assessment outcomes and forgery cost estimates. Receivers MUST validate CBOR structure and COSE signatures. |
+| Interoperability | {{wire-format}}. CBOR maps tagged 1129336645. | {{CPoE-Appraisal}}. CBOR maps tagged 1129791826. |
+| Published specification | \[this document\] | \[this document\], {{CPoE-Appraisal}} |
+| Applications | Authorship attestation, content provenance, digital forensics, publishing workflows | Authorship verification, content trust platforms, relying party applications |
+| Fragment identifiers | N/A | N/A |
+| File extension(s) | .cpoe | .cwar |
+| Magic number(s) | N/A (CBOR tag 1129336645) | N/A (CBOR tag 1129791826) |
+| Intended usage | COMMON | COMMON |
+| Restrictions | none | none |
+| Contact | David Condrey (david@writerslogic.com) | David Condrey (david@writerslogic.com) |
+| Change controller | David Condrey (david@writerslogic.com) | David Condrey (david@writerslogic.com) |
 
 ## TLS Exporter Label {#iana-tls-exporter}
 
@@ -2824,7 +1979,7 @@ This document requests registration of the following TLS exporter
 label in the "TLS Exporter Labels" registry defined in {{RFC5705}}:
 
 Value:
-: EXPORTER-CPoP-channel-binding
+: EXPORTER-CPoE-channel-binding
 
 DTLS-OK:
 : Y
@@ -2837,12 +1992,12 @@ Reference:
 
 ## Future Registry Considerations {#iana-future-registries}
 
-This specification and its companion {{CPoP-Appraisal}} define
+This specification and its companion {{CPoE-Appraisal}} define
 several enumerated code points in their CDDL schemas.
 Code points defined in this document: proof-algorithm,
 attestation-tier, content-tier, hash-algorithm, hash-salt-mode,
 binding-type, probe-type, and confidence-tier. Code points
-defined in {{CPoP-Appraisal}}: verdict, absence-type, and
+defined in {{CPoE-Appraisal}}: verdict, absence-type, and
 cost-unit. During the Experimental phase, these values
 are defined inline in the CDDL and do not require separate
 IANA registries. Extension keys in the evidence-packet and
@@ -2856,28 +2011,28 @@ to enable interoperable extension.
 
 # Security Considerations {#security-considerations}
 
-This section provides security analysis following {{RFC3552}} guidelines. The threat model is defined in {{threat-model}} with the adversarial Attester as the primary threat actor. Detailed forensic security analysis is provided in {{CPoP-Appraisal}}.
+This section provides security analysis following {{RFC3552}} guidelines. The threat model is defined in {{threat-model}} with the adversarial Attester as the primary threat actor. Detailed forensic security analysis is provided in {{CPoE-Appraisal}}.
 
-The CPoP adversary model assumes an attacker with: (a) polynomial-time computation, (b) access to the same SWF parameters as honest Attesters, (c) ability to generate arbitrary behavioral telemetry, but (d) inability to violate the hardness assumptions of the selected hash function or memory-hard function. The attacker's goal is to produce Evidence that passes Verifier appraisal without genuine human cognitive involvement in content creation.
+The CPoE adversary model assumes an attacker with: (a) polynomial-time computation, (b) access to the same SWF parameters as honest Attesters, (c) ability to generate arbitrary behavioral telemetry, but (d) inability to violate the hardness assumptions of the selected hash function or memory-hard function. The attacker's goal is to produce Evidence that passes Verifier appraisal without genuine human cognitive involvement in content creation.
 
 ## Security Layer Model {#sec-layer-model}
 
-CPoP security guarantees operate at three distinct layers with different assurance properties. Verifiers MUST NOT treat lower layers as providing the formal guarantees of higher layers.
+CPoE security guarantees operate at three distinct layers with different assurance properties. Verifiers MUST NOT treat lower layers as providing the formal guarantees of higher layers.
 
-Layer 1, Temporal Binding (Cryptographic):
-: The SWF forces minimum real wall-clock cost derivable from Argon2id memory-hardness {{RFC9106}} and the sequential dependency chain. With entangled mode at 50% duty cycle, forging N hours of Evidence requires approximately N/2 hours of computation at minimum. This is a formal, quantifiable guarantee independent of behavioral signal quality.
+Layer 1, Behavioral Authentication (Primary):
+: Behavioral signals -- inter-keystroke timing entropy (SNR, spectral slope), cognitive load correlation (CLC), error correction topology, editing trajectory analysis, and session consistency -- provide the primary evidence of human cognitive involvement. These mechanisms detect fabricated behavioral data by exploiting the computational difficulty of simultaneously satisfying multiple independent statistical constraints that characterize biological motor control. Behavioral authentication is the core value proposition of CPoE. Thresholds are grounded in the keystroke dynamics literature {{Monrose2000}}{{Monaco2018}}{{Salthouse1986}}{{Dhakal2018}} and calibrated against real-world composition data {{ScholaWrite}}{{ScholaWriteAugmented}}. Single-feature timing approaches are demonstrably insecure {{Condrey2026Attack}}; the multi-dimensional cross-domain entanglement architecture is a direct response to those attack classes.
 
-Layer 2, Behavioral Analysis (Statistical):
-: SNR, CLC, error topology, cadence analysis, and session consistency mechanisms detect fabricated behavioral data and raise the practical cost of forgery. These mechanisms provide defense-in-depth but carry no formal cryptographic guarantee. Thresholds are grounded in the keystroke dynamics literature {{Monrose2000}}{{Monaco2018}}{{Salthouse1986}}{{Dhakal2018}} and calibrated against real-world composition data {{ScholaWrite}}{{ScholaWriteAugmented}}. Single-feature timing approaches are demonstrably insecure {{Condrey2026Attack}}; the multi-dimensional cross-domain entanglement architecture is a direct response to those attack classes.
+Layer 2, Temporal Binding (Cryptographic):
+: The SWF forces minimum real wall-clock cost derivable from Argon2id memory-hardness {{RFC9106}} and the sequential dependency chain. This is a time-lock that prevents retroactive fabrication of evidence, not a proof of work. With entangled mode at 50% duty cycle, forging N hours of Evidence requires approximately N/2 hours of computation at minimum. This layer complements Layer 1 by ensuring that an adversary cannot generate behavioral evidence after-the-fact.
 
 Layer 3, Hardware Attestation (Physical):
 : T3/T4 non-repudiation via hardware roots of trust provides physical freshness markers non-reproducible by the Attester operator.
 
-The forgery cost estimates in the WAR derive from Layer 1 and Layer 3 only. Layer 2 mechanisms inform the forensic-summary and forensic-flag fields but do not contribute to the C_swf or C_hardware cost bounds.
+The forgery cost estimates in the WAR incorporate all three layers. Layer 1 mechanisms inform the forensic-summary and forensic-flag fields. Layer 2 provides the C_swf temporal cost bound. Layer 3 provides the C_hardware cost bound when hardware attestation is present.
 
 ## Primary Threat: Adversarial Attester {#sec-primary-threat}
 
-Unlike traditional remote attestation where external adversaries threaten system integrity, CPoP's primary threat is the Attester operator themselves. The author controls the Attesting Environment and has incentive to claim authenticity for AI-generated or assisted content.
+Unlike traditional remote attestation where external adversaries threaten system integrity, CPoE's primary threat is the Attester operator themselves. The author controls the Attesting Environment and has incentive to claim authenticity for AI-generated or assisted content.
 
 This threat model inversion has fundamental implications:
 
@@ -2886,24 +2041,26 @@ This threat model inversion has fundamental implications:
 * Behavioral entropy must be economically expensive to forge, not merely cryptographically secure
 * Trust in Evidence scales with the Attestation Tier and the cost of bypassing its guarantees
 
+At T1/T2, the security guarantee is: (a) the SWF imposes a quantifiable wall-clock floor on evidence generation (Layer 2), and (b) an adversary must simultaneously fabricate plausible values across multiple independent behavioral dimensions (IKI distribution, coefficient of variation, Hurst exponent, cognitive load correlation, error correction topology, editing trajectory) that jointly satisfy Verifier forensic analysis. The multi-dimensional fabrication burden is empirically grounded in the keystroke dynamics literature but has not been formally bounded against adaptive adversaries. Single-feature timing forgery is demonstrably feasible {{Condrey2026Attack}}; the protocol's defense relies on the joint consistency requirement across independent feature classes, which raises the practical cost of forgery but does not provide a cryptographic guarantee. Relying Parties SHOULD calibrate trust in T1/T2 Evidence accordingly.
+
 ## Retype Attack Defenses {#sec-retype-defense}
 
-The retype attack (see {{retype-attack}}) is the canonical forgery vector. Defenses are layered:
+The retype attack (see {{attack-taxonomy}}) is the canonical forgery vector. Defenses are layered:
 
 Cognitive Load Correlation (CLC):
-: Verifiers analyze correlation between content complexity and typing cadence as specified in {{CPoP-Appraisal}}.
+: Verifiers analyze correlation between content complexity and typing cadence as specified in {{CPoE-Appraisal}}.
 
 Error Topology Analysis:
-: Authentic authoring produces characteristic error patterns: corrections localized near recent insertions, deletion-to-insertion ratios consistent with human cognitive models {{Salthouse1986}}{{ScholaWrite}}{{ScholaWriteAugmented}}, and fractal self-similarity in revision patterns {{Takens1981}}{{Orden2003}}. Retyping produces either unnaturally low error rates or randomly distributed artificial errors.
+: Authentic authoring produces characteristic error patterns: corrections localized near recent insertions, deletion-to-insertion ratios consistent with human cognitive models {{Salthouse1986}}{{ScholaWrite}}{{ScholaWriteAugmented}}, and long-range temporal dependence in revision patterns consistent with 1/f noise in cognitive performance {{Orden2003}}. Retyping produces either unnaturally low error rates or randomly distributed artificial errors.
 
 Temporal Cost:
 : Even successful retype attacks require real-time effort. A 5,000-word document with 10-second checkpoint intervals requires 8+ hours of continuous typing effort to forge. The attack does not scale economically for high-volume forgery.
 
-Relying Parties need to be aware that retype attacks remain viable for short documents or high-value targets willing to invest real time. CPoP provides graduated assurance proportional to document length and checkpoint density.
+Relying Parties need to be aware that retype attacks remain viable for short documents or high-value targets willing to invest real time. CPoE provides graduated assurance proportional to document length and checkpoint density.
 
 ## Relay and Replay Attack Defenses {#sec-relay-replay}
 
-As defined in {{replay-attack}} and {{relay-attack}}, these attacks are defeated through Physical Freshness anchors binding Evidence to non-reproducible physical state:
+As defined in {{attack-taxonomy}} and {{attack-taxonomy}}, these attacks are defeated through Physical Freshness anchors binding Evidence to non-reproducible physical state:
 
 * Thermal trajectories captured during SWF computation cannot be replayed
 * Kernel entropy pool deltas are bound to specific execution moments
@@ -2913,15 +2070,15 @@ Verifiers MUST reject Evidence where physical freshness markers are stale, incon
 
 ## SWF Acceleration Defenses {#sec-swf-speedup}
 
-As analyzed in {{swf-acceleration}}, specialized hardware attacks are mitigated by:
+As analyzed in {{attack-taxonomy}}, specialized hardware attacks are mitigated by:
 
 * *Memory-hardness:* For modes 20/21, every SWF step is a full Argon2id evaluation bounded by memory bandwidth (approximately 50 GB/s for DDR5 {{JESD79-5}}), not ALU throughput. ASICs provide minimal advantage per step, and this resistance compounds across all steps in the chain. For mode 10, memory-hard waypoints ({{swf-algorithm}}) bound the ASIC advantage at waypoint steps to the Argon2id limit.
 * *Hardware-Anchored Time (T3/T4):* The HAT temporal sandwich protocol ({{hat}}) brackets each SWF computation with TPM-attested clock readings, preventing time compression even with faster computation. The Verifier checks that the TPM clock delta meets or exceeds the expected SWF duration.
-* *Merkle sampling:* Skipping SWF steps is detected probabilistically. With k=100 samples, skipping 5% of steps has >99.4% detection probability. Seed grinding does not improve the adversary's position ({{seed-grinding}}).
+* *Merkle sampling:* Skipping SWF steps is detected probabilistically. With k=100 samples, skipping 5% of steps has >99.4% detection probability. Seed grinding does not improve the adversary's position (see {{PoSME}}).
 
 ## Trust Gradation by Tier {#sec-tier-trust}
 
-Relying Parties SHOULD interpret Evidence according to its Attestation Tier. Detailed per-tier verification constraints are defined in {{CPoP-Appraisal}}.
+Relying Parties SHOULD interpret Evidence according to its Attestation Tier. Detailed per-tier verification constraints are defined in {{CPoE-Appraisal}}.
 
 | Tier | Forgery Resistance | Suitability |
 |------|-------------------|-------------|
@@ -2932,57 +2089,11 @@ Relying Parties SHOULD interpret Evidence according to its Attestation Tier. Det
 
 ## Forgery Cost Bounds {#sec-economic-bounds}
 
-Implementations SHOULD report quantified forgery cost estimates in Attestation Results. For CORE profile with `swf-argon2id` (90 steps, m=65536 KiB):
+Implementations SHOULD report quantified forgery cost estimates in Attestation Results. For CORE profile with `swf-argon2id` (90 steps, m=65536 KiB), each checkpoint requires ~9 seconds of sustained memory-hard computation on consumer hardware (DDR4, ~25 GB/s), a ~30% duty cycle within the 30-second checkpoint interval. Entangled mode creates strict inter-checkpoint sequential dependencies: forging N hours of ENHANCED authorship requires approximately N/2 hours of real computation on consumer hardware.
 
-* Sequential computation time: 90 Argon2id evaluations at approximately 100ms each requires ~9 seconds of sustained memory-hard computation per checkpoint on consumer hardware (DDR4, ~25 GB/s memory bandwidth).
-* Memory requirement: 64 MiB per step (steps are sequential, not concurrent)
-* Duty cycle: approximately 30% of the 30-second checkpoint interval
-* Energy cost per checkpoint: approximately $0.0001 USD at consumer electricity rates
+Applying a conservative ASIC advantage factor of 10x, a committed adversary reduces this to approximately N/20 hours. For a 5-hour document, the adversary cost is approximately 15 minutes of ASIC computation plus capital cost of hardware. The forgery cost scales linearly with session duration; parallel machines can produce independent forgeries but cannot accelerate a single session's sequential chain. Relying Parties SHOULD evaluate forgery cost against the adversary's economic context, not the honest Attester's computation time.
 
-For ENHANCED profile with `swf-argon2id-entangled` (150 steps), duty cycle rises to approximately 50%. For MAXIMUM (210 steps), approximately 70%. Entangled mode creates strict inter-checkpoint sequential dependencies: forging N hours of ENHANCED authorship requires approximately N/2 hours of real computation. The forgery cost scales linearly with session duration and superlinearly with checkpoint count due to session consistency requirements across the behavioral dimensions.
-
-### ASIC Advantage Analysis {#asic-advantage}
-
-The ASIC advantage for Argon2id-based SWF modes is bounded by three
-independent factors:
-
-Time-Memory Tradeoff (TMTO):
-: Single-pass Argon2id (t=1) permits at most ~2x reduction in
-  time-area product via ranking-based tradeoff attacks
-  ({{RenDevadas2017}}). Multi-pass reduces this to ~1.33x
-  ({{RFC9106}}, Section 7). CPoP uses t=1 because the TMTO
-  advantage is offset by the multiplicative effect of iterated
-  evaluations: an adversary gaining 2x per step gains 2x overall
-  (not 2^steps), while t>1 would reduce Attester throughput and
-  therefore the achievable step count per checkpoint interval.
-
-Memory Bandwidth:
-: Each Argon2id step is bounded by memory bandwidth, not ALU
-  throughput. Consumer DDR4 provides ~25 GB/s {{JESD79-4}}; DDR5 provides
-  ~50 GB/s {{JESD79-5}}. HBM3 (available in datacenter ASICs) provides
-  ~800 GB/s per stack {{JESD238}} but at substantially higher cost per
-  device. The effective economic advantage is approximately
-  3-4x when amortized over device cost.
-
-Silicon Optimization:
-: Custom Argon2id ASICs can eliminate instruction decode overhead
-  and optimize the Blake2b core, providing an estimated 1.5-2x
-  advantage over general-purpose CPUs for the same memory
-  bandwidth {{Biryukov2016}}{{RenDevadas2017}}.
-
-Combined Advantage:
-: The multiplicative combination of these factors yields an upper
-  bound of approximately 8-16x for a fully optimized ASIC versus
-  consumer DDR4 hardware. However, the economic cost of such
-  hardware ensures that the forgery cost in USD remains
-  substantial. Verifiers SHOULD use a conservative ASIC advantage
-  factor of 10x when computing c-swf in forgery-cost-estimate.
-
-For `swf-sha256` (Mode 10) SHA-256 iterations between waypoints, the
-ASIC advantage exceeds 10,000x. The memory-hard waypoints
-({{swf-algorithm}}) ensure that the effective ASIC advantage over a
-full Mode 10 chain is bounded by the Argon2id advantage at waypoint
-steps, since waypoints dominate the total computation time.
+Detailed ASIC advantage analysis (TMTO bounds, memory bandwidth scaling, silicon optimization factors) is provided in {{CPoE-Appraisal}}. Verifiers SHOULD use an ASIC advantage factor of 10x when computing c-swf in forgery-cost-estimate.
 
 ## Denial of Service {#sec-dos}
 
@@ -3002,7 +2113,7 @@ not prevent forgery by the Attester. Their value is limited to:
 * Binding data fields to the SWF computation within an honestly-generated checkpoint, ensuring the data was committed at checkpoint-generation time (when the SWF output was computed) rather than substituted afterward
 * Providing internal consistency verification (note: the binding keys are derivable from the public merkle-root field; these bindings do not provide third-party tamper detection)
 * In T3/T4 tiers, the packet-level hardware-bound signature (see {{attester-state-machine}}) provides the actual integrity guarantee
-* When beacon-anchoring ({{beacon-binding}}) is used, the binding keys incorporate externally-verifiable randomness, providing temporal anchoring even without hardware attestation
+* When beacon-anchoring ({{CPoE-Anchoring}}) is used, the binding keys incorporate externally-verifiable randomness, providing temporal anchoring even without hardware attestation
 
 ## Edit Graph Commitment Limitations {#sec-edit-graph-limitations}
 
@@ -3031,6 +2142,24 @@ sophisticated adversary. Verifiers SHOULD treat histogram
 analysis as one signal among many, not as definitive
 authentication.
 
+## Selective Checkpoint Omission {#sec-selective-omission}
+
+The hash chain prevents modification of included checkpoints but
+does not prevent omission of trailing checkpoints. An adversary
+can truncate the chain at any point and claim the authoring
+session ended there. Without external anchoring, the Verifier
+cannot determine whether additional checkpoints were generated
+and discarded. Witness-anchored nonce binding
+({{CPoE-Anchoring}}) with transparency logging provides
+detection of omission: the witness log records the checkpoint
+count per session, enabling Verifiers to detect gaps. Deployments
+where selective omission is a concern SHOULD require witness
+anchoring with transparency logging. Beacon anchoring
+({{CPoE-Anchoring}}) provides weaker omission detection: the
+Verifier can verify that the final checkpoint's beacon round is
+consistent with the claimed session end time, but cannot detect
+omitted intermediate checkpoints.
+
 ## Physical Freshness by Tier {#sec-physical-freshness-tiers}
 
 In T1 (Software-Only) and T2 (Attested Software) tiers, the Attester
@@ -3054,12 +2183,41 @@ Conforming implementations MUST:
 * Zero sensitive memory (keys, jitter data) after use
 * Validate all input lengths and formats before processing
 * Reject Evidence with inconsistent internal state (e.g., checkpoint-hash verification failure)
+* Enforce a maximum Evidence Packet size of 16 MiB after CBOR decoding
+* Enforce a maximum CBOR nesting depth of 32 levels during parsing
+* Reject Evidence Packets containing more than 10,000 checkpoints
 
 T3/T4 implementations MUST additionally:
 
 * Store signing keys exclusively in hardware Secure Elements
 * Bind SWF seeds to TPM monotonic counters
 * Verify platform integrity before Evidence generation
+
+## Internationalization and Input Method Considerations {#sec-i18n}
+
+The behavioral model described in this specification is calibrated
+primarily against alphabetic keyboard input (Latin script, QWERTY
+layout). Input Method Editors (IMEs) for CJK languages (Chinese
+Pinyin/Wubi, Japanese Kana/Romaji, Korean Hangul) produce
+fundamentally different keystroke patterns: phonetic key sequences
+followed by candidate selection, with composition events that may
+not generate standard key-down/key-up pairs. Similarly,
+right-to-left scripts (Arabic, Hebrew) produce bidirectional cursor
+movement patterns that differ from left-to-right editing
+trajectories.
+
+Implementations MUST capture IME composition events as behavioral
+input alongside raw keystrokes. Verifiers MUST NOT apply
+alphabetic-typing forensic thresholds (Hurst exponent ranges, IKI
+distribution expectations) to Evidence generated with IME-based
+input without appropriate recalibration. The jitter-binding
+structure captures inter-event intervals regardless of input
+method; the forensic interpretation of those intervals is
+input-method-dependent and is specified in {{CPoE-Appraisal}}.
+
+Future revisions of this specification may define input-method
+profile identifiers to enable Verifiers to select appropriate
+forensic baselines automatically.
 
 ## Signing Key Lifecycle and Rotation {#sec-key-rotation}
 
@@ -3103,11 +2261,13 @@ This section addresses privacy in accordance with {{RFC6973}}.
 
 ## Data Minimization {#priv-minimization}
 
-CPoP Evidence Packets do not contain document content. Content binding uses cryptographic hashes (H, as selected by hash-algorithm) which are computationally irreversible. The author-salted mode (hash-salt-mode=1) provides additional protection by preventing rainbow-table correlation across documents.
+CPoE Evidence Packets do not contain document content. Content binding uses cryptographic hashes (H, as selected by hash-algorithm) which are computationally irreversible. The author-salted mode (hash-salt-mode=1) provides additional protection by preventing rainbow-table correlation across documents.
+
+However, hash-based content binding provides confidentiality only when the document space is effectively unbounded. In constrained domains where the set of candidate documents is small (e.g., standardized legal forms, academic paper templates, published preprints), an observer with access to the candidate set can compute hashes and match against content-hash values in checkpoints, revealing document identity and editing trajectory without accessing the document itself. Authors working in constrained document spaces MUST use author-salted mode to prevent this correlation. Even with salting, the checkpoint count and temporal pattern of an Evidence Packet may reveal document length and composition timeline; authors should consider this metadata exposure when deciding whether to share Evidence.
 
 ## Behavioral Fingerprinting {#priv-fingerprinting}
 
-Jitter sequences in ENHANCED and MAXIMUM profiles constitute behavioral biometrics. To protect author privacy, Verifiers are expected to:
+Jitter sequences in ENHANCED and MAXIMUM profiles constitute behavioral biometrics. Keystroke dynamics are classified as biometric data under multiple legal frameworks including GDPR Article 4(14), CCPA/CPRA, and Illinois BIPA. Deployments that collect, store, or transmit jitter-binding data MUST comply with applicable biometric data regulations, which may require explicit informed consent, purpose limitation, data retention limits, and right-to-deletion mechanisms. To protect author privacy, Verifiers are expected to:
 
 * Discard jitter data after the verification session completes
 * Avoid correlating jitter across multiple Evidence Packets to prevent author deanonymization
@@ -3167,26 +2327,17 @@ Selective disclosure:
 # SWF Test Vectors {#test-vectors}
 {:numbered="false"}
 
-The following test vectors validate SWF implementations.
-
-These test vectors use the type-tagged salt derivation (0x00/0x01
-prefixes) and memory-hard waypoints for Mode 10 as specified in
-{{swf-algorithm}}. All vectors use SHA-256 (hash-algorithm value 1).
+The following test vectors validate SWF implementations using the
+CPoE domain separation tags. All vectors use SHA-256 (hash-algorithm
+value 1).
 
 ## swf-sha256 (Mode 10) Test Vector {#test-vector-mode10}
 {:numbered="false"}
 
-NOTE: This vector uses the `swf-sha256` construction with
-memory-hard waypoints (W=1000, waypoint-memory=32768 KiB):
-Argon2id initialization, then iterated SHA-256 with Argon2id
-waypoints at every 1000th step. The initial salt uses the
-type-tagged derivation H(0x00 \|\| "CPoP-salt-v1" \|\| seed).
-Waypoint salts use H(0x01 \|\| "CPoP-salt-v1" \|\| I2OSP(i, 4)).
-
 ~~~ test-vectors
-Seed: "cpop-genesis-v1"
-Seed (hex): 7769746e657373642d67656e657369732d7631
-Salt: H(0x00 || "CPoP-salt-v1" || seed)  [H = SHA-256]
+Seed: "cpoe-genesis-v1"
+Seed (hex): 63706f652d67656e657369732d7631
+Salt: H(0x00 || "CPoE-salt-v1" || seed)
 
 Argon2id Parameters (initialization):
   Time Cost (t): 1
@@ -3203,41 +2354,33 @@ Argon2id Parameters (waypoints):
 Steps: 10,000
 Waypoint Interval (W): 1000
 
-Salt (hex): 966efc16acdedf88bd3b841d9576d6b9
-             5b3a58dfba2d9b2087b6f02da126d296
+Salt (hex): 20d10e03c713b5be87fbecccab13465e
+             513eac5835e52ac0ac9c8d50dab9fba8
 
 Intermediate States:
   state_0 (Argon2id):
-    55518d63068b5f245d9dccf5919cbcdc
-    1fa1b3256e89a5c1eb7a7b37609b323f
+    f4a9461757a2ab266e7572ffbfc662b9
+    c3afd5d6b2233d163f0d28add6ed529f
   state_1000 (waypoint, Argon2id):
-    f880ebfd403904f134c8ddaaa85e21dd
-    4803293a8e5eb95eafe7ec88944f28c6
+    2c926557fd907959bcd7a970a42b837c
+    3738cf6f104bf862741c38cbe5fd3924
   state_5000 (waypoint, Argon2id):
-    f9884b1c4bd487cda521ee3476079ae1
-    8be449a086ec06ffbd4f8b09c75ad9f9
+    35e8e8fb91f7fbe1a4078f42074dc1ea
+    a5b3892749170b0892787bbef5f4e6f0
   state_9999 (SHA-256):
-    b0ccd34431edab8f4fe568bee0fa4bdd
-    ac971a3d7057bf23d33097d87eb81968
+    de7e5e1928f5bc4db0f36eb407b67772
+    2b4000337ef6c197e91a211220ea58c5
   state_10000 (waypoint, Argon2id, final):
-    19cbc991d4f154f47f912aa232a0c36b
-    c9f205c6cc1609984a142c9bd1f745a7
+    a207cf20421f2a231503d811352f1b45
+    fa75f7819b627f71ae0e7e626f64a51a
 ~~~
 
 ## swf-argon2id (Mode 20) Test Vector {#test-vector-mode20}
 {:numbered="false"}
 
-NOTE: This vector uses the `swf-argon2id` construction: iterated
-Argon2id evaluations with type-tagged salts. Each step feeds the
-previous state as the password input. The salt for state\_0 is
-H(0x00 \|\| "CPoP-salt-v1" \|\| seed). The salt for step i >= 1 is
-H(0x01 \|\| "CPoP-salt-v1" \|\| I2OSP(i, 4)). Implementers should
-verify state\_0 matches the `swf-sha256` vector above (identical
-Argon2id initialization).
-
 ~~~ test-vectors
-Seed: "cpop-genesis-v1"
-Seed (hex): 7769746e657373642d67656e657369732d7631
+Seed: "cpoe-genesis-v1"
+Seed (hex): 63706f652d67656e657369732d7631
 
 Argon2id Parameters (per step):
   Time Cost (t): 1
@@ -3249,21 +2392,21 @@ Steps: 3
 
 Intermediate States:
   state_0 (Argon2id, seed as password,
-           salt=H(0x00 || "CPoP-salt-v1" || seed)):
-    55518d63068b5f245d9dccf5919cbcdc
-    1fa1b3256e89a5c1eb7a7b37609b323f
+           salt=H(0x00 || "CPoE-salt-v1" || seed)):
+    f4a9461757a2ab266e7572ffbfc662b9
+    c3afd5d6b2233d163f0d28add6ed529f
   state_1 (Argon2id, state_0 as password,
-           salt=H(0x01 || "CPoP-salt-v1" || I2OSP(1, 4))):
-    6a6df1cfbce07c09036526e19f7b6e73
-    ef2ce911d1ea77a66bb23bde5b033a79
+           salt=H(0x01 || "CPoE-salt-v1" || I2OSP(1, 4))):
+    c16d4c36d8bec173d03b302740dccb5e
+    c221d90d5cfbab4ac852851270a7839f
   state_2 (Argon2id, state_1 as password,
-           salt=H(0x01 || "CPoP-salt-v1" || I2OSP(2, 4))):
-    bfa124c53651b2aedc79f48ec562342f
-    91efc8bc61cd8f833a5e63efbb41af44
+           salt=H(0x01 || "CPoE-salt-v1" || I2OSP(2, 4))):
+    6a5e0491d3d27a1880a2896732739cc6
+    c279262bb56bd74d20125320bde7ab70
   state_3 (Argon2id, state_2 as password,
-           salt=H(0x01 || "CPoP-salt-v1" || I2OSP(3, 4))):
-    bdd55e641b507d2d2d49cb67cb34c78d
-    92952ce025ef1b22a906f4721bcceb7c
+           salt=H(0x01 || "CPoE-salt-v1" || I2OSP(3, 4))):
+    458670264b4dd3be8598749ad33567d2
+    4a4e50eddc2f6b2751ae1f17713a31b1
 ~~~
 
 # Acknowledgements {#acknowledgements}
