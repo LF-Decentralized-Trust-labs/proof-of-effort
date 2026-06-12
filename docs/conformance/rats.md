@@ -89,7 +89,7 @@ proofs.
 
 ## References
 
-- [draft-condrey-hat -- Hardware Attestation of Time (HAT)](../draft-condrey-hat.md) -- standalone HAT specification extracted from CPoE
+- [draft-condrey-hat -- Hardware Attestation of Time (HAT)](../../draft-condrey-hat.md) -- standalone HAT specification extracted from CPoE
 - [RFC 9334 -- Remote ATtestation procedureS (RATS) Architecture](https://www.rfc-editor.org/rfc/rfc9334)
 - [draft-ietf-rats-eat -- Entity Attestation Token](https://datatracker.ietf.org/doc/draft-ietf-rats-eat/)
 - [draft-ietf-rats-corim -- Concise Reference Integrity Manifest](https://datatracker.ietf.org/doc/draft-ietf-rats-corim/)
