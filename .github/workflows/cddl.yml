@@ -38,7 +38,11 @@ jobs:
         restore-keys: cddl-
 
     - name: "Install cddl"
-      run: cargo install cddl --locked
+      run: cargo install cddl --locked --force
 
     - name: "Validate"
-      run: cddl compile-cddl --cddl cddl/cpop.cddl
+      run: |
+        for schema in cddl/*.cddl; do
+          echo "Validating $schema"
+          cddl compile-cddl --cddl "$schema"
+        done

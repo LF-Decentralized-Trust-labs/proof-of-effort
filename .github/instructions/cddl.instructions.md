@@ -2,11 +2,11 @@
 applyTo: "cddl/**/*.cddl"
 ---
 
-Single schema: `cddl/cpop.cddl` — covers both drafts.
+Single schema: `cddl/cpoe.cddl` — covers both drafts.
 
 ## Tags
 
-`pop-evidence = #6.1129336656(evidence-packet)` · `pop-war = #6.1129791826(attestation-result)`
+`cpoe-evidence = #6.1129336645(evidence-packet)` · `cpoe-war = #6.1129791826(attestation-result)`
 Never change tag values — protocol constants.
 
 ## Conventions
@@ -18,7 +18,7 @@ Never change tag values — protocol constants.
 
 ## Rules
 
-- Never invent CBOR tags — only 1129336656 and 1129791826 exist
+- Never invent CBOR tags — only 1129336645, 1129791826, and 1129336658 exist
 - Never change integer key assignments — wire-format stable
 - Never remove fields — deprecate with comment if needed
 - Validate: `make` checks CDDL syntax

@@ -46,10 +46,12 @@ jobs:
           --exclude 'writerslogic'
           --exclude 'cawg.io'
           --exclude 'sagaftra.org'
+          --exclude 'lf-decentralized-trust-labs.github.io/proof-of-effort/draft-condrey-cpoe'
+          --exclude 'w3c-ccg.github.io/confidence-method'
           --timeout 30
           --max-retries 3
-          --exclude-path 'draft-condrey-cpop-protocol.md'
-          --exclude-path 'draft-condrey-cpop-appraisal.md'
+          --exclude-path 'draft-condrey-cpoe-protocol.md'
+          --exclude-path 'draft-condrey-cpoe-appraisal.md'
           '*.md'
           'docs/**/*.md'
         fail: true

@@ -1,8 +1,8 @@
 ---
 v: 3
-docname: draft-condrey-cpop-appraisal-latest
-title: "Cryptographic Proof of Process (CPoP): Forensic Appraisal and Security Model"
-abbrev: CPoP Appraisal
+docname: draft-condrey-cpoe-appraisal-latest
+title: "Cryptographic Proof of Effort (CPoE): Forensic Appraisal and Security Model"
+abbrev: CPoE Appraisal
 category: exp
 ipr: trust200902
 submissiontype: independent
@@ -14,6 +14,7 @@ keyword:
   - biometrics
   - security economics
 
+date: 2026-05
 stand_alone: yes
 pi:
   toc: yes
@@ -36,19 +37,28 @@ normative:
   RFC8610:
   RFC8949:
   RFC9052:
-  CPoP-Protocol:
-    title: "Cryptographic Proof of Process (CPoP): Architecture and Evidence Format"
+  RFC9334:
+  CPoE-Protocol:
+    title: "Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"
     author:
       - fullname: David Condrey
         initials: D.
         surname: Condrey
     date: 2026-02
     seriesinfo:
-      Internet-Draft: draft-condrey-cpop-protocol-06
+      Internet-Draft: draft-condrey-cpoe-protocol-00
 
 informative:
   RFC9106:
-  RFC9334:
+  RATS-HAT:
+    title: "Hardware Attestation of Time (HAT): TPM-Based Temporal Binding for Remote Attestation"
+    author:
+      - fullname: David Condrey
+        initials: D.
+        surname: Condrey
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-condrey-hat-00
   Monrose2000:
     title: Keystroke dynamics as a biometric for authentication
     target: https://doi.org/10.1016/S0167-739X(99)00059-X
@@ -305,6 +315,19 @@ informative:
     date: 2003
     seriesinfo:
       "Journal of Experimental Psychology: General": "132(3), 331-350"
+  LoganCowan1984:
+    title: "On the Ability to Inhibit Thought and Action: A Theory of an Act of Control"
+    target: https://doi.org/10.1037/0033-295X.91.3.295
+    author:
+      - fullname: Gordon D. Logan
+        initials: G.D.
+        surname: Logan
+      - fullname: William B. Cowan
+        initials: W.B.
+        surname: Cowan
+    date: 1984
+    seriesinfo:
+      "Psychological Review": "91(3), 295-327"
   Salthouse1986:
     title: "Perceptual, Cognitive, and Motoric Aspects of Transcription Typing"
     target: https://doi.org/10.1037/0033-2909.99.3.303
@@ -411,32 +434,32 @@ informative:
 
 --- abstract
 
-This document specifies the forensic appraisal methodology and quantitative security model for the Cryptographic Proof of Process (CPoP) framework defined in the companion protocol document. It defines the Verifier's evaluation of behavioral entropy, forgery cost bounds, and the Cryptographic Written Authorship Report (WAR) wire format. It is intended for implementers of CPoP Verifier components.
+This document specifies the forensic appraisal methodology and quantitative security model for the Cryptographic Proof of Effort (CPoE) framework defined in the companion protocol document. It defines the Verifier's evaluation of behavioral entropy, forgery cost bounds, and the Cryptographic Written Authorship Report (WAR) wire format. It is intended for implementers of CPoE Verifier components.
 
 --- to_be_removed_note_Discussion_Venues
 
 Source for this draft and an issue tracker can be found at
-<https://github.com/writerslogic/draft-condrey-cpop>.
+<https://github.com/writerslogic/draft-condrey-cpoe>.
 
 --- middle
 
 # Introduction {#introduction}
 
-The value of Cryptographic Proof of Process (CPoP) evidence lies in the Verifier's ability to distinguish biological effort from algorithmic simulation. While traditional RATS {{RFC9334}} appraisals verify system state, CPoP appraisal verifies a continuous physical process. This document provides the normative framework for forensic appraisal, defining the logic required to generate a Cryptographic Written Authorship Report (WAR).
+The value of Cryptographic Proof of Effort (CPoE) evidence lies in the Verifier's ability to distinguish biological effort from algorithmic simulation. While traditional RATS {{RFC9334}} appraisals verify system state, CPoE appraisal verifies a continuous physical process. This document provides the normative framework for forensic appraisal, defining the logic required to generate a Cryptographic Written Authorship Report (WAR).
 
-This document is a companion to {{CPoP-Protocol}},
+This document is a companion to {{CPoE-Protocol}},
 which defines the Evidence Packet wire format and Attester
 procedures. The present document specifies the Verifier's appraisal
 logic, Attestation Result (WAR) wire format, and forensic
 methodology. Implementers of Verifier components require both
 documents.
 
-At T3/T4 attestation tiers, platform integrity verification as described in the SEAT use cases {{SEAT-UseCases}} provides the trust anchor for CPoP's hardware-bound claims. When CPoP Evidence is delivered over an attested TLS channel {{SEAT-EXPAT}}, the Verifier gains assurance that the Attesting Environment's platform was trustworthy during evidence generation.
+At T3/T4 attestation tiers, platform integrity verification as described in the SEAT use cases {{SEAT-UseCases}} provides the trust anchor for CPoE's hardware-bound claims. When CPoE Evidence is delivered over an attested TLS channel {{SEAT-EXPAT}}, the Verifier gains assurance that the Attesting Environment's platform was trustworthy during evidence generation.
 
 # Terminology {#terminology}
 
 This document uses the following terms in addition to those defined
-in {{RFC9334}} and {{CPoP-Protocol}}:
+in {{RFC9334}} and {{CPoE-Protocol}}:
 
 Synthetic Authoring:
 : Content generated by AI or automated tools that is subsequently attributed to a human author.
@@ -474,13 +497,13 @@ Composite Assessment:
 
 # Step-by-Step Verification Procedure {#verification-procedure}
 
-A Verifier MUST perform the following procedure to appraise a CPoP Evidence Packet:
+A Verifier MUST perform the following procedure to appraise a CPoE Evidence Packet:
 
-1. *Structural Validation:* The Verifier MUST reject with verdict invalid (4) any Evidence Packet that: (a) fails CBOR decoding, (b) lacks CBOR tag 1129336656, (c) has version != 1, (d) is missing mandatory fields (keys 1-6 in evidence-packet, keys 1-9 in each checkpoint), or (e) contains CBOR types that do not match the CDDL schema.
+1. *Structural Validation:* The Verifier MUST reject with verdict invalid (4) any Evidence Packet that: (a) fails CBOR decoding, (b) lacks CBOR tag 1129336645, (c) has version != 1, (d) is missing mandatory fields (keys 1-6 in evidence-packet, keys 1-9 in each checkpoint), or (e) contains CBOR types that do not match the CDDL schema.
 
-2. *Chain Integrity:* Verify the hash link (using the Evidence Packet's selected hash function H, as defined in {{CPoP-Protocol}}) between all checkpoints. For continuation packets (previous-packet-ref present), additionally verify that the first checkpoint's prev-hash equals the final checkpoint-hash of the preceding Evidence Packet and that checkpoint sequence numbers are globally monotonic across the series. Any break invalidates the entire Evidence Packet (or series). The Verifier MUST set the verdict to invalid (4). The warnings field SHOULD include the checkpoint sequence number where the break was detected.
+2. *Chain Integrity:* Verify the hash link (using the Evidence Packet's selected hash function H, as defined in {{CPoE-Protocol}}) between all checkpoints. For continuation packets (previous-packet-ref present), additionally verify that the first checkpoint's prev-hash equals the final checkpoint-hash of the preceding Evidence Packet and that checkpoint sequence numbers are globally monotonic across the series. Any break invalidates the entire Evidence Packet (or series). The Verifier MUST set the verdict to invalid (4). The warnings field SHOULD include the checkpoint sequence number where the break was detected.
 
-3. *Temporal Order:* For each process-proof, recompute Argon2id from the declared seed to obtain state_0, then verify sampled Merkle proofs against the committed root (process-proof key 4, merkle-root). Verify that claimed-duration is within \[0.5x, 3.0x\] of the expected wall-clock time for the declared proof-params on reference hardware. Reference hardware is defined as a system with DDR4-2400 memory providing 25 GB/s peak bandwidth at 100% utilization with no OS scheduling contention. Verifiers operating on different hardware MUST apply a correction factor proportional to measured memory bandwidth. The \[0.5x, 3.0x\] tolerance range accommodates typical hardware variation. Expected times are defined in {{CPoP-Protocol}}, Mandatory SWF Parameters section. When comparing timestamps across devices or against external time sources, the clock skew tolerances defined in {{clock-skew-tolerance}} MUST be applied.
+3. *Temporal Order:* For each process-proof, recompute Argon2id from the declared seed to obtain state_0, then verify sampled Merkle proofs against the committed root (process-proof key 4, merkle-root). Verify that claimed-duration is within \[0.5x, 3.0x\] of the expected wall-clock time for the declared proof-params on reference hardware. Reference hardware is defined as a system with DDR4-2400 memory providing 25 GB/s peak bandwidth at 100% utilization with no OS scheduling contention. Verifiers operating on different hardware MUST apply a correction factor proportional to measured memory bandwidth. The \[0.5x, 3.0x\] tolerance range accommodates typical hardware variation. Expected times are defined in {{CPoE-Protocol}}, Mandatory SWF Parameters section. When comparing timestamps across devices or against external time sources, the clock skew tolerances defined in {{clock-skew-tolerance}} MUST be applied.
 
 4. *Entropy Threshold:* Independently estimate entropy from the jitter-binding intervals array using a standard entropy estimator (e.g., NIST SP 800-90B most common value estimator). Verify the independent estimate meets or exceeds 3.0 bits per inter-keystroke interval {{Dhakal2018}}. The Attester's self-reported entropy-estimate field MUST NOT be relied upon. Low-entropy segments (below threshold) MUST be flagged as "Non-Biological."
 
@@ -498,7 +521,7 @@ in the WAR warnings that behavioral analysis was not performed.
 8. *Profile Matching:* If the Verifier's policy requires ENHANCED or MAXIMUM evidence but the Evidence Packet provides only CORE content tier, the Verifier MUST assign the verdict inconclusive (2) and include a warning indicating the content tier mismatch.
 
 When appraising a series of continuation packets (linked via
-previous-packet-ref as defined in {{CPoP-Protocol}}),
+previous-packet-ref as defined in {{CPoE-Protocol}}),
 the Verifier MUST apply the above steps to each packet
 individually and additionally verify cross-packet linkage:
 the previous-packet-ref hash MUST match the complete
@@ -513,7 +536,7 @@ rollover points.
 
 ## Clock Skew Tolerance {#clock-skew-tolerance}
 
-Distributed CPoP deployments involve timestamp comparisons across
+Distributed CPoE deployments involve timestamp comparisons across
 independently-clocked devices (Attester, Verifier, OOB presence
 challenge device). Because no two clocks are perfectly
 synchronized, Verifiers MUST apply the following tolerances
@@ -542,7 +565,7 @@ Cross-device validation (OOB-PC):
 
 Attester-to-Verifier comparison:
 : The Verifier MUST NOT reject Evidence solely because
-  Attester-generated pop-timestamp values differ from the
+  Attester-generated cpoe-timestamp values differ from the
   Verifier's own wall clock. Temporal validation is primarily
   relative: the Verifier checks intra-chain ordering,
   duration plausibility, and cross-checkpoint consistency. If
@@ -582,13 +605,13 @@ Cognitive Load Correlation (CLC):
 : Verifiers MUST correlate timing patterns with semantic complexity. Human authors exhibit increased inter-keystroke intervals (IKI) and pause frequency during composition of semantically complex segments compared to simple connective text {{Dhakal2018}}. Verifiers MUST compute the Pearson correlation between segment semantic complexity and mean IKI. Evidence with r < 0.2 (or r < 0.1 in assistive mode) MUST be flagged as a Semantic Mismatch. Semantic complexity per checkpoint is estimated as the normalized compression ratio of the inserted text: complexity = 1 - (compressed_length / raw_length), where compression uses the DEFLATE algorithm (RFC 1951) on the UTF-8 encoded insertion. Higher values indicate more complex, less repetitive content. The CLC metric coefficient r is computed as Pearson's correlation between per-checkpoint semantic complexity and per-checkpoint mean inter-keystroke interval across all checkpoints in the session.
 
 Mechanical Turk Detection:
-: Verifiers MUST compute C_intra (Pearson correlation between pause duration and subsequent edit complexity within each checkpoint). C_intra is computed per checkpoint as: C_intra = standard_deviation(IKI) / mean(IKI), where IKI is the set of inter-keystroke intervals within that checkpoint. Pause duration refers to inter-keystroke intervals exceeding 500 milliseconds. Edit complexity is the character-level Levenshtein distance between the document state at checkpoint start and checkpoint end, normalized by checkpoint character count. C_intra values below 0.15 MUST be flagged as indicating robotic pacing, where an automated system maintains a machine-clocked editing rate independent of content demands.{{Monrose2000}}{{Monaco2018}} Checkpoints containing receipt structures (key 13) MUST have their associated paste events excluded from C_intra computation.
+: Verifiers MUST compute IKI-CoV (coefficient of variation of inter-keystroke intervals within each checkpoint). IKI-CoV is computed per checkpoint as: IKI-CoV = standard_deviation(IKI) / mean(IKI), where IKI is the set of inter-keystroke intervals within that checkpoint. Pause duration refers to inter-keystroke intervals exceeding 500 milliseconds. Edit complexity is the character-level Levenshtein distance between the document state at checkpoint start and checkpoint end, normalized by checkpoint character count. IKI-CoV values below 0.15 MUST be flagged as indicating robotic pacing, where an automated system maintains a machine-clocked editing rate independent of content demands.{{Monrose2000}}{{Monaco2018}} Checkpoints containing receipt structures (key 13) MUST have their associated paste events excluded from IKI-CoV computation.
 
 Error Topology Analysis:
 : Verifiers SHOULD analyze error patterns for consistency with human cognitive processing {{Salthouse1986}}: localized corrections near recent insertions, fractal self-similarity in revision patterns, and deletion-to-insertion ratios consistent with natural composition. Evidence exhibiting unnaturally low error rates (below 1 correction per 500 characters {{Dhakal2018}}) or randomly distributed errors lacking positional correlation SHOULD be flagged.{{ScholaWriteAugmented}}
 
 QR Presence Challenge (OOB-PC):
-: When presence-challenge structures are present in the Evidence Packet, Verifiers MUST verify that the response-time is within the corresponding checkpoint's time window (subject to the cross-device clock skew tolerance defined in {{clock-skew-tolerance}}) and MUST validate the device-signature. NOTE: The Attester-side procedure for issuing presence challenges is specified in {{CPoP-Protocol}}.
+: When presence-challenge structures are present in the Evidence Packet, Verifiers MUST verify that the response-time is within the corresponding checkpoint's time window (subject to the cross-device clock skew tolerance defined in {{clock-skew-tolerance}}) and MUST validate the device-signature. NOTE: The Attester-side procedure for issuing presence challenges is specified in {{CPoE-Protocol}}.
 
 Session Consistency Analysis:
 : Verifiers MUST analyze cross-checkpoint behavioral trends. IKI distributions should exhibit gradual drift consistent with fatigue effects {{Dhakal2018}}. An abrupt change is defined as a shift in mean IKI between consecutive checkpoints exceeding 2 standard deviations of the session-wide IKI distribution. Verifiers MUST flag transitions exceeding this threshold as potential data source switching. Jitter-binding intervals across consecutive checkpoints MUST be checked for statistical independence (cross-checkpoint correlation below 0.3). Edit-delta patterns SHOULD be checked for non-stationarity consistent with human creative flow.
@@ -603,7 +626,23 @@ Biological Cadence Analysis:
 : Verifiers MUST compute the Coefficient of Variation (CoV = standard deviation / mean) of inter-keystroke intervals within each checkpoint. Human typing exhibits characteristic CoV values reflecting biological motor variance. Evidence with per-checkpoint CoV consistently below 0.15 (mechanically regular) MUST be flagged as potentially non-biological.{{Monrose2000}}{{Dhakal2018}} Evidence with per-checkpoint CoV consistently above 0.90 (chaotically irregular) SHOULD be flagged as potentially injected random noise. The session-wide CoV trend SHOULD exhibit gradual drift consistent with fatigue and warm-up effects {{Adams1961}}.
 
 Inertial Coherence Analysis:
-: When the Evidence Packet contains inertial-sample data (physical-state key 4), Verifiers MUST compute the magnitude-squared coherence between the inter-keystroke interval (IKI) series and the inertial impulse magnitude series. The IKI series is resampled to a uniform time grid matching the inertial sample rate. The inertial impulse magnitude at each sample is computed as sqrt(x^2 + y^2 + z^2). The magnitude-squared coherence is: C_xy(f) = |P_xy(f)|^2 / (P_xx(f) * P_yy(f)), where P_xx and P_yy are the power spectral densities of the IKI and inertial series respectively, and P_xy is the cross-spectral density. PSD and CSD MUST be estimated using Welch's method with a minimum window of 64 samples and 50% overlap, consistent with the SNR analysis PSD estimator. Human keystroke biomechanics produce coherence peaks in the 2-8 Hz band corresponding to finger strike and recoil dynamics. Evidence with mean coherence below 0.2 in the 2-8 Hz band while the IKI series contains non-zero activity MUST be flagged as a potential IKI injection, indicating that digital timestamps claim keystrokes occurred without corresponding physical impulses. Evidence with mean coherence above 0.6 in the 2-8 Hz band is consistent with authentic physical typing. Coherence values between 0.2 and 0.6 are inconclusive and MUST NOT trigger a flag. In T1/T2 tiers, inertial data is software-reported and this mechanism provides dimensionality rather than proof; Verifiers MUST NOT treat passing inertial coherence as equivalent to hardware attestation. Inertial samples MUST be uniformly sampled at a rate documented in the source-descriptor (jitter-binding key 2). If the actual sample count is below 50, the Verifier MUST skip inertial coherence analysis for that checkpoint (insufficient data for reliable PSD estimation). If the inter-sample timestamp intervals vary by more than 20% from the declared rate, the Verifier MUST reject the inertial-sample array as non-uniform and skip this mechanism. When inertial-sample data is present in ENHANCED or MAXIMUM Evidence Packets, Verifiers MUST evaluate inertial coherence. For CORE profile packets, inertial coherence evaluation is OPTIONAL. When inertial-sample data is absent, Verifiers MUST skip this mechanism and MUST NOT treat its absence as a verification failure.
+: When the Evidence Packet contains inertial-sample data (physical-state key 4), Verifiers MUST compute the magnitude-squared coherence between the inter-keystroke interval (IKI) series and the inertial impulse magnitude series. The IKI series is resampled to a uniform time grid matching the inertial sample rate. The inertial impulse magnitude at each sample is computed as sqrt(x\*\*2 + y\*\*2 + z\*\*2). The magnitude-squared coherence is computed as C\_xy(f) = abs(P\_xy(f))\*\*2 / (P\_xx(f) \* P\_yy(f)), where P\_xx and P\_yy are the power spectral densities of the IKI and inertial series respectively, and P\_xy is the cross-spectral density. PSD and CSD MUST be estimated using Welch's method with a minimum window of 64 samples and 50% overlap, consistent with the SNR analysis PSD estimator. Human keystroke biomechanics produce coherence peaks in the 2-8 Hz band corresponding to finger strike and recoil dynamics. Evidence with mean coherence below 0.2 in the 2-8 Hz band while the IKI series contains non-zero activity MUST be flagged as a potential IKI injection, indicating that digital timestamps claim keystrokes occurred without corresponding physical impulses. Evidence with mean coherence above 0.6 in the 2-8 Hz band is consistent with authentic physical typing. Coherence values between 0.2 and 0.6 are inconclusive and MUST NOT trigger a flag. In T1/T2 tiers, inertial data is software-reported and this mechanism provides dimensionality rather than proof; Verifiers MUST NOT treat passing inertial coherence as equivalent to hardware attestation. Inertial samples MUST be uniformly sampled at a rate documented in the source-descriptor (jitter-binding key 2). If the actual sample count is below 50, the Verifier MUST skip inertial coherence analysis for that checkpoint (insufficient data for reliable PSD estimation). If the inter-sample timestamp intervals vary by more than 20% from the declared rate, the Verifier MUST reject the inertial-sample array as non-uniform and skip this mechanism. When inertial-sample data is present in ENHANCED or MAXIMUM Evidence Packets, Verifiers MUST evaluate inertial coherence. For CORE profile packets, inertial coherence evaluation is OPTIONAL. When inertial-sample data is absent, Verifiers MUST skip this mechanism and MUST NOT treat its absence as a verification failure.
+
+Distributional Conformance Test (Kolmogorov-Smirnov):
+: Verifiers that maintain a reference database of validated human inter-keystroke interval (IKI) distributions MUST compute the two-sample Kolmogorov-Smirnov statistic D between each checkpoint's IKI array and the reference distribution. The KS test compares the full empirical cumulative distribution function (ECDF), not individual moments, making it sensitive to differences in tail behavior, multi-modality, and micro-structure that moment-matching forgery techniques (matching mean, variance, Hurst exponent independently) cannot replicate. Human IKI distributions characteristically exhibit: (a) heavy right tails from cognitive pauses, (b) bimodal or trimodal structure reflecting intra-word, inter-word, and inter-sentence transitions, and (c) biomechanical micro-structure from hand alternation and finger travel distances that vary by keyboard layout. The Verifier MUST use the two-sample KS test (not one-sample against a parametric model) with the reference distribution drawn from the author's behavioral baseline when available (baseline-verification key 19), falling back to a population reference when no baseline exists. A minimum of 100 IKI samples per checkpoint is REQUIRED for the test to be meaningful; checkpoints with fewer samples MUST be skipped. Evidence with KS D-statistic exceeding the critical value at alpha = 0.01 for the given sample sizes MUST be flagged as distributionally non-conforming. Verifiers without a reference database MUST skip this mechanism and MUST NOT treat its absence as a verification failure. The reference database MUST NOT be disclosed to Attesters to prevent adaptive distribution matching.
+
+HID Device Provenance:
+: When the jitter-binding source-descriptor (key 2) includes a device-fingerprint field, Verifiers SHOULD cross-reference the reported HID device descriptor against the claimed hardware environment. Most keystroke injection devices (USB rubber duckies, HID proxies, virtual keyboard drivers) identify as generic HID keyboards with minimal or absent manufacturer, product, and serial number fields. Genuine input devices from established manufacturers (Apple, Logitech, Razer, Lenovo, etc.) report detailed USB descriptors including vendor ID (VID), product ID (PID), manufacturer string, and product string. Evidence where the device-fingerprint reports a generic HID descriptor (VID 0x0000 or absent manufacturer string) while other evidence fields indicate a specific hardware platform (e.g., inertial data consistent with a laptop, thermal data from a known CPU family) SHOULD be flagged as a potential injection device. This mechanism is informational; a generic HID descriptor alone MUST NOT trigger a forensic flag, as legitimate keyboards (particularly custom mechanical keyboards) may have minimal USB descriptors. However, generic HID combined with other distributional anomalies (BCA, KSD, MTD) provides corroborating evidence of input injection. Additionally, Verifiers SHOULD check for **polling-rate saturation**: injection scripts and HID proxy devices typically fire inputs at the USB polling rate limit (1 ms at 1000 Hz or 8 ms at 125 Hz), producing clusters of IKI values at exact polling interval multiples. Human motor control cannot consistently achieve sub-10ms inter-keystroke intervals; evidence containing more than 5% of IKI values below 10 ms SHOULD be flagged as potential automated injection. For T3 and T4 Evidence, Verifiers MUST maintain a blocklist of known injection device vendor/product IDs. Devices commonly used for HID injection attacks include microcontroller development boards marketed for keystroke injection (e.g., Teensy with VID 0x16C0, Arduino Leonardo with VID 0x2341/PID 0x8036, Hak5 USB Rubber Ducky with VID 0x05AC spoofing Apple, CJMCU BadUSB with VID 0x1B4F). Evidence at T3/T4 where the device-fingerprint matches a blocklisted VID/PID MUST be flagged and the Verifier SHOULD assign verdict suspicious (3) regardless of other mechanism results. The blocklist SHOULD be updatable without a protocol revision. At T1/T2 where device-fingerprint data is self-reported, blocklist matching is informational only. This mechanism is only meaningful when the Attester reports device-fingerprint data; its absence MUST NOT be treated as a failure.
+
+Inhibition Response Test:
+: Attesters that support active probes (checkpoint key 14) MAY implement a stop-signal inhibition challenge. The Attester presents a visual stop signal (e.g., red indicator) at an unpredictable moment during active typing and records: (a) the timestamp of the stop signal, (b) the timestamp of the last keystroke before cessation, and (c) any keystrokes that arrive after the signal. Human motor control exhibits a characteristic Stop-Signal Reaction Time (SSRT) of 200-400 ms {{LoganCowan1984}}: a human will typically cease typing within 200-400 ms of the visual signal, with 0-2 residual keystrokes from in-flight motor commands. Automated injection scripts and keyboard buffer replay cannot respond to visual signals and will continue emitting keystrokes at their programmed rate until the buffer is exhausted. Evidence where input continues at the pre-signal rate for more than 500 ms after a stop signal, or where more than 5 keystrokes arrive after the signal, MUST be flagged as potential automated injection. The stop signal MUST be presented at unpredictable intervals (RECOMMENDED: uniformly random within a 30-120 second window) and MUST NOT be predictable from the checkpoint schedule. This mechanism belongs to the out-of-band independence class because it requires active UI interaction, not passive telemetry analysis. The inhibition response data MUST be recorded in the active-probe structure (checkpoint key 14) using probe-type 4 (inhibition). When no inhibition probes are present, Verifiers MUST skip this mechanism.
+
+Dynamic Latency Injection (Visual Feedback Loop Test):
+: Attesters that support active probes MAY implement a visual feedback latency challenge that exploits the closed-loop nature of human typing. Human typists rely on visual feedback from the screen; their motor control continuously adjusts based on observed character rendering. Automated injection scripts operate open-loop and are indifferent to display state. The Attester introduces an artificial delay (RECOMMENDED: 150-500 ms) to the rendering of typed characters at an unpredictable moment during active composition. The delay MUST NOT affect the actual keystroke capture timestamps, only the visual presentation. The Attester records: (a) the timestamp when the latency injection begins, (b) the IKI series during the injection window (RECOMMENDED: 3-8 seconds), and (c) the IKI series in the 5 seconds preceding the injection (pre-injection baseline). A human typist will exhibit measurable behavioral adaptation during the injection window: increased mean IKI (slowing down), increased IKI variance (hesitation and self-correction), and often a brief pause (100-300 ms) as the sensorimotor loop detects and adapts to the unexpected feedback delay. An injection script will show no statistically significant change in IKI distribution between the pre-injection baseline and the injection window, since it does not process visual feedback. The Verifier MUST compare the mean IKI and variance between the pre-injection and injection windows using a paired t-test or Wilcoxon signed-rank test. Evidence where the injection window shows no significant change (p > 0.05) from the pre-injection baseline despite a rendering delay exceeding 200 ms MUST be flagged as potential automated input. The latency injection MUST occur at unpredictable intervals (RECOMMENDED: 1-3 times per session, uniformly random timing). The injection duration and magnitude SHOULD vary between probes to prevent anticipatory adaptation by sophisticated scripts that monitor their own output latency. This mechanism belongs to the out-of-band independence class. The latency injection data MUST be recorded in the active-probe structure using probe-type 5 (latency-injection). When no latency-injection probes are present, Verifiers MUST skip this mechanism.
+
+^
+
+## Conformance and Mechanism Identifiers {#conformance-identifiers}
 
 A conforming Verifier MUST evaluate all forensic mechanisms for
 which the Evidence Packet contains sufficient data. Verifiers
@@ -628,6 +667,10 @@ MUST NOT use alternative spellings or abbreviations.
 | PPX | Perplexity Scoring | semantic |
 | BCA | Biological Cadence Analysis | distributional |
 | ICA | Inertial Coherence Analysis | hardware |
+| KSD | Distributional Conformance (Kolmogorov-Smirnov) | distributional |
+| HDP | HID Device Provenance | hardware |
+| IRT | Inhibition Response Test | out-of-band |
+| DLI | Dynamic Latency Injection | out-of-band |
 
 Two forensic mechanisms are considered independent for the
 purposes of the multi-flag threshold (below) if and only if
@@ -647,14 +690,31 @@ verdict:
 1. *Multi-flag threshold:* If two or more independent
    forensic mechanisms trigger flags, the Verifier MUST assign
    the suspicious verdict regardless of checkpoint coverage.
-   A contradiction arises when two or more forensic mechanisms
-   produce opposing assessments of the same behavioral evidence
-   (e.g., one mechanism flags synthetic timing while another
-   confirms natural revision patterns). When contradictory
-   results occur, the Verifier MUST assign the more conservative
-   verdict. Specifically: if any mechanism triggers a flag, the
-   flag stands regardless of non-triggering mechanisms.
-   Non-triggering mechanisms do not cancel triggered flags.
+   A contradiction exists when two forensic mechanisms in
+   different independence classes produce opposing verdicts for
+   the same checkpoint range: one mechanism's flag assigns
+   "suspicious" while another mechanism's non-triggering
+   supports "authentic". Specifically, a contradiction is
+   detected when:
+
+   a. At least one mechanism triggers a forensic flag
+      (suspicious indicator), AND
+   b. At least one mechanism in a DIFFERENT independence class
+      produces a metric value in the top 20th percentile of the
+      authentic distribution for the same checkpoint range.
+
+   Example: SNR analysis (spectral class) triggers spectral
+   flatness > 0.9, while CLC analysis (temporal class) shows
+   cognitive-load correlation r > 0.3, indicating genuine human
+   cognitive engagement. These opposing signals constitute a
+   contradiction.
+
+   When a contradiction is detected, Verifiers MUST assign
+   "inconclusive" rather than "suspicious" or "authentic".
+   Non-contradicted flags (where no opposing mechanism in a
+   different independence class produces a top-20th-percentile
+   authentic metric) stand as-is; non-triggering mechanisms in
+   the same independence class do not cancel triggered flags.
 
 2. *Sustained single-flag threshold:* If exactly one
    forensic mechanism triggers, the Verifier MUST assign the
@@ -689,10 +749,14 @@ provides a high-confidence signal for adversarial probing that
 is complementary to the spectral (SNR) and distributional (KL
 divergence) checks.
 
-## SNR Computation (Informative) {#snr-computation}
+## Activity SNR Computation (Informative) {#snr-computation}
 
-The signal-to-noise ratio measures productive editing activity versus
-idle or mechanical noise within each evidence window:
+This section defines the activity-based signal-to-noise ratio, which
+measures productive editing activity versus idle or mechanical noise
+within each evidence window. This metric is distinct from the
+spectral flatness SNR (the "SNR" forensic mechanism), which operates on
+inter-keystroke interval frequency distributions. Both are informative
+and complement the normative entropy checks:
 
 ~~~ artwork
 SNR = 10 * log10(P_signal / P_noise)
@@ -738,8 +802,8 @@ complexity added per window:
 IKI[i] ~= compressed_size(delta_content[i]) / raw_size(delta_content[i])
 ~~~
 
-Typical ranges: human authorship exhibits positive CLC values
-(0.01 to 0.5) reflecting natural creative divergence. CLC near
+Typical ranges: human authorship exhibits positive CDR values
+(0.01 to 0.5) reflecting natural creative divergence. CDR near
 zero indicates mechanical regularity. IKI values for human writing
 typically range from 0.3 to 0.8; values consistently near 1.0
 suggest random content insertion, values near 0.0 suggest verbatim
@@ -1012,7 +1076,7 @@ tag 1129791826 (encoding ASCII "CWAR"). The CDDL notation
 {{RFC8610}} defines the wire format:
 
 ~~~ cddl
-pop-war = #6.1129791826(attestation-result)
+cpoe-war = #6.1129791826(attestation-result)
 
 attestation-result = {
     1 => uint,                    ; version (must be 1)
@@ -1026,7 +1090,7 @@ attestation-result = {
     ? 9 => [+ absence-claim],     ; absence claims (1+ when present)
     ? 10 => [* tstr],             ; warnings
     11 => bstr .cbor COSE_Sign1,   ; verifier-signature
-    12 => pop-timestamp,          ; created (appraisal timestamp)
+    12 => cpoe-timestamp,          ; created (appraisal timestamp)
     ? 13 => forensic-summary,     ; forensic assessment summary
     ? 14 => confidence-tier,      ; baseline confidence level
     ? 15 => effort-attribution,   ; human-to-tool attribution
@@ -1103,8 +1167,8 @@ absence-type = &(
 )
 
 time-window = {
-    1 => pop-timestamp,           ; start
-    2 => pop-timestamp,           ; end
+    1 => cpoe-timestamp,           ; start
+    2 => cpoe-timestamp,           ; end
 }
 
 ; Behavioral Baseline Verification
@@ -1125,7 +1189,7 @@ baseline-digest = {
     8 => streaming-stats,         ; pause-stats
     9 => bstr .size 32,           ; session-merkle-root (MMR)
     10 => confidence-tier,        ; baseline maturity
-    11 => pop-timestamp,          ; computed-at
+    11 => cpoe-timestamp,          ; computed-at
     12 => bstr .size 32,          ; identity-fingerprint
 }
 
@@ -1153,21 +1217,21 @@ self-receipt = {
     1 => tstr,                    ; tool-id (source environment)
     2 => hash-value / compact-ref, ; output-commit
     3 => hash-value / compact-ref, ; evidence-ref (source packet)
-    4 => pop-timestamp,           ; transfer-time
+    4 => cpoe-timestamp,           ; transfer-time
 }
 
 tool-receipt = {
     1 => tstr,                    ; tool-id (provider URI)
     2 => hash-value,              ; output-commit
     ? 3 => hash-value,            ; input-ref (prompt hash)
-    4 => pop-timestamp,           ; issued-at
+    4 => cpoe-timestamp,           ; issued-at
     5 => bstr .cbor COSE_Sign1,   ; tool-signature
     ? 6 => uint,                  ; output-char-count
 }
 
-; Shared type definitions reproduced from [CPoP-Protocol] for reader
-; convenience. In case of conflict, [CPoP-Protocol] is authoritative.
-pop-timestamp = uint                ; epoch milliseconds (no tag 1; see [CPoP-Protocol])
+; Shared type definitions reproduced from [CPoE-Protocol] for reader
+; convenience. In case of conflict, [CPoE-Protocol] is authoritative.
+cpoe-timestamp = uint                ; epoch milliseconds (no tag 1; see [CPoE-Protocol])
 hash-value = {
     1 => hash-algorithm,
     2 => hash-digest,              ; length must match algorithm output
@@ -1201,7 +1265,7 @@ attestation-tier = &(
 
 The evidence-ref field MUST contain a hash-value computed as
 SHA-256 over the CBOR-encoded evidence-packet structure
-(including CBOR tag 1129336656), excluding any COSE_Sign1
+(including CBOR tag 1129336645), excluding any COSE_Sign1
 wrapper. This binds the Attestation Result to a specific
 Evidence Packet.
 
@@ -1287,7 +1351,7 @@ invalid (4):
 
 When the Evidence Packet includes a baseline-verification
 structure (evidence-packet key 19, defined in
-{{CPoP-Protocol}}), the Verifier MUST perform
+{{CPoE-Protocol}}), the Verifier MUST perform
 the following checks before incorporating baseline data
 into the verdict:
 
@@ -1353,7 +1417,7 @@ suspicious verdict.
 RFC 9334 Section 2.2 defines two types of Appraisal Policy:
 Appraisal Policy for Evidence (used by the Verifier) and
 Appraisal Policy for Attestation Results (used by the Relying
-Party). This section maps the CPoP appraisal framework to these
+Party). This section maps the CPoE appraisal framework to these
 two policy types.
 
 ## Appraisal Policy for Evidence {#policy-for-evidence}
@@ -1368,8 +1432,8 @@ Result (WAR).
 
 The policy inputs are:
 
-* The Evidence Packet itself (CBOR tag 1129336656)
-* The CPoP specification (this document and {{CPoP-Protocol}}),
+* The Evidence Packet itself (CBOR tag 1129336645)
+* The CPoE specification (this document and {{CPoE-Protocol}}),
   which defines SWF parameters, forensic thresholds, and
   profile requirements
 * Endorsements: TPM endorsement certificates and platform
@@ -1377,7 +1441,7 @@ The policy inputs are:
   hardware manufacturers acting as Endorsers per {{RFC9334}}
 * Reference Values: specification-defined forensic thresholds
   and behavioral baselines as described in
-  {{CPoP-Protocol}}, Section "Reference Value Trust Model"
+  {{CPoE-Protocol}}, Section "Reference Value Trust Model"
 * Deployment-specific configuration: clock skew tolerances
   ({{clock-skew-tolerance}}), entropy estimator selection, and
   optional forensic mechanism enablement per Evidence Content
@@ -1486,7 +1550,7 @@ When computing human-fraction from Evidence Packets that reference other Evidenc
 Checkpoint key 13 carries receipt structures that attribute
 content to external sources. Two receipt types are defined:
 tool-receipt for external AI tool contributions and self-receipt
-for cross-tool CPoP composition. Verifiers MUST process both
+for cross-tool CPoE composition. Verifiers MUST process both
 types when present.
 
 ## AI Tool Receipt Verification {#ai-tool-receipt-verification}
@@ -1545,7 +1609,7 @@ forensic mechanisms that assume continuous human authorship (see
 The same receipt mechanism supports cross-tool composition
 workflows where an author drafts content in one application and
 transfers it to another for formatting or publication. When the
-first authoring environment runs CPoP, it produces an Evidence
+first authoring environment runs CPoE, it produces an Evidence
 Packet covering the drafting phase. The second environment
 records the paste event with a self-receipt: a receipt whose
 tool-id identifies the first authoring environment and whose
@@ -1563,7 +1627,7 @@ section.
 
 # Adversary Model {#adversary-model}
 
-This document inherits the adversary model defined in the Threat Model section of {{CPoP-Protocol}}. The appraisal-specific defenses at each tier are:
+This document inherits the adversary model defined in the Threat Model section of {{CPoE-Protocol}}. The appraisal-specific defenses at each tier are:
 
 Tier 1 (Casual):
 : SWF time-binding provides the primary defense. The T1 appraisal policy accepts the risk of basic retype attacks.
@@ -1705,7 +1769,7 @@ an assistive-mode feature flag (value 60) in the feature-flags
 array. The following values are defined: 0 (none), 1
 (motor-disability), 2 (eye-tracking), 3 (dictation), 4
 (ime-input). A future
-revision of {{CPoP-Protocol}} will formalize this
+revision of {{CPoE-Protocol}} will formalize this
 signaling mechanism.
 
 # EAR Compatibility Mapping (Informative) {#ear-compatibility}
@@ -1747,21 +1811,21 @@ Per-appraisal EAR claims (within the submods entry):
 
 - `ear.status`: mapped from WAR verdict per {{ear-status-mapping}}
 
-CPoP-specific extension claims (registered via $$ear-appraisal-extension):
+CPoE-specific extension claims (registered via $$ear-appraisal-extension):
 
 | WAR field (key) | Extension claim | Type |
 |-----------------|----------------|------|
-| evidence-ref (2) | ear.pop.evidence-ref | hash-value |
-| attestation-tier (4) | ear.pop.attestation-tier | uint (1-4) |
-| chain-length (5) | ear.pop.chain-length | uint |
-| chain-duration (6) | ear.pop.chain-duration | uint (seconds) |
-| entropy-report (7) | ear.pop.entropy-report | map |
-| forgery-cost-estimate (8) | ear.pop.forgery-cost-estimate | map |
-| absence-claims (9) | ear.pop.absence-claims | array |
-| warnings (10) | ear.pop.warnings | array of tstr |
-| forensic-summary (13) | ear.pop.forensic-summary | map |
-| confidence-tier (14) | ear.pop.confidence-tier | uint (1-4) |
-| effort-attribution (15) | ear.pop.effort-attribution | map |
+| evidence-ref (2) | ear.cpoe.evidence-ref | hash-value |
+| attestation-tier (4) | ear.cpoe.attestation-tier | uint (1-4) |
+| chain-length (5) | ear.cpoe.chain-length | uint |
+| chain-duration (6) | ear.cpoe.chain-duration | uint (seconds) |
+| entropy-report (7) | ear.cpoe.entropy-report | map |
+| forgery-cost-estimate (8) | ear.cpoe.forgery-cost-estimate | map |
+| absence-claims (9) | ear.cpoe.absence-claims | array |
+| warnings (10) | ear.cpoe.warnings | array of tstr |
+| forensic-summary (13) | ear.cpoe.forensic-summary | map |
+| confidence-tier (14) | ear.cpoe.confidence-tier | uint (1-4) |
+| effort-attribution (15) | ear.cpoe.effort-attribution | map |
 
 ## Migration Path {#ear-migration}
 
@@ -1773,24 +1837,24 @@ Call. The migration path is:
    per EAR requirements. The verdict field maps to ear.status per
    {{ear-status-mapping}}.
 
-2. Register the CPoP-specific extension claims listed in
+2. Register the CPoE-specific extension claims listed in
    {{ear-extensions}} via the EAR extension point
    ($$ear-appraisal-extension). The CDDL definitions for these
    claims are provided below to facilitate early implementation:
 
    ~~~ cddl
    $$ear-appraisal-extension //= (
-     "ear.pop.evidence-ref" => hash-value,
-     "ear.pop.attestation-tier" => uint .within (1..4),
-     "ear.pop.chain-length" => uint,
-     "ear.pop.chain-duration" => uint,
-     ? "ear.pop.entropy-report" => entropy-report,
-     ? "ear.pop.forgery-cost-estimate" => forgery-cost-estimate,
-     ? "ear.pop.absence-claims" => [+ absence-claim],
-     ? "ear.pop.warnings" => [* tstr],
-     ? "ear.pop.forensic-summary" => forensic-summary,
-     ? "ear.pop.confidence-tier" => uint .within (1..4),
-     ? "ear.pop.effort-attribution" => effort-attribution,
+     "ear.cpoe.evidence-ref" => hash-value,
+     "ear.cpoe.attestation-tier" => uint .within (1..4),
+     "ear.cpoe.chain-length" => uint,
+     "ear.cpoe.chain-duration" => uint,
+     ? "ear.cpoe.entropy-report" => entropy-report,
+     ? "ear.cpoe.forgery-cost-estimate" => forgery-cost-estimate,
+     ? "ear.cpoe.absence-claims" => [+ absence-claim],
+     ? "ear.cpoe.warnings" => [* tstr],
+     ? "ear.cpoe.forensic-summary" => forensic-summary,
+     ? "ear.cpoe.confidence-tier" => uint .within (1..4),
+     ? "ear.cpoe.effort-attribution" => effort-attribution,
    )
    ~~~
 
@@ -1804,8 +1868,8 @@ Call. The migration path is:
 3. Adopt the ear.verifier-id structure from {{AR4SI}} in place of
    the current verifier-signature field.
 
-4. Retain the CPoP profile URI
-   "urn:ietf:params:rats:eat:profile:pop:1.0" to distinguish CPoP
+4. Retain the CPoE profile URI
+   "urn:ietf:params:rats:eat:profile:cpoe:1.0" to distinguish CPoE
    Attestation Results from other EAR-conformant results.
 
 Until EAR stabilizes, the WAR format defined in
@@ -1819,7 +1883,7 @@ facilitate a smooth transition.
 This document is published with Experimental status for the
 following reasons:
 
-1. *Novel application of RATS:* CPoP extends the RATS
+1. *Novel application of RATS:* CPoE extends the RATS
    architecture from device state attestation to physical
    process attestation, with a trust inversion (adversarial
    Attester) that has no established precedent in IETF
@@ -1843,7 +1907,7 @@ following reasons:
    landscape evolves.
 
 4. *Companion specification dependency:* This document depends
-   on the companion protocol specification {{CPoP-Protocol}},
+   on the companion protocol specification {{CPoE-Protocol}},
    which is also Experimental. Both documents should advance
    together based on coordinated implementation feedback.
 
@@ -1853,11 +1917,11 @@ evasion attempts to inform future revisions.
 
 # IANA Considerations {#iana-considerations}
 
-This document has no IANA actions. All IANA registrations for the CPoP framework are defined in {{CPoP-Protocol}}.
+This document has no IANA actions. All IANA registrations for the CPoE framework are defined in {{CPoE-Protocol}}.
 
 # Security Considerations {#security-considerations}
 
-This document defines forensic appraisal procedures that inherit and extend the security model from {{CPoP-Protocol}}. The broader RATS security considerations {{Sardar-RATS}} also apply. Implementers should consider the following security aspects:
+This document defines forensic appraisal procedures that inherit and extend the security model from {{CPoE-Protocol}}. The broader RATS security considerations {{Sardar-RATS}} also apply. Implementers should consider the following security aspects:
 
 ## Entropy Manipulation Attacks {#sec-entropy-manipulation}
 
@@ -1947,7 +2011,7 @@ This appendix is normative. The following constraints summarize the verification
 When checkpoint key 13 contains receipt structures, the
 Verifier MUST validate them as follows. Paste events
 accompanied by a verified receipt (either type) MUST be
-excluded from C_intra, perplexity scoring, and Mechanical
+excluded from IKI-CoV, perplexity scoring, and Mechanical
 Turk detection analysis.
 
 AI Tool Receipts (tool-receipt):

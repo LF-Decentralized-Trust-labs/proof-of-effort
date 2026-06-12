@@ -1,0 +1,282 @@
+{
+  "@context": {
+    "@version": 1.1,
+    "@protected": true,
+
+    "poe": "https://purl.org/poe/v1#",
+    "cred": "https://www.w3.org/2018/credentials#",
+    "xsd": "http://www.w3.org/2001/XMLSchema#",
+    "sec": "https://w3id.org/security#",
+
+    "ProofOfEffortCredential": {
+      "@id": "poe:ProofOfEffortCredential",
+      "@context": {
+        "@version": 1.1,
+        "@protected": true,
+
+        "AuthorshipAttestation": "poe:AuthorshipAttestation",
+        "CPoEEvidencePacket": "poe:CPoEEvidencePacket",
+        "BayesianAttestationAppraisal": "poe:BayesianAttestationAppraisal",
+        "ForensicMechanism": "poe:ForensicMechanism",
+
+        "evaluationResult": {
+          "@id": "poe:evaluationResult",
+          "@type": "xsd:string"
+        },
+        "assuranceLevel": {
+          "@id": "poe:assuranceLevel",
+          "@type": "xsd:string"
+        },
+        "schemaVersion": {
+          "@id": "poe:schemaVersion",
+          "@type": "xsd:nonNegativeInteger"
+        },
+        "documentDigest": {
+          "@id": "poe:documentDigest",
+          "@type": "xsd:string"
+        },
+        "evidenceDigest": {
+          "@id": "poe:evidenceDigest",
+          "@type": "xsd:string"
+        },
+        "checkpointCount": {
+          "@id": "poe:checkpointCount",
+          "@type": "xsd:nonNegativeInteger"
+        },
+        "sessionDuration": {
+          "@id": "poe:sessionDuration",
+          "@type": "xsd:nonNegativeInteger"
+        },
+
+        "authorshipConfidence": {
+          "@id": "poe:authorshipConfidence",
+          "@context": {
+            "humanFraction": {
+              "@id": "poe:humanFraction",
+              "@type": "xsd:double"
+            },
+            "humanCheckpoints": {
+              "@id": "poe:humanCheckpoints",
+              "@type": "xsd:nonNegativeInteger"
+            },
+            "receiptCheckpoints": {
+              "@id": "poe:receiptCheckpoints",
+              "@type": "xsd:nonNegativeInteger"
+            },
+            "toolAttributedChars": {
+              "@id": "poe:toolAttributedChars",
+              "@type": "xsd:nonNegativeInteger"
+            },
+            "totalChars": {
+              "@id": "poe:totalChars",
+              "@type": "xsd:nonNegativeInteger"
+            }
+          }
+        },
+
+        "entropicEvidence": {
+          "@id": "poe:entropicEvidence",
+          "@context": {
+            "timingBitsPerSample": {
+              "@id": "poe:timingBitsPerSample",
+              "@type": "xsd:double"
+            },
+            "revisionBits": {
+              "@id": "poe:revisionBits",
+              "@type": "xsd:double"
+            },
+            "pauseBits": {
+              "@id": "poe:pauseBits",
+              "@type": "xsd:double"
+            },
+            "meetsThreshold": {
+              "@id": "poe:meetsThreshold",
+              "@type": "xsd:boolean"
+            }
+          }
+        },
+
+        "jitterSeal": {
+          "@id": "poe:jitterSeal",
+          "@context": {
+            "entropyEstimateCentibits": {
+              "@id": "poe:entropyEstimateCentibits",
+              "@type": "xsd:nonNegativeInteger"
+            },
+            "sealed": {
+              "@id": "poe:sealed",
+              "@type": "xsd:boolean"
+            }
+          }
+        },
+
+        "processMonotonicity": {
+          "@id": "poe:processMonotonicity",
+          "@type": "xsd:boolean"
+        },
+
+        "forensicAnalysis": {
+          "@id": "poe:forensicAnalysis",
+          "@context": {
+            "flagsTriggered": {
+              "@id": "poe:flagsTriggered",
+              "@type": "xsd:nonNegativeInteger"
+            },
+            "flagsEvaluated": {
+              "@id": "poe:flagsEvaluated",
+              "@type": "xsd:nonNegativeInteger"
+            },
+            "affectedCheckpoints": {
+              "@id": "poe:affectedCheckpoints",
+              "@type": "xsd:nonNegativeInteger"
+            },
+            "totalCheckpoints": {
+              "@id": "poe:totalCheckpoints",
+              "@type": "xsd:nonNegativeInteger"
+            },
+            "mechanisms": {
+              "@id": "poe:mechanisms",
+              "@container": "@set",
+              "@context": {
+                "mechanismId": {
+                  "@id": "poe:mechanismId",
+                  "@type": "xsd:string"
+                },
+                "triggered": {
+                  "@id": "poe:triggered",
+                  "@type": "xsd:boolean"
+                },
+                "coverage": {
+                  "@id": "poe:coverage",
+                  "@type": "xsd:double"
+                }
+              }
+            }
+          }
+        },
+
+        "forgeryCostEstimate": {
+          "@id": "poe:forgeryCostEstimate",
+          "@context": {
+            "totalCost": {
+              "@id": "poe:totalCost",
+              "@type": "xsd:double"
+            },
+            "costUnit": {
+              "@id": "poe:costUnit",
+              "@type": "xsd:string"
+            },
+            "swfCost": {
+              "@id": "poe:swfCost",
+              "@type": "xsd:double"
+            },
+            "entropyCost": {
+              "@id": "poe:entropyCost",
+              "@type": "xsd:double"
+            },
+            "hardwareCost": {
+              "@id": "poe:hardwareCost",
+              "@type": "xsd:double"
+            }
+          }
+        },
+
+        "baselineMaturity": {
+          "@id": "poe:baselineMaturity",
+          "@type": "xsd:string"
+        },
+
+        "confidenceMethod": {
+          "@id": "poe:confidenceMethod",
+          "@context": {
+            "confidenceScore": {
+              "@id": "poe:confidenceScore",
+              "@type": "xsd:double"
+            },
+            "confidenceComponents": {
+              "@id": "poe:confidenceComponents",
+              "@context": {
+                "baseScore": {
+                  "@id": "poe:baseScore",
+                  "@type": "xsd:double"
+                },
+                "entropyBoost": {
+                  "@id": "poe:entropyBoost",
+                  "@type": "xsd:double"
+                },
+                "forensicPenalty": {
+                  "@id": "poe:forensicPenalty",
+                  "@type": "xsd:double"
+                },
+                "verdictAdjustment": {
+                  "@id": "poe:verdictAdjustment",
+                  "@type": "xsd:double"
+                }
+              }
+            },
+            "evaluationCriteria": {
+              "@id": "poe:evaluationCriteria",
+              "@container": "@set",
+              "@context": {
+                "criterion": {
+                  "@id": "poe:criterion",
+                  "@type": "xsd:string"
+                },
+                "method": {
+                  "@id": "poe:method",
+                  "@type": "xsd:string"
+                },
+                "result": {
+                  "@id": "poe:result",
+                  "@type": "xsd:string"
+                },
+                "weight": {
+                  "@id": "poe:weight",
+                  "@type": "xsd:string"
+                },
+                "bitsPerSample": {
+                  "@id": "poe:bitsPerSample",
+                  "@type": "xsd:double"
+                },
+                "threshold": {
+                  "@id": "poe:threshold",
+                  "@type": "xsd:double"
+                },
+                "correlation": {
+                  "@id": "poe:correlation",
+                  "@type": "xsd:double"
+                }
+              }
+            }
+          }
+        },
+
+        "digestSRI": {
+          "@id": "poe:digestSRI",
+          "@type": "xsd:string"
+        },
+        "encodingFormat": {
+          "@id": "poe:encodingFormat",
+          "@type": "xsd:string"
+        },
+        "cborTag": {
+          "@id": "poe:cborTag",
+          "@type": "xsd:nonNegativeInteger"
+        },
+        "profile": {
+          "@id": "poe:profile",
+          "@type": "@id"
+        },
+
+        "absenceClaims": {
+          "@id": "poe:absenceClaims",
+          "@container": "@set"
+        },
+        "warnings": {
+          "@id": "poe:warnings",
+          "@container": "@set"
+        }
+      }
+    }
+  }
+}

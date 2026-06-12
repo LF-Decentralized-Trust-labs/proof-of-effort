@@ -12,11 +12,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
-- IETF Internet-Draft: `draft-condrey-cpop-protocol` — CPoP architecture and evidence format.
-- IETF Internet-Draft: `draft-condrey-cpop-appraisal` — Forensic appraisal and security model.
-- CDDL schema for CPoP evidence packets and attestation results (`cddl/cpop.cddl`).
+- IETF Internet-Draft: `draft-condrey-cpoe-protocol` — CPoE architecture and evidence format.
+- IETF Internet-Draft: `draft-condrey-cpoe-appraisal` — Forensic appraisal and security model.
+- CDDL schema for CPoE evidence packets and attestation results (`cddl/cpoe.cddl`).
 - Architecture overview (`docs/architecture.md`) and integration docs for C2PA, CAWG, and DIF.
-- Reference implementation crates: `cpop-jitter` (timing entropy) and `cpop-protocol` (wire format, CBOR/COSE codec).
+- Reference implementation crates: `cpoe-jitter` (timing entropy) and `cpoe-protocol` (wire format, CBOR/COSE codec).
 - LF Decentralized Trust governance files: CODE_OF_CONDUCT.md, SECURITY.md, MAINTAINERS.md, CONTRIBUTING.md.
 - Build tooling based on [martinthomson/i-d-template](https://github.com/martinthomson/i-d-template) with Makefile.
 - GitHub Actions workflows for editor's copy publishing, IETF datatracker submission, and generated file updates.
@@ -37,4 +37,4 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Initial repository creation with Apache-2.0 license.
 
-[Unreleased]: https://github.com/LF-Decentralized-Trust-labs/proof-of-process/commits/main
+[Unreleased]: https://github.com/LF-Decentralized-Trust-labs/proof-of-effort/commits/main

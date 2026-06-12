@@ -53,8 +53,8 @@ body:
       label: Affected Area
       description: Which part of the project is affected?
       options:
-        - Protocol draft (draft-condrey-cpop-protocol)
-        - Appraisal draft (draft-condrey-cpop-appraisal)
+        - Protocol draft (draft-condrey-cpoe-protocol)
+        - Appraisal draft (draft-condrey-cpoe-appraisal)
         - CDDL schema
         - Build tooling / CI
         - Documentation

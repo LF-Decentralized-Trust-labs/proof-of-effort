@@ -8,9 +8,9 @@
 
 The [NIST AI Risk Management Framework](https://nvlpubs.nist.gov/nistpubs/ai/nist.ai.100-1.pdf)
 defines four functions (GOVERN, MAP, MEASURE, MANAGE) with 72 subcategories.
-CPoP addresses the following:
+CPoE addresses the following:
 
-| Subcategory | Description                                      | CPoP Coverage                                                   |
+| Subcategory | Description                                      | CPoE Coverage                                                   |
 | ----------- | ------------------------------------------------ | --------------------------------------------------------------- |
 | GV-1.1      | Legal/regulatory requirements documented          | Declaration with AI disclosure fields per EU AI Act Article 50  |
 | GV-1.2      | Trustworthiness characteristics integrated        | AR4SI trustworthiness vector (8 components)                     |
@@ -21,9 +21,9 @@ CPoP addresses the following:
 ## NIST AI 100-4 (Reducing Risks from Synthetic Content)
 
 [AI 100-4](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-4.pdf)
-addresses four provenance techniques. CPoP implements three:
+addresses four provenance techniques. CPoE implements three:
 
-| Technique               | CPoP Implementation                              |
+| Technique               | CPoE Implementation                              |
 | ----------------------- | ------------------------------------------------ |
 | Provenance metadata     | Evidence Packet with document refs, timestamps, author identity, edit history |
 | Digital watermarking     | ZWC steganographic watermark (`com.writerslogic.zwc-watermark.1`) |

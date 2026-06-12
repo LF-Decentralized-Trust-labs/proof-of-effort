@@ -4,37 +4,37 @@
 
 > **Stage**: Proposed — PR pending at [c2pa-org/specs-core#2009](https://github.com/c2pa-org/specs-core/pull/2009)
 
-This document describes how Proof-of-Process (CPoP) attestation evidence
+This document describes how Proof of Effort (CPoE) attestation evidence
 integrates with the [Coalition for Content Provenance and Authenticity
 (C2PA)](https://c2pa.org/) content credentials framework.
 
 ## Overview
 
 C2PA manifests establish content provenance — who created something, what
-tools were used, what edits were made. CPoP adds a layer C2PA doesn't
+tools were used, what edits were made. CPoE adds a layer C2PA doesn't
 currently cover: whether the creation process involved a human.
 
 ## Mapping
 
-CPoP evidence maps to C2PA as a custom assertion within a C2PA manifest:
+CPoE evidence maps to C2PA as a custom assertion within a C2PA manifest:
 
-| C2PA Concept        | CPoP Mapping                                      |
+| C2PA Concept        | CPoE Mapping                                      |
 | ------------------- | ------------------------------------------------ |
-| Manifest            | Container for CPoP assertion alongside other claims |
-| Assertion           | `c2pa.process-evidence` (proposed) — references CPoP evidence via hashed URI |
+| Manifest            | Container for CPoE assertion alongside other claims |
+| Assertion           | `c2pa.process-evidence` (proposed) — references CPoE evidence via hashed URI |
 | Action              | Content creation/editing session                 |
 | Ingredient          | Source document referenced in Evidence Packet    |
 
 ### Assertion Structure
 
-CPoP integrates with C2PA via a `c2pa.process-evidence` assertion (see
+CPoE integrates with C2PA via a `c2pa.process-evidence` assertion (see
 [c2pa-org/specs-core#2009](https://github.com/c2pa-org/specs-core/pull/2009))
 that references externally-stored creation-process evidence using a hashed
 URI. This approach:
 
 - References the Evidence Packet or Written Authorship Report by content-addressed
   hash, rather than embedding it inline.
-- Supports multiple evidence types: `attestation-record` (CPoP WAR),
+- Supports multiple evidence types: `attestation-record` (CPoE WAR),
   `commitment-chain`, `audit-log`, `version-history`.
 - Provides tamper-evidence via the hash binding within the signed manifest.
 
@@ -44,7 +44,7 @@ The C2PA trust chain extends naturally:
 
 1. The C2PA manifest is signed by the content creator's certificate.
 2. The `c2pa.process-evidence` assertion within the manifest contains a
-   hashed URI referencing the CPoP Written Authorship Report.
+   hashed URI referencing the CPoE Written Authorship Report.
 3. The Attestation Result is independently verifiable and traces back to
    hardware-backed Evidence Packets from the Attester.
 
@@ -55,7 +55,7 @@ The C2PA trust chain extends naturally:
   content.
 - **Publishing** — Proving that written content involved human compositional
   effort, attached as a C2PA assertion to the published document.
-- **Code repositories** — Attaching CPoP evidence to commits via C2PA
+- **Code repositories** — Attaching CPoE evidence to commits via C2PA
   manifests on repository artifacts.
 
 ## Process Timeline Support
@@ -65,7 +65,7 @@ The `c2pa.process-evidence` assertion supports `processStart` and
 [PR #2009](https://github.com/c2pa-org/specs-core/pull/2009)), allowing
 Relying Parties to verify that the creation process spanned a plausible
 duration. These map directly to the first and last checkpoint timestamps
-in the CPoP Evidence Packet.
+in the CPoE Evidence Packet.
 
 ## Multi-Asset MIME Type Detection
 
@@ -80,10 +80,10 @@ for multi-asset workflows:
 
 ## AI Disclosure
 
-CPoP's AI declaration maps to IPTC `digitalSourceType` values within C2PA
+CPoE's AI declaration maps to IPTC `digitalSourceType` values within C2PA
 manifests:
 
-| CPoP Declaration         | IPTC digitalSourceType                          |
+| CPoE Declaration         | IPTC digitalSourceType                          |
 | ------------------------ | ----------------------------------------------- |
 | Human-authored           | `http://cv.iptc.org/newscodes/digitalsourcetype/humanWritten` |
 | AI-assisted              | `http://cv.iptc.org/newscodes/digitalsourcetype/compositeWithTrainedAlgorithmicMedia` |
@@ -91,7 +91,7 @@ manifests:
 
 ## CAWG Identity and TDM Assertions
 
-CPoP manifests can include Creator Assertions Working Group (CAWG) identity
+CPoE manifests can include Creator Assertions Working Group (CAWG) identity
 assertions, binding the creator's DID or X.509 certificate to the C2PA
 manifest. Text and Data Mining (TDM) assertions can also be included to
 express the creator's preferences regarding AI training use of their content.

@@ -3,12 +3,12 @@ name: "WASM Build"
 on:
   push:
     paths:
-    - "crates/cpop-protocol/**"
+    - "crates/cpoe-protocol/**"
     - "Cargo.toml"
     - "Cargo.lock"
   pull_request:
     paths:
-    - "crates/cpop-protocol/**"
+    - "crates/cpoe-protocol/**"
     - "Cargo.toml"
     - "Cargo.lock"
 
@@ -46,9 +46,9 @@ jobs:
 
     - name: "Check (wasm32)"
       id: wasm-check
-      run: cargo check -p cpop-protocol --target wasm32-unknown-unknown --features wasm
+      run: cargo check -p cpoe-protocol --target wasm32-unknown-unknown --features wasm
       # continue-on-error: getrandom 0.2 "js" feature is required for wasm but
-      # transitive getrandom 0.3 (via cpop-jitter) lacks it. Remove once all
+      # transitive getrandom 0.3 (via cpoe-jitter) lacks it. Remove once all
       # crates align on getrandom 0.3 with wasm-bindgen backend.
       continue-on-error: true
 

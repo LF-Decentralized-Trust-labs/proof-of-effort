@@ -4,28 +4,16 @@
 
 ## Current Status
 
-CPoP (Cryptographic Proof of Process) is an **LF Decentralized Trust lab** with two **IETF individual Internet-Drafts** (not yet adopted by any working group):
+CPoE (Cryptographic Proof of Effort) is an **LF Decentralized Trust lab** with two **IETF individual Internet-Drafts** (not yet adopted by any working group):
 
-- `draft-condrey-cpop-protocol-06` -- Architecture and Evidence Format (category: experimental)
-- `draft-condrey-cpop-appraisal-04` -- Forensic Appraisal and Security Model (category: experimental)
+- `draft-condrey-cpoe-protocol-00` -- Architecture and Evidence Format (category: experimental)
+- `draft-condrey-cpoe-appraisal-00` -- Forensic Appraisal and Security Model (category: experimental)
 
 Both are independent submissions to the IETF under the Security area, aligned with the RATS (Remote Attestation Procedures) architecture defined in RFC 9334.
 
-The repository contains a formal CDDL schema, architecture documentation, integration proposals for three ecosystems, and two published Rust crates on crates.io:
-
-- [`cpop-jitter`](https://crates.io/crates/cpop-jitter) v0.2.1 -- Timing jitter entropy primitive (`no_std` compatible)
-- [`cpop-protocol`](https://crates.io/crates/cpop-protocol) v0.3.0 -- Wire format, CBOR/COSE codec, evidence builder/verifier
+The repository contains the formal CDDL schema, architecture documentation, and integration proposals for three ecosystems. A reference implementation is maintained separately.
 
 ## Near-Term Milestones
-
-### Reference Implementations
-
-- [x] `cpop-jitter` crate: timing jitter entropy collection, SWF proof generation
-- [x] `cpop-protocol` crate: CBOR wire format, COSE signing, evidence builder/verifier
-- [ ] End-to-end attestation flow: Attester produces Evidence Packet, Verifier produces Written Authorship Report
-- [ ] Wasm build target for `cpop-protocol` (feature-flagged, dependencies in place)
-- [ ] Example Attester integration (editor plugin or CLI tool capturing keystroke dynamics)
-- [ ] Example Verifier service consuming Evidence Packets and producing WARs
 
 ### Specification
 
@@ -42,7 +30,7 @@ The repository contains a formal CDDL schema, architecture documentation, integr
 
 ### IETF Working Group Adoption
 
-- [ ] Present CPoP at IETF SECDISPATCH for routing guidance
+- [ ] Present CPoE at IETF SECDISPATCH for routing guidance
 - [ ] Present at IETF RATS WG to evaluate fit as a RATS profile
 - [ ] Gather review from IETF Security Area Directorate
 - [ ] Seek working group adoption (RATS or a new WG, depending on SECDISPATCH outcome)
@@ -62,9 +50,9 @@ See [LIFECYCLE.md](LIFECYCLE.md) for the full checklist of incubation and gradua
 
 ### Standardization
 
-- [ ] CPoP protocol draft advanced to RFC (experimental or standards-track, depending on WG consensus)
-- [ ] CPoP appraisal draft advanced to RFC
-- [ ] IANA registrations finalized for CBOR tags (`1129336656` / CPOP, `1129791826` / CWAR) and media types
+- [ ] CPoE protocol draft advanced to RFC (experimental or standards-track, depending on WG consensus)
+- [ ] CPoE appraisal draft advanced to RFC
+- [ ] IANA registrations finalized for CBOR tags (`1129336645` / CPoE, `1129791826` / CWAR) and media types
 - [ ] EAR (EAT Attestation Result) compatibility confirmed with RATS tooling for Written Authorship Reports
 
 ### Ecosystem Adoption
@@ -83,7 +71,7 @@ See [LIFECYCLE.md](LIFECYCLE.md) for the full checklist of incubation and gradua
 | Integration design | Documented ([guide](docs/integration/c2pa.md)) |
 | `c2pa.process-evidence` assertion proposal | PR submitted ([c2pa-org/specs-core#2009](https://github.com/c2pa-org/specs-core/pull/2009)) |
 | Hashed URI reference to Evidence Packet / WAR | Designed, not yet implemented |
-| Working C2PA manifest with CPoP assertion | Not started |
+| Working C2PA manifest with CPoE assertion | Not started |
 
 ### CAWG (Creator Assertions Working Group)
 
@@ -92,7 +80,7 @@ See [LIFECYCLE.md](LIFECYCLE.md) for the full checklist of incubation and gradua
 | Integration design | Documented ([guide](docs/integration/cawg.md)) |
 | Creator Process Assertion type definition | Proposed, not yet submitted to CAWG |
 | Composability with CAWG identity assertions | Designed |
-| Working CAWG assertion with CPoP evidence | Not started |
+| Working CAWG assertion with CPoE evidence | Not started |
 
 ### DID / Verifiable Credentials
 

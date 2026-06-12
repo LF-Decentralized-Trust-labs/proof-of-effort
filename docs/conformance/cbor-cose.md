@@ -2,20 +2,20 @@
 
 # CBOR / COSE Conformance
 
-> **Status**: Normative — CPoP wire format uses RFC 8949 (CBOR) + RFC 9052 (COSE)
+> **Status**: Normative — CPoE wire format uses RFC 8949 (CBOR) + RFC 9052 (COSE)
 
 ## Wire Format
 
-All CPoP structures are encoded as CBOR (RFC 8949) using deterministic
+All CPoE structures are encoded as CBOR (RFC 8949) using deterministic
 encoding (Section 4.2.1) with integer-keyed maps.
 
 | Structure           | CBOR Tag       | Hex        | Mnemonic | Media Type                                 |
 | ------------------- | -------------- | ---------- | -------- | ------------------------------------------ |
-| Evidence Packet     | `1129336656`   | `0x43504F50` | `CPOP` | `application/vnd.writersproof.cpop+cbor`   |
-| Compact Evidence Ref| `1129336657`   | `0x43504F51` | `CPOQ` | —                                           |
+| Evidence Packet     | `1129336645`   | `0x43504F45` | `CPoE` | `application/cpoe+cbor`                    |
+| Compact Evidence Ref| `1129336658`   | `0x43504F52` | `CPoR` | —                                           |
 | Attestation Result  | `1129791826`   | `0x43574152` | `CWAR` | `application/vnd.writersproof.cwar+cbor`   |
 
-File extensions: `.cpop` (evidence), `.cwar` (attestation result).
+File extensions: `.cpoe` (evidence), `.cwar` (attestation result).
 
 ## Signature Algorithm
 
@@ -25,7 +25,7 @@ File extensions: `.cpop` (evidence), `.cwar` (attestation result).
 | HMAC      | RFC 2104| SHA-256                      | Event integrity, jitter seals |
 | HKDF      | RFC 5869| SHA-256                      | Key derivation (jitter, entangled binding) |
 
-CPoP uses `COSE_Sign1` for packet signatures. Ed25519 is in the C2PA
+CPoE uses `COSE_Sign1` for packet signatures. Ed25519 is in the C2PA
 allowed algorithm list, enabling cross-standard compatibility.
 
 ## Hash Algorithms
@@ -37,7 +37,7 @@ allowed algorithm list, enabling cross-standard compatibility.
 
 ## CDDL Schema
 
-The complete wire format is defined in [`cddl/cpop.cddl`](../../cddl/cpop.cddl)
+The complete wire format is defined in [`cddl/cpoe.cddl`](../../cddl/cpoe.cddl)
 using CDDL (RFC 8610).
 
 ## References
