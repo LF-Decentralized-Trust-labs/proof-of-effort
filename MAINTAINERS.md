@@ -8,7 +8,7 @@ Maintainers are assigned the following scopes in this repository:
 
 | Scope      | Definition              | GitHub Role | GitHub Team                          |
 | ---------- | ----------------------- | ----------- | ------------------------------------ |
-| Maintainer | The GitHub Maintain role | Maintain    | `proof-of-process-maintainers`       |
+| Maintainer | The GitHub Maintain role | Maintain    | `proof-of-effort-maintainers`       |
 
 ## Active Maintainers
 

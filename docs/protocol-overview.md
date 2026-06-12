@@ -1,17 +1,17 @@
 [//]: # (SPDX-License-Identifier: Apache-2.0)
 
-# CPoP Protocol Overview
+# CPoE Protocol Overview
 
 This document provides a comprehensive technical overview of the
-Cryptographic Proof of Process (CPoP) protocol: what it does, how it
+Cryptographic Proof of Effort (CPoE) protocol: what it does, how it
 works, and how the pieces fit together. For the normative specification,
-see the [protocol draft](../draft-condrey-cpop-protocol.md) and
-[appraisal draft](../draft-condrey-cpop-appraisal.md). For the RATS
+see the [protocol draft](../draft-condrey-cpoe-protocol.md) and
+[appraisal draft](../draft-condrey-cpoe-appraisal.md). For the RATS
 architecture mapping, see [architecture.md](architecture.md).
 
 ## Purpose
 
-The CPoP protocol produces tamper-evident evidence that a human
+The CPoE protocol produces tamper-evident evidence that a human
 authored a document through a genuine creative process, rather than
 generating it with AI and back-filling fake timing data. It works by
 instrumenting the authoring environment to capture behavioral
@@ -51,13 +51,13 @@ environmental conditions, making replay attacks harder.
 ## Wire Format
 
 The evidence is packaged as a CBOR-encoded Evidence Packet tagged with
-semantic tag 1129336656 ("CPOP"). The packet contains the document
+semantic tag 1129336645 ("CPoE"). The packet contains the document
 reference (content hash, not content), the checkpoint chain,
 attestation tier, and optional fields for presence challenges
 (QR-based out-of-band human verification), channel binding (TLS
 Exported Keying Material), hardware-anchored time (TPM attestation),
 and behavioral baselines. The wire format uses integer keys for
-compactness and is defined in CDDL ([`cddl/cpop.cddl`](../cddl/cpop.cddl))
+compactness and is defined in CDDL ([`cddl/cpoe.cddl`](../cddl/cpoe.cddl))
 with strict validation rules.
 
 ## Verification and Forensic Analysis
@@ -80,6 +80,10 @@ intervals, and runs a battery of forensic mechanisms:
 | Perplexity Scoring | PPX | AI-generated text insertions (low perplexity + fast typing) |
 | Biological Cadence | BCA | Mechanically regular or chaotically irregular timing |
 | Inertial Coherence | ICA | Digital keystrokes without corresponding physical impulses |
+| Distributional Conformance (KS) | KSD | IKI distribution shape deviates from empirical human reference |
+| HID Device Provenance | HDP | Generic/injection HID descriptor or polling-rate saturation |
+| Inhibition Response | IRT | Failure to cease input within human reaction time on stop signal |
+| Dynamic Latency Injection | DLI | No typing adaptation when visual feedback is artificially delayed |
 
 Each mechanism belongs to an independence class (spectral, temporal,
 distributional, semantic, hardware, or out-of-band). Two or more flags
@@ -107,7 +111,7 @@ given piece of evidence.
 
 ## Ecosystem Integration
 
-CPoP is designed as an IETF protocol (experimental status) with two
+CPoE is designed as an IETF protocol (experimental status) with two
 companion Internet-Drafts: the protocol spec (wire format, checkpoint
 chain, SWF, jitter binding, physical state) and the appraisal spec
 (verifier behavior, forensic mechanisms, attestation result format).
@@ -117,13 +121,11 @@ Verifiable Credentials, CAWG, and EU AI Act compliance frameworks.
 
 ## Reference Implementation
 
-The Rust implementation provides two crates:
+The Rust reference implementation lives in `impl/posme/` (core library)
+and `impl/posme-ref/` (CLI reference binary). The core library provides:
 
-- **[cpop-jitter](../crates/cpop-jitter/)**: `no_std`-compatible
-  entropy collection with HMAC-based (pure/deterministic) and
-  hardware-based (TSC/CNTVCT timing) jitter engines, an append-only
-  evidence chain with HMAC integrity, and a human-model validator.
-- **[cpop-protocol](../crates/cpop-protocol/)**: Wire types matching
-  the CDDL schema, CBOR/JSON codec with size-limited decoding,
-  evidence builder with causality locks, forensic analysis engine,
-  C2PA manifest generation, and Written Authorship Report encoding.
+- Sequential Work Function (SWF) with BLAKE3-based pointer chasing
+- Merkle tree commitment and Fiat-Shamir sampled proof generation
+- Proof verification against seed and parameters
+
+See `impl/posme/src/lib.rs` for the main API entry points.

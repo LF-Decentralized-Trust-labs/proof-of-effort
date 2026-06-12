@@ -13,7 +13,7 @@
 
 ### did:key Encoding
 
-CPoP uses the multicodec-prefixed multibase encoding per the
+CPoE uses the multicodec-prefixed multibase encoding per the
 [did:key Method Specification](https://w3c-ccg.github.io/did-key-spec/):
 
 ```
@@ -29,7 +29,7 @@ Where `0xed01` is the multicodec prefix for Ed25519 public keys.
 
 ## Verification Relationships
 
-| Relationship           | CPoP Usage                                    |
+| Relationship           | CPoE Usage                                    |
 | ---------------------- | --------------------------------------------- |
 | `assertionMethod`      | Signing evidence packets and VCs (primary)    |
 | `authentication`       | Session binding via key hierarchy             |
@@ -38,7 +38,7 @@ Where `0xed01` is the multicodec prefix for Ed25519 public keys.
 
 ## Key Hierarchy
 
-CPoP implements a three-level key hierarchy that maps to DID verification
+CPoE implements a three-level key hierarchy that maps to DID verification
 methods:
 
 ```

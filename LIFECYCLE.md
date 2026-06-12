@@ -2,7 +2,7 @@
 
 # Project Lifecycle
 
-This document tracks the Proof-of-Process (CPoP) project's progress through
+This document tracks the Proof of Effort (CPoE) project's progress through
 the [LF Decentralized Trust project lifecycle][lifecycle]. It is a living
 checklist, updated automatically by CI and manually as milestones are reached.
 
@@ -61,7 +61,7 @@ are drawn from the [Incubation Entry Considerations][entry].
 
 <!-- lifecycle:release-count -->
 - [x] **At least one release** — published artifacts exist
-  - Current: 2 crate releases (cpop-jitter v0.2.1, cpop-protocol v0.1.1)
+  - Current: 2 crate releases (cpoe-jitter v0.2.1, cpoe-protocol v0.1.1)
 <!-- /lifecycle:release-count -->
 
 - [x] **CI/CD pipeline** — automated build, test, and release ([9 workflows](.github/workflows/))
@@ -180,8 +180,8 @@ proposal to the TAC, following the same process as Incubation entry.
 | Date | Event |
 | ---- | ----- |
 | 2024-12 | Repository created as LF Decentralized Trust lab |
-| 2025-02 | First IETF Internet-Draft submitted (draft-condrey-cpop-protocol-00) |
-| 2025-06 | First crate releases (cpop-jitter v0.1.0, cpop-protocol v0.1.0) |
+| 2025-02 | First IETF Internet-Draft submitted (draft-condrey-cpoe-protocol-00) |
+| 2025-06 | First crate releases (cpoe-jitter v0.1.0, cpoe-protocol v0.1.0) |
 | 2026-03 | GOVERNANCE.md added; lifecycle tracking started |
 
 ---

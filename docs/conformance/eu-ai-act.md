@@ -11,9 +11,9 @@
 "marked in a machine-readable format and detectable as artificially
 generated or manipulated."
 
-## CPoP Compliance
+## CPoE Compliance
 
-CPoP provides the inverse proof — machine-readable attestation that content
+CPoE provides the inverse proof — machine-readable attestation that content
 was **human-authored** — which satisfies Article 50 by distinguishing
 AI-generated from human-generated content.
 
@@ -29,7 +29,7 @@ AI-generated from human-generated content.
 
 ### Declaration Structure
 
-CPoP declarations include structured AI disclosure:
+CPoE declarations include structured AI disclosure:
 
 - `ai_tools[]` — List of AI tools used, with name, version, purpose, and extent
 - `AiExtent` — Categorical AI involvement level (None, Minimal, Moderate, Substantial)

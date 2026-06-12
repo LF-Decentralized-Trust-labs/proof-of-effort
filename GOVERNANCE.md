@@ -2,7 +2,7 @@
 
 # Governance
 
-This document defines the governance model for the Proof-of-Process (CPoP)
+This document defines the governance model for the Proof of Effort (CPoE)
 project, an [LF Decentralized Trust](https://www.lfdecentralizedtrust.org/) lab.
 
 ## Principles

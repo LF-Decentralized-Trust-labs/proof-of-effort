@@ -3,59 +3,54 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/branding/production/png/pop-logo-white.png" width="420">
-  <source media="(prefers-color-scheme: light)" srcset="assets/branding/production/png/pop-logo-black.png" width="420">
-  <img alt="Cryptographic Proof of Process" src="assets/branding/production/png/pop-logo-black.png" width="420">
+  <source media="(prefers-color-scheme: dark)" srcset="assets/branding/production/png/cpoe-logo-white.png" width="420">
+  <source media="(prefers-color-scheme: light)" srcset="assets/branding/production/png/cpoe-logo-black.png" width="420">
+  <img alt="Cryptographic Proof of Effort" src="assets/branding/production/png/cpoe-logo-black.png" width="420">
 </picture>
 
 ### Cryptographic attestation of human cognitive involvement in digital content creation
 
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg?style=for-the-badge)](LICENSE)
-[![IETF Drafts](https://img.shields.io/badge/IETF-Internet--Drafts-blue?style=for-the-badge&logo=ietf)](https://lf-decentralized-trust-labs.github.io/proof-of-process/)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/LF-Decentralized-Trust-labs/proof-of-process/badge?style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/LF-Decentralized-Trust-labs/proof-of-process)
+[![IETF Drafts](https://img.shields.io/badge/IETF-Internet--Drafts-blue?style=for-the-badge&logo=ietf)](https://lf-decentralized-trust-labs.github.io/proof-of-effort/)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/LF-Decentralized-Trust-labs/proof-of-effort/badge?style=for-the-badge)](https://scorecard.dev/viewer/?uri=github.com/LF-Decentralized-Trust-labs/proof-of-effort)
 
-[![cpop-protocol](https://img.shields.io/crates/d/cpop-protocol?style=flat-square&label=cpop-protocol)](https://crates.io/crates/cpop-protocol)
-[![cpop-jitter](https://img.shields.io/crates/d/cpop-jitter?style=flat-square&label=cpop-jitter)](https://crates.io/crates/cpop-jitter)
 [![C2PA](https://img.shields.io/badge/C2PA-integration_proposed-orange?style=flat-square)](docs/integration/c2pa.md)
 [![RATS WG](https://img.shields.io/badge/IETF-RATS_WG-informational?style=flat-square)](https://datatracker.ietf.org/wg/rats/about/)
 [![RFC 9334](https://img.shields.io/badge/RFC-9334-informational?style=flat-square)](https://www.rfc-editor.org/rfc/rfc9334)
 
 An [LF Decentralized Trust](https://www.lfdecentralizedtrust.org/) Lab
 
-[Read the Spec][protocol-html] · [Architecture](docs/architecture.md) · [CDDL Schema](cddl/cpop.cddl) · [Contributing](CONTRIBUTING.md)
+[Read the Spec][protocol-html] · [Architecture](docs/architecture.md) · [CDDL Schema](cddl/cpoe.cddl) · [Contributing](CONTRIBUTING.md)
 
 </div>
 
 ---
 
 > [!IMPORTANT]
-> **Status**: These are individual Internet-Drafts, not yet adopted by any IETF working group. The protocol is under active development. Feedback is welcome via [GitHub Issues](https://github.com/LF-Decentralized-Trust-labs/proof-of-process/issues) or the [RATS mailing list](https://mailarchive.ietf.org/arch/browse/rats/).
+> **Status**: These are individual Internet-Drafts, not yet adopted by any IETF working group. The protocol is under active development. Feedback is welcome via [GitHub Issues](https://github.com/LF-Decentralized-Trust-labs/proof-of-effort/issues) or the [RATS mailing list](https://mailarchive.ietf.org/arch/browse/rats/).
 
 ## What This Repository Contains
 
-This repository is the home of the **Proof-of-Process (CPoP) protocol specification** — two IETF Internet-Drafts, a formal CDDL data schema, and supporting documentation for a cryptographic attestation protocol for evaluating human cognitive involvement in digital content creation.
+This repository is the home of the **Proof of Effort (CPoE) protocol specification** — two IETF Internet-Drafts, a formal CDDL data schema, and supporting documentation for a cryptographic attestation protocol for evaluating human cognitive involvement in digital content creation.
 
 **Concretely, this repo contains:**
 
 - **Two IETF Internet-Drafts** in [kramdown-rfc](https://github.com/cabo/kramdown-rfc) format, built and published automatically via GitHub Actions:
-  - [`draft-condrey-cpop-protocol`](draft-condrey-cpop-protocol.md) — The core protocol: architecture, evidence format, and wire encoding
-  - [`draft-condrey-cpop-appraisal`](draft-condrey-cpop-appraisal.md) — The appraisal methodology: forensic evaluation, security model, and trust calibration
-- **A CDDL schema** ([`cddl/cpop.cddl`](cddl/cpop.cddl)) defining the CBOR-encoded wire format for Evidence Packets and Written Authorship Reports
-- **Architecture and integration documentation** mapping CPoP to [C2PA](docs/integration/c2pa.md), [CAWG](docs/integration/cawg.md), and [DID/VC](docs/integration/did.md) ecosystems
-- **Reference implementation crates** in Rust:
-  - [`cpop-jitter`](crates/cpop-jitter/) — Timing jitter entropy primitive (`no_std` compatible)
-  - [`cpop-protocol`](crates/cpop-protocol/) — Wire format, CBOR/COSE codec, evidence builder/verifier
+  - [`draft-condrey-cpoe-protocol`](draft-condrey-cpoe-protocol.md) — The core protocol: architecture, evidence format, and wire encoding
+  - [`draft-condrey-cpoe-appraisal`](draft-condrey-cpoe-appraisal.md) — The appraisal methodology: forensic evaluation, security model, and trust calibration
+- **A CDDL schema** ([`cddl/cpoe.cddl`](cddl/cpoe.cddl)) defining the CBOR-encoded wire format for Evidence Packets and Written Authorship Reports
+- **Architecture and integration documentation** mapping CPoE to [C2PA](docs/integration/c2pa.md), [CAWG](docs/integration/cawg.md), and [DID/VC](docs/integration/did.md) ecosystems
 - **A complete build pipeline** ([`Makefile`](Makefile) + [GitHub Actions](.github/workflows/)) that compiles drafts to HTML/TXT and publishes editor's copies to GitHub Pages
 
 ## Why This Exists
 
 We can verify *who* performed a digital action. We cannot verify *whether a human was actually involved*. That distinction matters now — generative AI can produce text, code, and media that is indistinguishable from human output. No existing protocol provides cryptographic attestation of human cognitive involvement in content creation.
 
-CPoP defines a way to collect behavioral evidence (keystroke dynamics, pause patterns, editing trajectories) during content creation and turn it into a cryptographically verifiable attestation result. No biometric databases. No surveillance. Physics-constrained evidence that a human process occurred.
+CPoE defines a way to collect behavioral evidence (keystroke dynamics, pause patterns, editing trajectories) during content creation and turn it into a cryptographically verifiable attestation result. No biometric databases. No surveillance. Physics-constrained evidence that a human process occurred.
 
 ## How the Protocol Works
 
-CPoP is built on the [IETF RATS architecture (RFC 9334)](https://www.rfc-editor.org/rfc/rfc9334), using the standard Attester → Verifier → Relying Party topology:
+CPoE is built on the [IETF RATS architecture (RFC 9334)](https://www.rfc-editor.org/rfc/rfc9334), using the standard Attester → Verifier → Relying Party topology:
 
 ```
                          Reference Values
@@ -65,7 +60,7 @@ CPoP is built on the [IETF RATS architecture (RFC 9334)](https://www.rfc-editor.
   ┌────────────┐  Evidence  ┌────────────┐  Attestation  ┌────────────┐
   │            │  Packet    │            │  Result        │            │
   │  Attester  │──────────→ │  Verifier  │ ─────────────→│  Relying   │
-  │            │  (CPOP)    │            │  (CWAR)        │  Party     │
+  │            │  (.cpoe)   │            │  (.cwar)       │  Party     │
   └────────────┘            └────────────┘                └────────────┘
        │                          │
        │ Collects:                │ Evaluates:
@@ -75,7 +70,7 @@ CPoP is built on the [IETF RATS architecture (RFC 9334)](https://www.rfc-editor.
        │ · HW attestation         │ · Confidence scoring
 ```
 
-1. **Attester** — Captures behavioral evidence during content creation and packages it into CBOR-encoded Evidence Packets (tag `1129336656` / `CPOP`).
+1. **Attester** — Captures behavioral evidence during content creation and packages it into CBOR-encoded Evidence Packets (tag `1129336645` / `CPoE`).
 2. **Verifier** — Evaluates evidence against human-process baselines and produces Written Authorship Reports (tag `1129791826` / `CWAR`).
 3. **Relying Party** — Consumes attestation results to make trust decisions about content provenance.
 
@@ -95,33 +90,33 @@ For a comprehensive technical overview, see [`docs/protocol-overview.md`](docs/p
 
 | Draft | Title | Editor's Copy | Status |
 | ----- | ----- | :-----------: | :----: |
-| `draft-condrey-cpop-protocol` | Architecture and Evidence Format | [HTML][protocol-html] | Active |
-| `draft-condrey-cpop-appraisal` | Forensic Appraisal and Security Model | [HTML][appraisal-html] | Active |
+| `draft-condrey-cpoe-protocol` | Architecture and Evidence Format | [HTML][protocol-html] | Active |
+| `draft-condrey-cpoe-appraisal` | Forensic Appraisal and Security Model | [HTML][appraisal-html] | Active |
 
-[protocol-html]: https://lf-decentralized-trust-labs.github.io/proof-of-process/draft-condrey-cpop-protocol.html
-[appraisal-html]: https://lf-decentralized-trust-labs.github.io/proof-of-process/draft-condrey-cpop-appraisal.html
+[protocol-html]: https://lf-decentralized-trust-labs.github.io/proof-of-effort/draft-condrey-cpoe-protocol.html
+[appraisal-html]: https://lf-decentralized-trust-labs.github.io/proof-of-effort/draft-condrey-cpoe-appraisal.html
 
 Editor's copies are rebuilt on every push to `main` and published via GitHub Pages.
 
 ## CDDL Schema
 
-The wire format is formally defined in [`cddl/cpop.cddl`](cddl/cpop.cddl) using [CDDL (RFC 8610)](https://www.rfc-editor.org/rfc/rfc8610):
+The wire format is formally defined in [`cddl/cpoe.cddl`](cddl/cpoe.cddl) using [CDDL (RFC 8610)](https://www.rfc-editor.org/rfc/rfc8610):
 
 | Structure | CBOR Tag | Mnemonic | Description |
 | --------- | -------- | -------- | ----------- |
-| `evidence-packet` | `1129336656` | `CPOP` | Behavioral telemetry, document refs, session context, crypto bindings |
+| `evidence-packet` | `1129336645` | `CPoE` | Behavioral telemetry, document refs, session context, crypto bindings |
 | `attestation-result` | `1129791826` | `CWAR` | Written Authorship Report: appraisal verdict, entropy scores, confidence, forensic metadata |
 
 All structures use CBOR integer-keyed maps. Timestamps are in milliseconds; entropy estimates are in centibits (1/100th of a bit).
 
 ## Ecosystem
 
-CPoP sits beneath existing provenance and identity frameworks, adding an "evidence of effort" layer:
+CPoE sits beneath existing provenance and identity frameworks, adding an "evidence of effort" layer:
 
 | Ecosystem | Role | Integration Guide |
 | --------- | ---- | :---------------: |
-| [IETF RATS WG](https://datatracker.ietf.org/wg/rats/about/) | CPoP implements the RATS architecture (RFC 9334) | [Mailing list](https://mailarchive.ietf.org/arch/browse/rats/) |
-| [C2PA](https://c2pa.org/) | CPoP evidence as assertions within content credential manifests | [Guide](docs/integration/c2pa.md) |
+| [IETF RATS WG](https://datatracker.ietf.org/wg/rats/about/) | CPoE implements the RATS architecture (RFC 9334) | [Mailing list](https://mailarchive.ietf.org/arch/browse/rats/) |
+| [C2PA](https://c2pa.org/) | CPoE evidence as assertions within content credential manifests | [Guide](docs/integration/c2pa.md) |
 | [CAWG](https://cawg.io/) | Creator process assertions alongside CAWG identity assertions | [Guide](docs/integration/cawg.md) |
 | [W3C VC](https://www.w3.org/TR/vc-data-model-2.0/) / [DIF](https://identity.foundation/) | Attestation results as verifiable credentials bound to DIDs | [Guide](docs/integration/did.md) |
 | [IETF SECDISPATCH](https://datatracker.ietf.org/wg/secdispatch/about/) | Venue for routing new security protocol work within the IETF | [Mailing list](https://mailarchive.ietf.org/arch/browse/secdispatch/) |
@@ -136,7 +131,7 @@ CPoP sits beneath existing provenance and identity frameworks, adding an "eviden
 
 ## Standards Conformance
 
-CPoP is designed to interoperate with existing provenance, identity, and governance frameworks. Detailed conformance documentation is in [`docs/conformance/`](docs/conformance/).
+CPoE is designed to interoperate with existing provenance, identity, and governance frameworks. Detailed conformance documentation is in [`docs/conformance/`](docs/conformance/).
 
 | Standard | Status | Documentation |
 | -------- | ------ | :-----------: |

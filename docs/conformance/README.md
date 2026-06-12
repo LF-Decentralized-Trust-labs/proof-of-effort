@@ -2,19 +2,19 @@
 
 # Standards Conformance
 
-This directory documents how the Proof-of-Process (CPoP) protocol aligns
+This directory documents how the Proof of Effort (CPoE) protocol aligns
 with external standards, specifications, and regulatory frameworks.
 
-CPoP is designed to operate *beneath* existing provenance and identity
+CPoE is designed to operate *beneath* existing provenance and identity
 standards, adding a behavioral attestation layer. These conformance documents
-describe the concrete mapping between CPoP structures and each external
+describe the concrete mapping between CPoE structures and each external
 standard.
 
 ## Documents
 
 | Standard | Document | Status |
 | -------- | -------- | ------ |
-| IETF RATS | [rats.md](rats.md) | **Normative** — CPoP implements RFC 9334 |
+| IETF RATS | [rats.md](rats.md) | **Normative** — CPoE implements RFC 9334 |
 | CBOR / COSE | [cbor-cose.md](cbor-cose.md) | **Normative** — Wire format per RFC 8949 + RFC 9052 |
 | C2PA | [../integration/c2pa.md](../integration/c2pa.md) | Proposed — soft binding registered |
 | W3C DID Core | [did.md](did.md) | Implemented — `did:key` + `did:web` |
