@@ -38,7 +38,7 @@ that WAR into a Verifiable Credential using JSON-LD terms defined in the
 |------|---------|
 | [`w3c/baa-vc-profile.md`](w3c/baa-vc-profile.md) | Technical profile: Bayesian Appraisal to W3C Confidence Method v0.9/v1.0 |
 | [`w3c/contexts/poe.jsonld`](w3c/contexts/poe.jsonld) | JSON-LD context defining CPoE terms for Linked Data consumption |
-| [`draft-condrey-rats-hat.md`](draft-condrey-rats-hat.md) | IETF draft: Hardware Attestation of Time (TPM temporal binding) |
+| [`draft-condrey-hat.md`](draft-condrey-hat.md) | IETF draft: Hardware Attestation of Time (TPM temporal binding) |
 | [`draft-condrey-cpoe-appraisal.md`](draft-condrey-cpoe-appraisal.md) | IETF draft: CPoE Appraisal (Written Authorship Report) |
 | [`draft-condrey-cpoe-protocol.md`](draft-condrey-cpoe-protocol.md) | IETF draft: CPoE Protocol (evidence packet structure) |
 
@@ -306,7 +306,7 @@ This harmonization layer is a **draft** aligned with:
 
 - W3C Verifiable Credentials Data Model v2.0 (CR)
 - W3C Confidence Method v0.9/v1.0 (CCG Draft)
-- IETF `draft-condrey-rats-hat` (Individual Draft)
+- IETF `draft-condrey-hat` (Individual Draft)
 - IETF `draft-condrey-cpoe-appraisal` (Individual Draft)
 - IETF `draft-condrey-cpoe-protocol` (Individual Draft)
 

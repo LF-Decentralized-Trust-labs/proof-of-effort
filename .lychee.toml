@@ -2,3 +2,8 @@
 exclude_path = ["lib/", "node_modules/", ".git/"]
 timeout = 30
 max_retries = 3
+# GitHub Pages URLs for renamed drafts will 404 until merged and rebuilt
+exclude = [
+  "https://lf-decentralized-trust-labs.github.io/proof-of-effort/draft-condrey-cpoe-.*",
+  "https://w3c-ccg.github.io/confidence-method/"
+]
