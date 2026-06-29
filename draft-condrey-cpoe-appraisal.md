@@ -1047,6 +1047,76 @@ of c-swf, c-entropy, and c-hardware. All component costs within a
 single forgery-cost-estimate MUST be expressed in the same
 cost-unit.
 
+## Forgery-Cost-Bounded Trust Calibration (Informative) {#trust-calibration}
+
+The bounds in this section quantify how expensive a forgery is, while
+the verdict logic in {{verdict-assignment}} is deterministic: it admits
+or rejects Evidence by flag thresholds and uses neither a posterior nor
+a likelihood ratio. The two layers are not formally linked. A Relying
+Party is told the forgery cost C_total and, separately, a verdict, but
+the specification does not say how far that cost should move the Party's
+trust. This subsection sketches one way to connect them. It is
+informative and conjecture-stage, and it does not change the verdict
+logic.
+
+The proposal is decision-theoretic. The weight a Relying Party may place
+on an Evidence Packet is bounded by the cost of forging it. Let C_floor
+be the cost of the cheapest convincing forgery a Verifier must assume.
+An adversary-aware Party should not credit Evidence with a likelihood
+ratio larger than the cost ratio, since any larger weight could be
+manufactured by an adversary willing to spend up to that cost:
+
+~~~ artwork
+LR_cap = max(1, C_total / C_floor)
+delta_logodds_cap = ln(LR_cap)
+posterior_odds <= prior_odds * LR_cap
+~~~
+
+The cap is monotone in C_total, so it rises with the assurance tier. A
+higher tier carries a higher C_total and therefore licenses a larger
+admissible update. The binding quantity is C_total, the cost of a
+convincing forgery. The number of checkpoints or log entries beyond what
+already sets C_total does not raise the cap. Confidence tracks forgery
+feasibility, not evidence volume.
+
+The figures below are a synthetic illustration computed under stated
+assumptions. They are not normative. They assume neutral prior odds
+(1:1), C_floor = USD 1.00, and all three cost terms expressed in a
+common unit. The {{cost-hardware}} floors of this section set the
+hardware term to 0 at T1 and T2, to USD 10,000 at T3 (the low end of its
+stated band), and to USD 100,000 at T4. So that the four tiers separate
+in the illustration, the figures assign T2 a small nominal hardware
+floor of USD 100 rather than 0; this nominal value is an assumption of
+the illustration, not a value this section states. A small fixed C_swf
+and C_entropy contribution (n = 12, t_checkpoint = 2 s, d = 4) accounts
+for the remainder. A reference implementation that reproduces every
+figure is available from the author.
+
+~~~ artwork
+tier   C_total (USD)   LR_cap        delta_logodds(nats)   posterior
+----   -------------   -----------   -------------------   ---------
+T1            7.83          7.83                    2.06     0.887
+T2          107.83        107.83                    4.68     0.991
+T3       10,007.83     10,007.83                    9.21     0.99990
+T4      100,007.83    100,007.83                   11.51     0.99999
+~~~
+
+Holding C_total fixed at the T3 configuration and inflating the
+log-entry count by 10x and 100x leaves the admissible update unchanged:
+the cap stays at 10,007.83, the log-odds shift stays at 9.21 nats, and
+the posterior stays at 0.99990 at every multiplier. A Relying Party
+cannot manufacture confidence by accumulating cheap log entries that do
+not raise the forgery cost.
+
+This calibration layer is intended to sit beside the deterministic
+verdict, not to replace it. The verdict still decides whether Evidence
+is admitted. The cap only bounds how far an admitted result may move a
+Relying Party's odds. Open questions include whether there is a minimum
+evidence depth below which the update is not meaningful, and whether the
+bound composes across delegation chains. Both depend on the
+unforgeability of the signature scheme and the collision resistance of
+its hash.
+
 # Absence Proofs: Negative Evidence Taxonomy {#absence-proofs}
 
 Absence proofs are assertions that supplement but do not override forensic analysis. Forensic flags take precedence over contradictory absence claims when determining the verdict. Type 1 (computationally-bound) claims may strengthen an authentic verdict. Type 2 (monitoring-dependent) and Type 3 (environmental) claims are informational and weighted by attestation tier.
