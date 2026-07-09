@@ -1,7 +1,7 @@
 ---
 v: 3
 docname: draft-condrey-hat-latest
-date: 2026-05
+date: 2026-06-17
 title: "Hardware Attestation of Time (HAT): TPM-Based Temporal Binding for Remote Attestation"
 abbrev: HAT
 category: info
