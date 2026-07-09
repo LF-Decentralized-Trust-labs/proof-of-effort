@@ -4,8 +4,8 @@
 
 Individual Submission                                         D. Condrey
 Internet-Draft                                              WritersLogic
-Intended status: Informational                                  May 2026
-Expires: 2 December 2026
+Intended status: Informational                              17 June 2026
+Expires: 19 December 2026
 
 
    Hardware Attestation of Time (HAT): TPM-Based Temporal Binding for
@@ -38,7 +38,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 November 2026.
+   This Internet-Draft will expire on 19 December 2026.
 
 Copyright Notice
 
