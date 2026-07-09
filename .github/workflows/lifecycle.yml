@@ -95,10 +95,12 @@ jobs:
             replacement=$(printf '%s\n%s %s\n  - Current: %s\n%s' \
               "$open" "$checkbox" "$label" "$detail" "$close")
 
-            # Use awk to replace between markers
-            awk -v open="$open" -v close="$close" -v repl="$replacement" '
+            # Use awk to replace between markers.
+            # NOTE: 'close' is a gawk builtin and is rejected as a -v variable
+            # name (fatal error), so pass the end marker as 'endm' instead.
+            awk -v open="$open" -v endm="$close" -v repl="$replacement" '
               $0 ~ open { skip=1; print repl; next }
-              $0 ~ close { skip=0; next }
+              $0 ~ endm { skip=0; next }
               !skip { print }
             ' "$FILE" > "${FILE}.tmp" && mv "${FILE}.tmp" "$FILE"
           }
