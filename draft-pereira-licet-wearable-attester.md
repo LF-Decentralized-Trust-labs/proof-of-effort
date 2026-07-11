@@ -164,9 +164,13 @@ assumptions that exclude trained volitional vagal control. This assumption MUST 
 stated wherever the layer's output is interpreted.
 
 A respiratory periodicity index based on RSA coefficient of variation (RSA CV) can
-detect trained paced breathing by its characteristic regularity signature (CV ~0.03
-for paced breathing versus CV ~0.40 for genuine rest). This narrows the attack
-surface but does not close it. RSA CV is a discriminant, not a proof. The
+detect trained paced breathing by its characteristic regularity signature. Paced
+breathing at resonance frequency produces highly regular inter-breath intervals
+(RSA CV in the order of 0.03), whereas genuine resting HRV exhibits substantially
+higher inter-breath variability (RSA CV in the order of 0.40); these are illustrative
+values derived from the slow-paced breathing literature {{Laborde2022}} and the
+authors' implementation measurements, not normative thresholds. This narrows the
+attack surface but does not close it. RSA CV is a discriminant, not a proof. The
 `respiratory_periodicity_warning` flag in the Evidence packet is a detector output,
 not a falsification of the Mahalanobis claim. Both MUST be surfaced; interpretation
 is left to the Relying Party.
@@ -202,7 +206,7 @@ The ZKP does NOT prove:
 **ZKP ≠ proof-of-measurement-of-intent.** The proof validates the measurement chain.
 The inference from measurement to intent is a probabilistic claim bounded by
 {{limitations}}. Every Attestation Result that includes a ZKP MUST include a
-`zkp_scope` claim ({{zkp-scope}}) that states this explicitly.
+`zkp-scope` claim ({{zkp-scope}}) that states this explicitly.
 
 
 # Attester Topology Under RFC 9334 {#attester-topology}
@@ -234,12 +238,12 @@ level of the composite is bounded by the weakest sub-attester in the chain.
 
 The LICET wearable supports both models defined in RFC 9334:
 
-Passport Model (RFC 9334 §8.1):
+Passport Model (RFC 9334 §5.1):
 : The Verifier appraises Evidence and produces an Attestation Result token that the
   Relying Party consumes without re-verifying raw Evidence. Suitable for low-latency
   authorization flows.
 
-Background-Check Model (RFC 9334 §8.2):
+Background-Check Model (RFC 9334 §5.2):
 : The Relying Party forwards Evidence to the Verifier at authorization time. Suitable
   for high-assurance flows where the Relying Party maintains its own appraisal policy.
 
@@ -317,6 +321,27 @@ Note: No commercially available consumer wearable currently meets L3 as defined 
 L3 is the target architecture for NeuroTrust's hardware program. Current deployments
 operate at L0 (simulation mode) or L1 (platform attestation via mobile OS).
 
+## Relationship to CPoE T1–T4 Tiers {#tier-mapping}
+
+The CPoE evidence-packet schema {{CPoE-Protocol}} defines a T1–T4 signal-type
+hierarchy. LICET L0–L3 is an orthogonal attestation-quality hierarchy: L0–L3
+describes the trustworthiness of the measurement chain, while T1–T4 describes
+the type of signal being measured. Both hierarchies appear in the same Evidence
+packet and MUST NOT be conflated.
+
+The approximate correspondence is:
+
+| LICET level | Signal type (CPoE tier) | Basis                                                        |
+|-------------|-------------------------|--------------------------------------------------------------|
+| L0          | T1 / T2                 | Uncertified sensor; dimensionality comparable to behavioral (T1) or inertial (T2) signal |
+| L1          | T2 / T3                 | Platform-attested software; physiological signal with software-layer guarantee |
+| L2          | T3                      | Certified device; physiological signal with verifiable hardware-backed chain  |
+| L3          | T3 / T4                 | Hardware-attested sensor; physiological signal attested to silicon boundary   |
+
+An Evidence packet carrying an L0 Attester credential paired with a T3 (ECG)
+signal MUST be appraised at L0 evidential weight regardless of signal type. The
+lower of (attestation level, signal type tier) governs the Attestation Result.
+
 ## Trust Hierarchy Summary
 
 | Level | Sensor attestation | Cert chain          | ZKP scope                        | Evidential weight         |
@@ -352,9 +377,9 @@ The following limitation flags MUST be surfaced in the Attestation Result when p
 
 ## ZKP Scope Claim {#zkp-scope}
 
-Every Evidence message that includes a ZKP MUST include a `zkp_scope` claim that
+Every Evidence message that includes a ZKP MUST include a `zkp-scope` claim that
 states explicitly what the proof covers. A Relying Party that receives a ZKP without
-a `zkp_scope` claim MUST treat the proof as covering measurement chain integrity only
+a `zkp-scope` claim MUST treat the proof as covering measurement chain integrity only
 and MUST NOT infer absence of coercion.
 
 ~~~ cddl
@@ -401,7 +426,7 @@ the CPoE evidence-packet schema:
 3. **Limitation flags:** Are the four flags in {{appraisal}} the right set, or are
    there additional flags the appraisal logic should surface?
 
-4. **ZKP scope claim format:** Is the `zkp_scope` structure in {{zkp-scope}} the right
+4. **ZKP scope claim format:** Is the `zkp-scope` structure in {{zkp-scope}} the right
    format for the evidence-packet schema, or should it map to existing CPoE claim keys?
 
 5. **L3 definition:** Is "analog-to-digital conversion within the hardware trust
@@ -421,6 +446,10 @@ is sufficient for a given authorization decision.
 The `respiratory_periodicity_warning` flag ({{appraisal}}) MUST be checked before
 relying on Mahalanobis distance as the primary evidence for an authorization
 decision. A warning flag does not invalidate the Evidence; it bounds the claim.
+
+The `zkp-scope` claim ({{zkp-scope}}) MUST be present in every Evidence message
+that includes a ZKP. Its absence MUST be treated as equivalent to a scope limited
+to measurement chain integrity only.
 
 
 # IANA Considerations
