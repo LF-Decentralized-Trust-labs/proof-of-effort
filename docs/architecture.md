@@ -135,20 +135,24 @@ require hardware support that may not be universally available.
 ## Topology Scope
 
 The RATS role diagram above depicts the **single Attester topology** defined in
-RFC 9334 §3.1: one Attester, one Verifier, one Relying Party. This is the
+RFC 9334 §4.1: one Attester, one Verifier, one Relying Party. This is the
 topology currently specified by CPoE.
 
-RFC 9334 §3.3 defines a **Composite Attester** model in which a Lead
-Attester collects Evidence from one or more Sub-Attesters and presents a
-combined Evidence set to the Verifier. This topology is not yet specified in
-CPoE. Three concrete gaps exist if a Composite Attester profile is added in
-the future:
+RFC 9334 §3.3 defines a **Composite Device** model in which a lead Attester
+collects Evidence from one or more other Attesters and presents a combined
+Evidence set to the Verifier. This document uses the shorthand **Sub-Attester**
+for the contributing Attesters as a CPoE-local term; RFC 9334 §3.3 refers to
+them as "other Attesters". This topology is not yet specified in CPoE. Three
+concrete gaps exist if a Composite Attester profile is added in the future:
 
-1. **Sub-Attester Evidence format.** RFC 9334 §3.3 requires each
-   Sub-Attester to produce an independently verifiable Evidence structure. The
+1. **Sub-Attester Evidence format.** RFC 9334 §3.3 requires each contributing
+   Attester to produce an independently verifiable Evidence structure. The
    current `evidence-packet` schema models a single authoring session; it does
    not define how Sub-Attester Evidence is embedded or referenced within a
-   composite packet.
+   composite packet. The existing temporal chaining fields — `previous-packet-ref`
+   (key 14) and `packet-sequence` (key 15) — link packets from a single author
+   across time and do not provide a mechanism for composing Evidence across
+   distinct Attesters.
 
 2. **`physical-liveness` field scope.** Key 18 (`physical-liveness`) currently
    captures thermal and entropy signals from the authoring environment. In a
