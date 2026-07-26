@@ -138,13 +138,13 @@ The RATS role diagram above depicts the **single Attester topology** defined in
 RFC 9334 §3.1: one Attester, one Verifier, one Relying Party. This is the
 topology currently specified by CPoE.
 
-RFC 9334 §3.1.4 defines a **Composite Attester** model in which a Lead
+RFC 9334 §3.3 defines a **Composite Attester** model in which a Lead
 Attester collects Evidence from one or more Sub-Attesters and presents a
 combined Evidence set to the Verifier. This topology is not yet specified in
 CPoE. Three concrete gaps exist if a Composite Attester profile is added in
 the future:
 
-1. **Sub-Attester Evidence format.** RFC 9334 §3.1.4 requires each
+1. **Sub-Attester Evidence format.** RFC 9334 §3.3 requires each
    Sub-Attester to produce an independently verifiable Evidence structure. The
    current `evidence-packet` schema models a single authoring session; it does
    not define how Sub-Attester Evidence is embedded or referenced within a
@@ -152,10 +152,15 @@ the future:
 
 2. **`physical-liveness` field scope.** Key 18 (`physical-liveness`) currently
    captures thermal and entropy signals from the authoring environment. In a
-   composite topology where a peripheral device (e.g., a wearable sensor)
-   acts as a Sub-Attester, the provenance and trust level of that device's
-   liveness signals must be separately declared and are not represented by the
-   current field.
+   composite topology where a peripheral wearable device acts as a Sub-Attester
+   contributing physiological signals (e.g., HRV-derived RMSSD, electrodermal
+   activity, skin temperature), the current field provides no mechanism to
+   declare: (a) the trust level of each signal source independently; (b) the
+   sensor calibration endorsement for the peripheral device; or (c) the
+   per-subject behavioral baseline against which liveness is assessed. These
+   declarations are prerequisites for any appraisal logic operating over
+   heterogeneous physiological Evidence and are not representable in the current
+   single-field design.
 
 3. **Endorser scope.** The current Endorser role is scoped to TPM and Secure
    Element manufacturers (T3/T4 tiers). A Sub-Attester that is not a general-
