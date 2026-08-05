@@ -4,7 +4,7 @@
 
 This document tracks the Proof of Effort (CPoE) project's progress through
 the [LF Decentralized Trust project lifecycle][lifecycle]. It is a living
-checklist, updated automatically by CI and manually as milestones are reached.
+checklist, updated manually as milestones are reached.
 
 **Current stage: Labs**
 
@@ -64,13 +64,13 @@ are drawn from the [Incubation Entry Considerations][entry].
   - Current: 2 crate releases (cpoe-jitter v0.2.1, cpoe-protocol v0.1.1)
 <!-- /lifecycle:release-count -->
 
-- [x] **CI/CD pipeline** — automated build, test, and release ([9 workflows](.github/workflows/))
+- [x] **CI/CD pipeline** — automated build, test, and release ([6 workflows](.github/workflows/))
 
 - [x] **Dependency management** — Dependabot configured for 3 ecosystems
 
 <!-- lifecycle:scorecard -->
-- [ ] **OpenSSF Scorecard** — automated scoring in CI
-  - Current: Badge referenced in README, no workflow
+- [x] **OpenSSF Scorecard** — automated scoring in CI
+  - Current: scorecard.yml runs weekly; badge referenced in README
 <!-- /lifecycle:scorecard -->
 
 - [ ] **OpenSSF Best Practices Badge** — badge application started
@@ -183,8 +183,3 @@ proposal to the TAC, following the same process as Incubation entry.
 | 2025-02 | First IETF Internet-Draft submitted (draft-condrey-cpoe-protocol-00) |
 | 2025-06 | First crate releases (cpoe-jitter v0.1.0, cpoe-protocol v0.1.0) |
 | 2026-03 | GOVERNANCE.md added; lifecycle tracking started |
-
----
-
-*This file is partially maintained by the [lifecycle status workflow](.github/workflows/lifecycle.yml).
-Fields between `<!-- lifecycle:* -->` markers are updated automatically.*
