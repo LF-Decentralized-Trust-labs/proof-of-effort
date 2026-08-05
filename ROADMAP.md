@@ -6,10 +6,20 @@
 
 CPoE (Cryptographic Proof of Effort) is an **LF Decentralized Trust lab** with two **IETF individual Internet-Drafts** (not yet adopted by any working group):
 
-- `draft-condrey-cpoe-protocol-00` -- Architecture and Evidence Format (category: experimental)
-- `draft-condrey-cpoe-appraisal-00` -- Forensic Appraisal and Security Model (category: experimental)
+- `draft-condrey-rats-pop-protocol-06` -- Architecture and Evidence Format (category: experimental)
+- `draft-condrey-rats-pop-appraisal-04` -- Forensic Appraisal and Security Model (category: experimental)
+
+The drafts are published on the IETF datatracker under the earlier Proof of Process (PoP)
+series name, while the `docname` in this repository's sources is `draft-condrey-cpoe-*`.
+The two do not currently match. Because the publish workflow submits on any `draft-*` tag,
+resolving this is a prerequisite to the next submission: publishing under the `cpoe` name
+starts a new `-00` series rather than continuing the existing revision history.
 
 Both are independent submissions to the IETF under the Security area, aligned with the RATS (Remote Attestation Procedures) architecture defined in RFC 9334.
+
+Three further draft sources in this repository -- `draft-condrey-cpoe-anchoring`,
+`draft-condrey-cpoe-usecases`, and `draft-condrey-hat` -- have not been submitted and do
+not yet appear on the datatracker.
 
 The repository contains the formal CDDL schema, architecture documentation, and integration proposals for three ecosystems. A reference implementation is maintained separately.
 

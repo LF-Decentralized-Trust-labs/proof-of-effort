@@ -34,7 +34,7 @@ are drawn from the [Incubation Entry Considerations][entry].
 
 <!-- lifecycle:contributor-count -->
 - [ ] **Active contributors** — multiple non-maintainer contributors with merged PRs
-  - Current: 1 primary contributor
+  - Current: 1 external contributor with a merged PR (#97), alongside 1 maintainer
 <!-- /lifecycle:contributor-count -->
 
 - [ ] **TAC sponsors** — at least 2 sponsors from different organizations willing to champion the proposal
@@ -60,8 +60,9 @@ are drawn from the [Incubation Entry Considerations][entry].
 ### Technical Maturity
 
 <!-- lifecycle:release-count -->
-- [x] **At least one release** — published artifacts exist
-  - Current: 2 crate releases (cpoe-jitter v0.2.1, cpoe-protocol v0.1.1)
+- [ ] **At least one release** — published artifacts exist
+  - Current: none. Two git tags (`cpop-jitter-v0.2.1`, `cpop-protocol-v0.1.1`) point at a
+    single commit; no crate of either name is published, and there are no GitHub Releases
 <!-- /lifecycle:release-count -->
 
 - [x] **CI/CD pipeline** — automated build, test, and release ([6 workflows](.github/workflows/))
@@ -115,14 +116,15 @@ the TAC during annual reviews.
 
 <!-- lifecycle:yearly-releases -->
 - [ ] **Minimum 2 releases per year**
-  - Current: 2 total releases
+  - Current: no published releases
 <!-- /lifecycle:yearly-releases -->
 
 - [ ] Packaging score SHOULD = 10 (OpenSSF)
 
 ### Testing
 
-- [x] CI tests exist (Rust test suite, CDDL validation, link checking)
+- [x] CI tests exist (CDDL validation, link checking)
+- [ ] Rust test suite runs in CI — the crates under `impl/` are not built or tested by any workflow
 - [ ] Comprehensive unit and integration test suites with documented coverage
 - [ ] CI test score SHOULD = 10 (OpenSSF)
 
@@ -179,7 +181,6 @@ proposal to the TAC, following the same process as Incubation entry.
 
 | Date | Event |
 | ---- | ----- |
-| 2024-12 | Repository created as LF Decentralized Trust lab |
-| 2025-02 | First IETF Internet-Draft submitted (draft-condrey-cpoe-protocol-00) |
-| 2025-06 | First crate releases (cpoe-jitter v0.1.0, cpoe-protocol v0.1.0) |
+| 2026-02 | First IETF Internet-Drafts submitted (draft-condrey-rats-pop-protocol-00, -appraisal-00) |
+| 2026-03 | Repository created as LF Decentralized Trust lab |
 | 2026-03 | GOVERNANCE.md added; lifecycle tracking started |
