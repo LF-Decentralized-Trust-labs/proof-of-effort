@@ -26,11 +26,11 @@ pi:
   symrefs: yes
 
 author:
-  - fullname: Christian Pereira
+  - fullname: Christian Rodrigues Pereira
     initials: C.
     surname: Pereira
-    organization: NeuroTrust
-    email: christian@neurotrust.ai
+    organization: eColabs
+    email: christian@licet.dev
 
 normative:
   RFC9334:
@@ -57,7 +57,7 @@ informative:
   LICET-Spec:
     title: "LICET: Layered Intent Corroboration via Embedded Trust"
     author:
-      - fullname: Christian Pereira
+      - fullname: Christian Rodrigues Pereira
         initials: C.
         surname: Pereira
     date: 2026-04
@@ -232,7 +232,7 @@ level of the composite is bounded by the weakest sub-attester in the chain.
 | Attester         | LICET wearable device                    | Produces Evidence about physiological state         |
 | Verifier         | LICET Verifier service                   | Appraises Evidence against Endorsements             |
 | Relying Party    | Authorization endpoint                   | Consumes Attestation Result; applies policy         |
-| Endorser         | Device manufacturer / NeuroTrust         | Provides device cert and baseline endorsements      |
+| Endorser         | Device manufacturer / eColabs            | Provides device cert and baseline endorsements      |
 
 ## Attestation Models
 
@@ -318,7 +318,7 @@ Supported claim:
   silicon boundary."
 
 Note: No commercially available consumer wearable currently meets L3 as defined here.
-L3 is the target architecture for NeuroTrust's hardware program. Current deployments
+L3 is the target architecture for eColabs' hardware program. Current deployments
 operate at L0 (simulation mode) or L1 (platform attestation via mobile OS).
 
 ## Relationship to CPoE T1–T4 Tiers {#tier-mapping}
@@ -410,28 +410,32 @@ recutting CDDL each time the trust model shifts. Topology and appraisal logic ar
 established first; encoding follows.
 
 
-# Open Questions for Review {#open-questions}
+# Resolved Design Decisions {#resolved-design-decisions}
 
-The following items are flagged for review of topology and appraisal logic against
-the CPoE evidence-packet schema:
+The following items were raised as open questions in the initial draft and resolved
+during review with David Condrey (Linux Foundation / IETF RATS WG):
 
-1. **L2 cert chain endorser model:** Should the Endorser role be filled by NeuroTrust
-   alone, or should the specification support a multi-endorser model (manufacturer +
-   NeuroTrust + Relying Party)?
+1. **L2 cert chain endorser model:** Multi-endorser model adopted. The device
+   manufacturer covers device identity and hardware calibration trust; eColabs covers
+   the LICET-specific baseline endorsement. These two endorsement scopes MUST NOT be
+   collapsed into a single Endorser.
 
-2. **Composite Attester boundary:** Is the sub-attester breakdown in {{attester-topology}}
-   the right granularity, or should the sensor layer and processing layer be a single
-   sub-attester?
+2. **Composite Attester boundary:** The sensor layer and processing layer remain
+   separate sub-attesters. Merging them would collapse the per-layer distinction that
+   the L1-vs-L3 evidential weight difference depends on.
 
-3. **Limitation flags:** Are the four flags in {{appraisal}} the right set, or are
-   there additional flags the appraisal logic should surface?
+3. **Limitation flags:** The four flags defined in {{appraisal}} are the complete set
+   for this revision. The `baseline_immature` flag covers the enrollment gap.
+   No additional flags are required at this time.
 
-4. **ZKP scope claim format:** Is the `zkp-scope` structure in {{zkp-scope}} the right
-   format for the evidence-packet schema, or should it map to existing CPoE claim keys?
+4. **ZKP scope claim format:** The `zkp-scope` claim MUST map to registered CPoE claim
+   keys rather than free-form text. Extension key registration is deferred to the
+   encoding revision ({{encoding}}); the CPoE specification will define the extension
+   keys on the CPoE side.
 
-5. **L3 definition:** Is "analog-to-digital conversion within the hardware trust
-   boundary" the right criterion for L3, or should L3 be defined differently in the
-   context of RFC 9334?
+5. **L3 definition:** "Analog-to-digital conversion within the hardware trust boundary"
+   is confirmed as the correct L3 criterion. This matches sensor-to-TEE binding as
+   understood in RFC 9334 and is kept as written.
 
 
 # Security Considerations
