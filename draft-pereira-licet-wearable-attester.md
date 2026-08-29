@@ -429,7 +429,7 @@ established first; encoding follows.
 # Resolved Design Decisions {#resolved-design-decisions}
 
 The following items were raised as open questions in the initial draft and resolved
-during review with David Condrey (Linux Foundation / IETF RATS WG):
+during review with David Condrey (Writerslogic Inc.):
 
 1. **L2 cert chain endorser model:** Multi-endorser model adopted. The device
    manufacturer covers device identity and hardware calibration trust; eColabs covers
@@ -484,7 +484,7 @@ a subsequent revision once the encoding section ({{encoding}}) is finalized.
 # Acknowledgments
 {:numbered="false"}
 
-The author thanks David Condrey (Linux Foundation / IETF RATS WG) for identifying
+The author thanks David Condrey (Writerslogic Inc.) for identifying
 paced breathing as the primary limitation of the Mahalanobis design, for the
 correction of RFC 9334 composite Attester citations, and for guidance on the
 topology-first document structure that informed this draft.
