@@ -78,6 +78,22 @@ informative:
     seriesinfo:
       Heart Rhythm: PMC2204059
 
+--- abstract
+
+This document defines the Attester topology and trust hierarchy for LICET
+(Layered Intent Corroboration via Embedded Trust) wearable devices operating as
+composite Attesters under the RATS architecture {{RFC9334}}. A LICET wearable
+measures heart rate variability, electrodermal activity, and derived features,
+and produces cryptographically bound Evidence about a subject's physiological
+state at the time of an authorization request. This document establishes L0-L3
+as a graduated trust hierarchy in which evidential weight follows attestation
+level, states the hard bounds on what physiological corroboration can claim
+before any architecture is presented, and defines the appraisal logic by which a
+Verifier carries those bounds into Attestation Results. Evidence encoding is
+deferred to a subsequent revision and is expected to use the CPoE
+evidence-packet schema with LICET-specific claim extensions rather than defining
+a new schema.
+
 --- middle
 
 # Introduction
