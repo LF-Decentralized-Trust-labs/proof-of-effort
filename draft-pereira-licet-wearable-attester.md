@@ -34,11 +34,11 @@ author:
 
 normative:
   RFC9334:
+
+informative:
   RFC9711:
   RFC8610:
   RFC8949:
-
-informative:
   CPoE-Protocol:
     title: "Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"
     author:
@@ -187,7 +187,7 @@ higher inter-breath variability (RSA CV in the order of 0.40); these are illustr
 values derived from the slow-paced breathing literature {{Laborde2022}} and the
 authors' implementation measurements, not normative thresholds. This narrows the
 attack surface but does not close it. RSA CV is a discriminant, not a proof. The
-`respiratory_periodicity_warning` flag in the Evidence packet is a detector output,
+`respiratory-periodicity-warning` flag in the Evidence packet is a detector output,
 not a falsification of the Mahalanobis claim. Both MUST be surfaced; interpretation
 is left to the Relying Party.
 
@@ -337,26 +337,26 @@ Note: No commercially available consumer wearable currently meets L3 as defined 
 L3 is the target architecture for eColabs' hardware program. Current deployments
 operate at L0 (simulation mode) or L1 (platform attestation via mobile OS).
 
-## Relationship to CPoE T1–T4 Tiers {#tier-mapping}
+## Relationship to CPoE Attestation Tiers {#tier-mapping}
 
-The CPoE evidence-packet schema {{CPoE-Protocol}} defines a T1–T4 signal-type
-hierarchy. LICET L0–L3 is an orthogonal attestation-quality hierarchy: L0–L3
-describes the trustworthiness of the measurement chain, while T1–T4 describes
-the type of signal being measured. Both hierarchies appear in the same Evidence
-packet and MUST NOT be conflated.
+LICET L0–L3 is this document's label for the attestation assurance axis. The CPoE
+evidence-packet schema {{CPoE-Protocol}} expresses the same axis through the
+`attestation-tier` field (evidence-packet key 7), where T1–T4 corresponds to
+increasing hardware trust anchoring strength. L0–L3 and T1–T4 are not orthogonal
+hierarchies; they name the same axis.
 
-The approximate correspondence is:
+The value mapping to `attestation-tier` (key 7) is:
 
-| LICET level | Signal type (CPoE tier) | Basis                                                        |
-|-------------|-------------------------|--------------------------------------------------------------|
-| L0          | T1 / T2                 | Uncertified sensor; dimensionality comparable to behavioral (T1) or inertial (T2) signal |
-| L1          | T2 / T3                 | Platform-attested software; physiological signal with software-layer guarantee |
-| L2          | T3                      | Certified device; physiological signal with verifiable hardware-backed chain  |
-| L3          | T3 / T4                 | Hardware-attested sensor; physiological signal attested to silicon boundary   |
+| LICET level | CPoE `attestation-tier` | Attestation strength                      |
+|-------------|-------------------------|-------------------------------------------|
+| L0          | T1                      | Software-only; no hardware trust anchor   |
+| L1          | T2                      | Attested software; platform-bound key     |
+| L2          | T3                      | Hardware-bound; verifiable cert chain     |
+| L3          | T4                      | Silicon-boundary; sensor-to-TEE binding   |
 
-An Evidence packet carrying an L0 Attester credential paired with a T3 (ECG)
-signal MUST be appraised at L0 evidential weight regardless of signal type. The
-lower of (attestation level, signal type tier) governs the Attestation Result.
+An Evidence packet MUST encode the Attester trust level as `attestation-tier`.
+Evidential weight follows the encoded tier; the type of physiological signal does
+not affect the attestation assurance level.
 
 ## Trust Hierarchy Summary
 
@@ -386,10 +386,10 @@ The following limitation flags MUST be surfaced in the Attestation Result when p
 
 | Flag                             | Source                    | Meaning                                                                              |
 |----------------------------------|---------------------------|--------------------------------------------------------------------------------------|
-| `respiratory_periodicity_warning`| Respiratory periodicity   | Detected paced breathing; Mahalanobis distance may not reflect genuine calm         |
-| `t2_self_report_only`            | Attestation level check   | T2 without corroborating T3/T4; weight is self-report only                          |
-| `baseline_immature`              | Baseline maturity check   | Baseline below minimum session count; Mahalanobis reference is provisional          |
-| `sensor_uncertified`             | Attester level check      | L0 or L1 device; measurement chain is not hardware-attested                         |
+| `respiratory-periodicity-warning`| Respiratory periodicity   | Detected paced breathing; Mahalanobis distance may not reflect genuine calm         |
+| `t2-self-report-only`            | Attestation level check   | T2 without corroborating T3/T4; weight is self-report only                          |
+| `baseline-immature`              | Baseline maturity check   | Baseline below minimum session count; Mahalanobis reference is provisional          |
+| `sensor-uncertified`             | Attester level check      | L0 or L1 device; measurement chain is not hardware-attested                         |
 
 ## ZKP Scope Claim {#zkp-scope}
 
@@ -404,11 +404,9 @@ zkp-scope = {
   does-not-prove: [+ zkp-excluded-property]
 }
 
-zkp-proven-property = text  ; e.g., "measurement_chain_integrity",
-                             ;       "mahalanobis_range", "timestamp"
+zkp-proven-property = uint   ; registered CPoE claim key
 
-zkp-excluded-property = text ; e.g., "intent", "absence_of_coercion",
-                              ;        "absence_of_volitional_vagal_enhancement"
+zkp-excluded-property = uint  ; registered CPoE claim key
 ~~~
 
 
@@ -441,7 +439,7 @@ during review with David Condrey (Writerslogic Inc.):
    the L1-vs-L3 evidential weight difference depends on.
 
 3. **Limitation flags:** The four flags defined in {{appraisal}} are the complete set
-   for this revision. The `baseline_immature` flag covers the enrollment gap.
+   for this revision. The `baseline-immature` flag covers the enrollment gap.
    No additional flags are required at this time.
 
 4. **ZKP scope claim format:** The `zkp-scope` claim MUST map to registered CPoE claim
@@ -454,6 +452,25 @@ during review with David Condrey (Writerslogic Inc.):
    understood in RFC 9334 and is kept as written.
 
 
+# Privacy Considerations
+
+LICET Evidence contains measurements derived from heart rate variability,
+electrodermal activity, and related physiological signals. These constitute health
+data under most privacy frameworks, including GDPR and HIPAA.
+
+Evidence MUST carry the Mahalanobis distance from the subject's enrolled baseline,
+not the baseline itself and not the raw timeseries. A Verifier learns whether a
+measurement is consistent with an enrolled pattern; it does not learn the pattern
+or the individual measurements that produced it.
+
+The ZKP defined in {{zkp-scope}}, when present, proves a range claim over the
+Mahalanobis distance. The proof does not disclose the distance value or any
+underlying signal sample.
+
+Implementations MUST NOT transmit raw HRV timeseries, raw EDA samples, or
+enrolled baseline parameters in Evidence messages or Attestation Results.
+
+
 # Security Considerations
 
 The security properties of LICET Evidence are bounded by the trust level of the
@@ -463,7 +480,7 @@ Implementers MUST NOT represent LICET Evidence as proof of intent. The claim is
 corroboration ({{claim}}). Relying Party policy determines what corroboration level
 is sufficient for a given authorization decision.
 
-The `respiratory_periodicity_warning` flag ({{appraisal}}) MUST be checked before
+The `respiratory-periodicity-warning` flag ({{appraisal}}) MUST be checked before
 relying on Mahalanobis distance as the primary evidence for an authorization
 decision. A warning flag does not invalidate the Evidence; it bounds the claim.
 
