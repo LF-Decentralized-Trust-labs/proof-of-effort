@@ -17,7 +17,7 @@ keyword:
   - HRV
   - physiological signals
 
-date: 2026-07
+date: 2026-09
 stand_alone: yes
 pi:
   toc: yes
@@ -36,9 +36,6 @@ normative:
   RFC9334:
 
 informative:
-  RFC9711:
-  RFC8610:
-  RFC8949:
   CPoE-Protocol:
     title: "Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"
     author:
@@ -48,12 +45,6 @@ informative:
     date: 2026-02
     seriesinfo:
       Internet-Draft: draft-condrey-cpoe-protocol-00
-  RATS-Composite:
-    title: "Composite Attesters and Verifiers"
-    author:
-      - fullname: Michael Richardson
-    seriesinfo:
-      Internet-Draft: draft-richardson-rats-composite-attesters
   LICET-Spec:
     title: "LICET: Layered Intent Corroboration via Embedded Trust"
     author:
@@ -70,19 +61,11 @@ informative:
     date: 2022
     seriesinfo:
       Psychophysiology: DOI 10.1111/psyp.13952
-  Moak2007:
-    title: "Supine low-frequency power of heart rate variability reflects baroreflex function, not cardiac sympathetic innervation"
-    author:
-      - fullname: Jeffrey P. Moak
-    date: 2007
-    seriesinfo:
-      Heart Rhythm: PMC2204059
-
 --- abstract
 
 This document defines the Attester topology and trust hierarchy for LICET
 (Layered Intent Corroboration via Embedded Trust) wearable devices operating as
-composite Attesters under the RATS architecture {{RFC9334}}. A LICET wearable
+composite Attesters under the RATS architecture. A LICET wearable
 measures heart rate variability, electrodermal activity, and derived features,
 and produces cryptographically bound Evidence about a subject's physiological
 state at the time of an authorization request. This document establishes L0-L3
@@ -191,17 +174,18 @@ attack surface but does not close it. RSA CV is a discriminant, not a proof. The
 not a falsification of the Mahalanobis claim. Both MUST be surfaced; interpretation
 is left to the Relying Party.
 
-## T2 Self-Report Gap {#t2-gap}
+## Behavioral Corroboration Layer Self-Report Gap {#behavioral-gap}
 
-The T2 layer in LICET relies on behavioral signals produced by the subject (typing
-dynamics, gaze entropy, touchscreen interaction). These signals are produced by the
-subject asserting intent and cannot be independently verified by the wearable
-Attester.
+The LICET behavioral corroboration layer (distinct from the CPoE attestation tier
+T2) relies on signals produced by the subject asserting intent: typing dynamics,
+gaze entropy, and touchscreen interaction patterns. These signals cannot be
+independently verified by the wearable Attester; they are self-reported by
+definition.
 
-**Consequence:** T2 Evidence does not carry evidential weight independent of a
-concurrently valid T3 or T4 physiological layer. A Relying Party policy that grants
-authorization on T2 alone accepts self-report as its primary evidence. This MUST be
-explicit in Relying Party policy.
+**Consequence:** Behavioral corroboration Evidence does not carry evidential weight
+independent of a concurrently valid physiological layer (L2 or L3). A Relying
+Party policy that grants authorization on behavioral signals alone accepts
+self-report as its primary evidence. This MUST be explicit in Relying Party policy.
 
 
 # The Claim Stated Precisely {#claim}
@@ -217,7 +201,7 @@ The ZKP does NOT prove:
 
 - That the physiological state reflects genuine uncoerced calm
 - That the subject was not performing volitional vagal enhancement ({{paced-breathing}})
-- That the T2 behavioral layer reflects actual behavioral state ({{t2-gap}})
+- That the behavioral corroboration layer reflects actual behavioral state ({{behavioral-gap}})
 
 **ZKP ≠ proof-of-measurement-of-intent.** The proof validates the measurement chain.
 The inference from measurement to intent is a probabilistic claim bounded by
@@ -248,7 +232,8 @@ level of the composite is bounded by the weakest sub-attester in the chain.
 | Attester         | LICET wearable device                    | Produces Evidence about physiological state         |
 | Verifier         | LICET Verifier service                   | Appraises Evidence against Endorsements             |
 | Relying Party    | Authorization endpoint                   | Consumes Attestation Result; applies policy         |
-| Endorser         | Device manufacturer / eColabs            | Provides device cert and baseline endorsements      |
+| Endorser (device)    | Device manufacturer                  | Provides device identity cert and hardware calibration trust |
+| Endorser (baseline)  | eColabs                              | Provides LICET-specific baseline endorsement; scope MUST NOT be collapsed with device Endorser |
 
 ## Attestation Models
 
@@ -354,9 +339,12 @@ The value mapping to `attestation-tier` (key 7) is:
 | L2          | T3                      | Hardware-bound; verifiable cert chain     |
 | L3          | T4                      | Silicon-boundary; sensor-to-TEE binding   |
 
-An Evidence packet MUST encode the Attester trust level as `attestation-tier`.
-Evidential weight follows the encoded tier; the type of physiological signal does
-not affect the attestation assurance level.
+An Evidence packet MUST encode the Attester trust level as `attestation-tier`
+(CPoE evidence-packet key 7). This field is informational: a Verifier MUST derive
+the effective tier independently from the actual attestation evidence present in
+the packet and MUST NOT grant a higher evidential weight than the evidence
+supports, even if the encoded `attestation-tier` claims a higher level. Evidential
+weight follows the verified tier, not the claimed value.
 
 ## Trust Hierarchy Summary
 
@@ -387,7 +375,7 @@ The following limitation flags MUST be surfaced in the Attestation Result when p
 | Flag                             | Source                    | Meaning                                                                              |
 |----------------------------------|---------------------------|--------------------------------------------------------------------------------------|
 | `respiratory-periodicity-warning`| Respiratory periodicity   | Detected paced breathing; Mahalanobis distance may not reflect genuine calm         |
-| `t2-self-report-only`            | Attestation level check   | T2 without corroborating T3/T4; weight is self-report only                          |
+| `behavioral-self-report-only`    | Behavioral layer check    | Behavioral corroboration layer active without concurrent physiological layer (L2/L3); weight is self-report only |
 | `baseline-immature`              | Baseline maturity check   | Baseline below minimum session count; Mahalanobis reference is provisional          |
 | `sensor-uncertified`             | Attester level check      | L0 or L1 device; measurement chain is not hardware-attested                         |
 
@@ -455,20 +443,30 @@ during review with David Condrey (Writerslogic Inc.):
 # Privacy Considerations
 
 LICET Evidence contains measurements derived from heart rate variability,
-electrodermal activity, and related physiological signals. These constitute health
-data under most privacy frameworks, including GDPR and HIPAA.
+electrodermal activity, and related physiological signals. These measurements may
+constitute data concerning health under GDPR when they reveal health status, or
+protected health information (PHI) under HIPAA when they are individually
+identifiable and maintained or transmitted by a covered entity or business
+associate. Determination depends on jurisdiction, identifiability, processing
+purpose, and regulated-entity status.
 
-Evidence MUST carry the Mahalanobis distance from the subject's enrolled baseline,
-not the baseline itself and not the raw timeseries. A Verifier learns whether a
-measurement is consistent with an enrolled pattern; it does not learn the pattern
-or the individual measurements that produced it.
+Implementations MUST choose one of the following two Evidence modes. The modes
+are mutually exclusive within a single Evidence message:
 
-The ZKP defined in {{zkp-scope}}, when present, proves a range claim over the
-Mahalanobis distance. The proof does not disclose the distance value or any
-underlying signal sample.
+Disclosure mode:
+: Evidence carries the Mahalanobis distance from the subject's enrolled baseline.
+  The Verifier learns whether the measurement is consistent with the enrolled
+  pattern; it does not learn the baseline parameters or the raw timeseries that
+  produced the distance value.
 
-Implementations MUST NOT transmit raw HRV timeseries, raw EDA samples, or
-enrolled baseline parameters in Evidence messages or Attestation Results.
+Zero-knowledge mode:
+: Evidence carries a ZKP ({{zkp-scope}}) that proves a range claim over the
+  Mahalanobis distance without disclosing the distance value itself. No distance
+  value appears in the Evidence message or the Attestation Result.
+
+In both modes, implementations MUST NOT transmit the enrolled baseline
+parameters, raw HRV timeseries, or raw EDA samples in Evidence messages or
+Attestation Results.
 
 
 # Security Considerations
