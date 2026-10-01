@@ -61,9 +61,17 @@ Datatracker is in [ietf127-bof-proposal.md](ietf127-bof-proposal.md).
 * [ ] Update the proposal with confirmed proponents, chairs, speakers,
   participation commitments, mailing list, and final scheduling conflicts.
 
-## Deadlines
+## Status
 
-* [ ] Submit the initial BoF request by **2026-09-18**.
-* [ ] Submit revisions requested by the Area Directors by **2026-10-02**.
+The IETF 127 BoF request was not submitted. The 2026-09-18 deadline passed
+without filing, and the editor has told outreach contacts so (see
+[Open-fab-ai/openfab#41](https://github.com/Open-fab-ai/openfab/issues/41)).
+The proposal text remains valid for a future meeting or a side meeting; the
+dates below are kept for reference only.
+
+## Deadlines (IETF 127, not pursued)
+
+* [ ] ~~Submit the initial BoF request by **2026-09-18**.~~ Not submitted.
+* [ ] ~~Submit revisions requested by the Area Directors by **2026-10-02**.~~
 * [ ] Submit refreshed Internet-Drafts before the IETF 127 I-D cutoff on
-  **2026-11-02**.
+  **2026-11-02** (still useful independent of the BoF).

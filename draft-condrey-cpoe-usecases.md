@@ -76,6 +76,18 @@ informative:
     date: 2023
     seriesinfo:
       "Patterns": "4(7)"
+  OpenFab-Generation:
+    title: "OpenFab Generation Predicate, Version 0.1"
+    target: "https://open-fab.ai/attestation/generation/v0.1/"
+    author:
+      - org: OpenFab Project
+    date: 2026
+  OpenFab-Impl:
+    title: "OpenFab: Reference Implementations and Conformance Vectors"
+    target: "https://github.com/Open-fab-ai/openfab"
+    author:
+      - org: OpenFab Project
+    date: 2026
 
 --- abstract
 
@@ -300,6 +312,25 @@ Parties SHOULD consider the absence of tool receipts when
 evaluating Attestation Results, as specified in
 {{CPoE-Appraisal}}.
 
+The software supply-chain community has reached similar
+conclusions independently. The OpenFab Generation Predicate
+{{OpenFab-Generation}}, an in-toto statement recording human
+and AI contributions to source code, with reference
+implementations and conformance vectors in {{OpenFab-Impl}},
+separates generation
+origin (which process produced which byte ranges) from legal
+authorship, binds prompts by hash rather than including their
+text, distinguishes a producer's self-reported acceptance
+claim from a verifier-observed one, and requires every
+approval signature to cover its own approval record. Each of
+these carries over to prose and other content with
+addressable ranges, and CPoE's tool receipts, hash-only
+evidence, and Attestation Result semantics are intended to
+preserve the same distinctions. OpenFab's embedded,
+re-executable acceptance contract does not carry over: there
+is no analogue of "re-run the tests" for an essay or an
+image, and CPoE does not attempt one.
+
 # Security Considerations {#security-considerations}
 
 This document describes use cases and deployment
@@ -361,3 +392,6 @@ academic institutions, journalism organizations, and legal
 practitioners. The authors thank the contributors to the CPoE
 open specification process for their feedback on real-world
 deployment requirements.
+The analysis of which process-evidence concepts generalize
+beyond software, and which do not, draws on review comments
+from the OpenFab project maintainers.

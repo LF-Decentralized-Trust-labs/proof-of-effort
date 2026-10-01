@@ -390,6 +390,12 @@ informative:
     date: 2024
     seriesinfo:
       Version: "2.2"
+  OpenFab-Generation:
+    title: "OpenFab Generation Predicate, Version 0.1"
+    target: "https://open-fab.ai/attestation/generation/v0.1/"
+    author:
+      - org: OpenFab Project
+    date: 2026
   SEAT-UseCases:
     title: "Use Cases and Properties for Integrating Remote Attestation with Secure Channel Protocols"
     target: "https://datatracker.ietf.org/doc/html/draft-mihalcea-seat-use-cases-01"
@@ -479,7 +485,7 @@ This document is a companion to {{CPoE-Appraisal}}, which specifies the Verifier
 
 # Problem Statement {#problem-statement}
 
-Digital documents lack creation-process provenance. Existing cryptographic mechanisms prove complementary properties -- COSE signatures {{RFC9052}} prove key possession, trusted timestamps {{RFC3161}} prove temporal existence, media provenance standards {{C2PA}} track post-creation custody -- but none reveals how a document was produced or evolved during authorship.
+Digital documents lack creation-process provenance. Existing cryptographic mechanisms prove complementary properties -- COSE signatures {{RFC9052}} prove key possession, trusted timestamps {{RFC3161}} prove temporal existence, media provenance standards {{C2PA}} track post-creation custody -- but none reveals how a document was produced or evolved during authorship. In the software domain, in-toto attestations such as the OpenFab Generation Predicate {{OpenFab-Generation}} record which process (human or AI) produced which byte ranges of a source file; CPoE addresses the same question for content whose creation process is a human interacting with an editor rather than a build pipeline.
 
 Non-cryptographic alternatives each carry fundamental limitations. Surveillance-based methods (screen recording, keystroke logging) are privacy-invasive, require trust in a third-party archive, and cannot be independently verified. Detection-based methods (stylometric classifiers, AI-content detectors) operate on finished output, are probabilistic, degrade as generative models improve, and exhibit systematic bias against non-native speakers {{Liang2023}}. Proprietary solutions (e.g., {{GPTZero}}, {{AG-Human-Authored}}, {{Amazon-KDP-AI}}) lack openness, independent verifiability, or both.
 
@@ -554,6 +560,16 @@ individual contributions. Mechanisms for partitioning
 authorship attribution in collaborative sessions (e.g.,
 per-author checkpoint streams, contribution-level Evidence)
 are deferred to future work.
+
+CPoE does not define an executable acceptance contract.
+Software process-evidence formats such as {{OpenFab-Generation}}
+can embed re-runnable checks that a Verifier executes to
+confirm a producer's claim; there is no equivalent for prose,
+images, or other non-executable content, and executing
+producer-supplied code carries its own safety requirements.
+Verifiers evaluate CPoE Evidence by recomputing hashes and
+re-deriving behavioral metrics from the recorded data, never
+by executing content supplied by the Attester.
 
 Whether any institution or platform requires CPoE evidence
 as a condition of participation is a policy decision outside
@@ -1017,6 +1033,8 @@ when contradicted by the evidence content.
 # Evidence Format and CDDL {#wire-format}
 
 Evidence Packets are CBOR-encoded {{RFC8949}} and identified by semantic tag 1129336645. The CDDL notation {{RFC8610}} is used to define the wire format.
+
+Every CBOR structure defined in this document, whether transmitted, stored, or used as input to a hash or signature, MUST be encoded using Core Deterministic Encoding ({{RFC8949}}, Section 4.2.1): shortest-form integer and length encoding, map keys sorted by their encoded bytes, no indefinite-length items, and no duplicate map keys. Decoders MUST reject an Evidence Packet containing a duplicate map key or a non-deterministic encoding of a structure that is hashed or signed. This requirement applies to the whole packet, not only to the structures whose hash computation below names deterministic encoding explicitly; interoperability failures between independent implementations of comparable formats have concentrated in key ordering, value domain, and duplicate-member handling, so this document states the rule once and does not rely on implementers inferring it.
 
 ~~~ cddl
 ; CBOR tag wrappers
@@ -2415,3 +2433,8 @@ Intermediate States:
 The author thanks the participants of the RATS working group for
 their ongoing work on remote attestation architecture and security
 considerations that informed this specification.
+
+The OpenFab project maintainers reviewed the relationship between
+CPoE and software process-evidence formats; their experience with
+envelope canonicalization in independent implementations motivated
+the packet-wide deterministic encoding requirement in {{wire-format}}.
