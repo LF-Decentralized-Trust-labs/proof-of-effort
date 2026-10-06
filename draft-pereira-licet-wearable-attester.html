@@ -1,0 +1,2076 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>LICET Wearable Attester: Topology and Trust Hierarchy for Physiological Intent Corroboration</title>
+<meta content="Christian Rodrigues Pereira" name="author">
+<meta content="
+       This document defines the Attester topology and trust hierarchy for LICET
+(Layered Intent Corroboration via Embedded Trust) wearable devices operating as
+composite Attesters under the RATS architecture. A LICET wearable
+measures heart rate variability, electrodermal activity, and derived features,
+and produces cryptographically bound Evidence about a subject's physiological
+state at the time of an authorization request. This document establishes L0-L3
+as a graduated trust hierarchy in which evidential weight follows attestation
+level, states the hard bounds on what physiological corroboration can claim
+before any architecture is presented, and defines the appraisal logic by which a
+Verifier carries those bounds into Attestation Results. Evidence encoding is
+deferred to a subsequent revision and is expected to use the CPoE
+evidence-packet schema with LICET-specific claim extensions rather than defining
+a new schema. 
+    " name="description">
+<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="attestation" name="keyword">
+<meta content="RATS" name="keyword">
+<meta content="wearable" name="keyword">
+<meta content="biometrics" name="keyword">
+<meta content="human intent" name="keyword">
+<meta content="HRV" name="keyword">
+<meta content="physiological signals" name="keyword">
+<meta content="draft-pereira-licet-wearable-attester-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.34.1
+    Python 3.14.8
+    ConfigArgParse 1.8.0
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.12.2
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.9.1
+-->
+<link href="draft-pereira-licet-wearable-attester.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">LICET Wearable Attester</td>
+<td class="right">September 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Pereira</td>
+<td class="center">Expires 3 April 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Individual Submission</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-pereira-licet-wearable-attester-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-09" class="published">September 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Experimental</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-04-03">3 April 2027</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">C. Pereira</div>
+<div class="org">eColabs</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">LICET Wearable Attester: Topology and Trust Hierarchy for Physiological Intent Corroboration</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document defines the Attester topology and trust hierarchy for LICET
+(Layered Intent Corroboration via Embedded Trust) wearable devices operating as
+composite Attesters under the RATS architecture. A LICET wearable
+measures heart rate variability, electrodermal activity, and derived features,
+and produces cryptographically bound Evidence about a subject's physiological
+state at the time of an authorization request. This document establishes L0-L3
+as a graduated trust hierarchy in which evidential weight follows attestation
+level, states the hard bounds on what physiological corroboration can claim
+before any architecture is presented, and defines the appraisal logic by which a
+Verifier carries those bounds into Attestation Results. Evidence encoding is
+deferred to a subsequent revision and is expected to use the CPoE
+evidence-packet schema with LICET-specific claim extensions rather than defining
+a new schema.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 5 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-the-claim-corroboration-not" class="internal xref">The Claim: Corroboration, Not Proof</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-limitations" class="internal xref">Limitations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1">
+                <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-paced-breathing-hard-bound-" class="internal xref">Paced Breathing: Hard Bound on Mahalanobis Claims</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2">
+                <p id="section-toc.1-1.2.2.2.1"><a href="#section-2.2" class="auto internal xref">2.2</a>.  <a href="#name-behavioral-corroboration-la" class="internal xref">Behavioral Corroboration Layer Self-Report Gap</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-the-claim-stated-precisely" class="internal xref">The Claim Stated Precisely</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-attester-topology-under-rfc" class="internal xref">Attester Topology Under RFC 9334</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-composite-device-model-rfc-" class="internal xref">Composite Device Model (RFC 9334 §3.3)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-roles-rfc-9334-41" class="internal xref">Roles (RFC 9334 §4.1)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-attestation-models" class="internal xref">Attestation Models</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-trust-hierarchy-l0l3" class="internal xref">Trust Hierarchy: L0–L3</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-l0-uncertified-sensor" class="internal xref">L0: Uncertified Sensor</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-l1-software-attestation" class="internal xref">L1: Software Attestation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-l2-certified-device-with-at" class="internal xref">L2: Certified Device with Attestation Chain</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-l3-hardware-attested-sensor" class="internal xref">L3: Hardware-Attested Sensor</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.5">
+                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-relationship-to-cpoe-attest" class="internal xref">Relationship to CPoE Attestation Tiers</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.6">
+                <p id="section-toc.1-1.5.2.6.1"><a href="#section-5.6" class="auto internal xref">5.6</a>.  <a href="#name-trust-hierarchy-summary" class="internal xref">Trust Hierarchy Summary</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-appraisal-logic" class="internal xref">Appraisal Logic</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-appraisal-by-trust-level" class="internal xref">Appraisal by Trust Level</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-limitation-flags-in-attesta" class="internal xref">Limitation Flags in Attestation Results</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-zkp-scope-claim" class="internal xref">ZKP Scope Claim</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-evidence-encoding-deferred" class="internal xref">Evidence Encoding (Deferred)</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-resolved-design-decisions" class="internal xref">Resolved Design Decisions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">This document defines the Attester topology and trust hierarchy for LICET wearable
+devices operating as composite Attesters under IETF RFC 9334 <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">LICET (Layered Intent Corroboration via Embedded Trust) <span>[<a href="#LICET-Spec" class="cite xref">LICET-Spec</a>]</span> is a protocol
+for physiological corroboration of human intent. A LICET wearable device measures
+biometric signals — primarily heart rate variability (HRV), electrodermal activity
+(EDA), and derived features — and produces cryptographically bound Evidence about the
+subject's physiological state at the time of an authorization request.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">This document:<a href="#section-1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-4.1">
+          <p id="section-1-4.1.1">Establishes L0–L3 as a graduated trust hierarchy in which evidential weight follows
+attestation level (<a href="#trust-hierarchy" class="auto internal xref">Section 5</a>)<a href="#section-1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-4.2">
+          <p id="section-1-4.2.1">Defines the composite Attester topology under RFC 9334 §3.3 (<a href="#attester-topology" class="auto internal xref">Section 4</a>)<a href="#section-1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-4.3">
+          <p id="section-1-4.3.1">States hard bounds on claims before any architecture is presented (<a href="#limitations" class="auto internal xref">Section 2</a>)<a href="#section-1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-4.4">
+          <p id="section-1-4.4.1">Describes appraisal logic for Evidence packets (<a href="#appraisal" class="auto internal xref">Section 6</a>)<a href="#section-1-4.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-4.5">
+          <p id="section-1-4.5.1">Defers encoding to a later revision once the topology is stable (<a href="#encoding" class="auto internal xref">Section 7</a>)<a href="#section-1-4.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-5">The encoding will use the CPoE evidence-packet schema (CBOR tag 1129336645)
+<span>[<a href="#CPoE-Protocol" class="cite xref">CPoE-Protocol</a>]</span> with LICET-specific claim extensions. No new schema is defined here.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<div id="the-claim-corroboration-not-proof">
+<section id="section-1.1">
+        <h3 id="name-the-claim-corroboration-not">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-the-claim-corroboration-not" class="section-name selfRef">The Claim: Corroboration, Not Proof</a>
+        </h3>
+<p id="section-1.1-1"><strong>The claim throughout this document is corroboration, not proof.</strong><a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">Physiological signals narrow the inference space; they do not establish intent with
+certainty. The limitations in <a href="#limitations" class="auto internal xref">Section 2</a> bound this claim explicitly before any
+architecture is presented. A Relying Party that treats LICET Evidence as proof of
+intent, rather than as corroborating evidence, is misapplying this specification.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-1.2">
+        <h3 id="name-conventions-and-definitions">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+        </h3>
+<p id="section-1.2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+<p id="section-1.2-2">The following terms are used as defined in RFC 9334 <span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>: Attester, Verifier,
+Relying Party, Endorser, Evidence, Attestation Result, Claims, Reference Values.<a href="#section-1.2-2" class="pilcrow">¶</a></p>
+<p id="section-1.2-3">Additional terms:<a href="#section-1.2-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-1.2-4">
+          <dt id="section-1.2-4.1">L0–L3:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-4.2">
+            <p id="section-1.2-4.2.1">The LICET trust hierarchy levels defined in <a href="#trust-hierarchy" class="auto internal xref">Section 5</a>. Evidential weight
+follows attestation level.<a href="#section-1.2-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-4.3">Physiological calm fingerprint:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-4.4">
+            <p id="section-1.2-4.4.1">The multivariate baseline of a subject's biometric signals (RMSSD, HF power, EDA,
+HR) under genuine resting conditions, established through a personalized baseline
+enrollment process.<a href="#section-1.2-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-1.2-4.5">Mahalanobis distance:</dt>
+          <dd style="margin-left: 1.5em" id="section-1.2-4.6">
+            <p id="section-1.2-4.6.1">The distance of a current biometric measurement from the subject's calm fingerprint,
+expressed in units of standard deviations accounting for feature covariance.<a href="#section-1.2-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="limitations">
+<section id="section-2">
+      <h2 id="name-limitations">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-limitations" class="section-name selfRef">Limitations</a>
+      </h2>
+<p id="section-2-1">These limitations appear in this section, not in an appendix. A reviewer who reaches
+the architecture without understanding the hard bounds will misread the system's
+claims.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<div id="paced-breathing">
+<section id="section-2.1">
+        <h3 id="name-paced-breathing-hard-bound-">
+<a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-paced-breathing-hard-bound-" class="section-name selfRef">Paced Breathing: Hard Bound on Mahalanobis Claims</a>
+        </h3>
+<p id="section-2.1-1"><strong>This is the limitation that genuinely breaks the Mahalanobis design.</strong><a href="#section-2.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.1-2">A coerced subject trained in resonance-frequency breathing at approximately 0.1 Hz
+(six cycles per minute) produces a physiologically authentic calm vector — elevated
+RMSSD and HF power, low EDA, low HR — that is internally consistent and matches the
+calm fingerprint. This is not a forgery of the baseline; it is the baseline,
+volitionally manufactured <span>[<a href="#Laborde2022" class="cite xref">Laborde2022</a>]</span>.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.1-3">The Mahalanobis design measures distance from the calm fingerprint. Paced breathing
+moves the subject to that fingerprint. The distance collapses to zero without
+producing any anomalous signal. The system cannot distinguish:<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-2.1-4">
+<li id="section-2.1-4.1">
+            <p id="section-2.1-4.1.1">Genuine calm under no coercion<a href="#section-2.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-2.1-4.2">
+            <p id="section-2.1-4.2.1">Volitional calm via paced breathing under coercion<a href="#section-2.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-2.1-5"><strong>Consequence:</strong> No claim derived from Mahalanobis distance alone survives this
+scenario. The Mahalanobis layer provides corroborating evidence under adversarial
+assumptions that exclude trained volitional vagal control. This assumption <span class="bcp14">MUST</span> be
+stated wherever the layer's output is interpreted.<a href="#section-2.1-5" class="pilcrow">¶</a></p>
+<p id="section-2.1-6">A respiratory periodicity index based on RSA coefficient of variation (RSA CV) can
+detect trained paced breathing by its characteristic regularity signature. Paced
+breathing at resonance frequency produces highly regular inter-breath intervals
+(RSA CV in the order of 0.03), whereas genuine resting HRV exhibits substantially
+higher inter-breath variability (RSA CV in the order of 0.40); these are illustrative
+values derived from the slow-paced breathing literature <span>[<a href="#Laborde2022" class="cite xref">Laborde2022</a>]</span> and the
+authors' implementation measurements, not normative thresholds. This narrows the
+attack surface but does not close it. RSA CV is a discriminant, not a proof. The
+<code>respiratory-periodicity-warning</code> flag in the Evidence packet is a detector output,
+not a falsification of the Mahalanobis claim. Both <span class="bcp14">MUST</span> be surfaced; interpretation
+is left to the Relying Party.<a href="#section-2.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="behavioral-gap">
+<section id="section-2.2">
+        <h3 id="name-behavioral-corroboration-la">
+<a href="#section-2.2" class="section-number selfRef">2.2. </a><a href="#name-behavioral-corroboration-la" class="section-name selfRef">Behavioral Corroboration Layer Self-Report Gap</a>
+        </h3>
+<p id="section-2.2-1">The LICET behavioral corroboration layer (distinct from the CPoE attestation tier
+T2) relies on signals produced by the subject asserting intent: typing dynamics,
+gaze entropy, and touchscreen interaction patterns. These signals cannot be
+independently verified by the wearable Attester; they are self-reported by
+definition.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
+<p id="section-2.2-2"><strong>Consequence:</strong> Behavioral corroboration Evidence does not carry evidential weight
+independent of a concurrently valid physiological layer (L2 or L3). A Relying
+Party policy that grants authorization on behavioral signals alone accepts
+self-report as its primary evidence. This <span class="bcp14">MUST</span> be explicit in Relying Party policy.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="claim">
+<section id="section-3">
+      <h2 id="name-the-claim-stated-precisely">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-claim-stated-precisely" class="section-name selfRef">The Claim Stated Precisely</a>
+      </h2>
+<p id="section-3-1">A LICET ZKP (zero-knowledge proof) in an authorization bundle proves:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-2.1">
+          <p id="section-3-2.1.1">That a measurement was taken at a claimed time<a href="#section-3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-2.2">
+          <p id="section-3-2.2.1">That the measurement's Mahalanobis distance from the subject's baseline falls
+within a claimed range<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-2.3">
+          <p id="section-3-2.3.1">That the cryptographic chain from sensor to proof is intact<a href="#section-3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-3">The ZKP does NOT prove:<a href="#section-3-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-4.1">
+          <p id="section-3-4.1.1">That the physiological state reflects genuine uncoerced calm<a href="#section-3-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-4.2">
+          <p id="section-3-4.2.1">That the subject was not performing volitional vagal enhancement (<a href="#paced-breathing" class="auto internal xref">Section 2.1</a>)<a href="#section-3-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-4.3">
+          <p id="section-3-4.3.1">That the behavioral corroboration layer reflects actual behavioral state (<a href="#behavioral-gap" class="auto internal xref">Section 2.2</a>)<a href="#section-3-4.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-5"><strong>ZKP ≠ proof-of-measurement-of-intent.</strong> The proof validates the measurement chain.
+The inference from measurement to intent is a probabilistic claim bounded by
+<a href="#limitations" class="auto internal xref">Section 2</a>. Every Attestation Result that includes a ZKP <span class="bcp14">MUST</span> include a
+<code>zkp-scope</code> claim (<a href="#zkp-scope" class="auto internal xref">Section 6.3</a>) that states this explicitly.<a href="#section-3-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="attester-topology">
+<section id="section-4">
+      <h2 id="name-attester-topology-under-rfc">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-attester-topology-under-rfc" class="section-name selfRef">Attester Topology Under RFC 9334</a>
+      </h2>
+<div id="composite-device-model-rfc-9334-33">
+<section id="section-4.1">
+        <h3 id="name-composite-device-model-rfc-">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-composite-device-model-rfc-" class="section-name selfRef">Composite Device Model (RFC 9334 §3.3)</a>
+        </h3>
+<p id="section-4.1-1">A LICET wearable operates as a Composite Attester as defined in RFC 9334 §3.3
+<span>[<a href="#RFC9334" class="cite xref">RFC9334</a>]</span>. The composite device consists of sub-attesters that each produce Claims.
+The Composite Attester aggregates them into a single Evidence message. The trust
+level of the composite is bounded by the weakest sub-attester in the chain.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+          <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Sub-attester</th>
+              <th class="text-left" rowspan="1" colspan="1">Environment</th>
+              <th class="text-left" rowspan="1" colspan="1">Produces</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Sensor layer</td>
+              <td class="text-left" rowspan="1" colspan="1">TEE or hardware secure element</td>
+              <td class="text-left" rowspan="1" colspan="1">Raw biometric measurements</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Processing layer</td>
+              <td class="text-left" rowspan="1" colspan="1">Application environment</td>
+              <td class="text-left" rowspan="1" colspan="1">Derived features (RMSSD, HF power, Mahalanobis distance)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Crypto layer</td>
+              <td class="text-left" rowspan="1" colspan="1">Secure enclave / ZKP prover</td>
+              <td class="text-left" rowspan="1" colspan="1">Authorization bundle and proof</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Identity layer</td>
+              <td class="text-left" rowspan="1" colspan="1">Attester credentials</td>
+              <td class="text-left" rowspan="1" colspan="1">Attestation cert chain (L2 and above)</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="roles-rfc-9334-41">
+<section id="section-4.2">
+        <h3 id="name-roles-rfc-9334-41">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-roles-rfc-9334-41" class="section-name selfRef">Roles (RFC 9334 §4.1)</a>
+        </h3>
+<table class="center" id="table-2">
+          <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Role</th>
+              <th class="text-left" rowspan="1" colspan="1">Entity</th>
+              <th class="text-left" rowspan="1" colspan="1">Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Attester</td>
+              <td class="text-left" rowspan="1" colspan="1">LICET wearable device</td>
+              <td class="text-left" rowspan="1" colspan="1">Produces Evidence about physiological state</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Verifier</td>
+              <td class="text-left" rowspan="1" colspan="1">LICET Verifier service</td>
+              <td class="text-left" rowspan="1" colspan="1">Appraises Evidence against Endorsements</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Relying Party</td>
+              <td class="text-left" rowspan="1" colspan="1">Authorization endpoint</td>
+              <td class="text-left" rowspan="1" colspan="1">Consumes Attestation Result; applies policy</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Endorser (device)</td>
+              <td class="text-left" rowspan="1" colspan="1">Device manufacturer</td>
+              <td class="text-left" rowspan="1" colspan="1">Provides device identity cert and hardware calibration trust</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Endorser (baseline)</td>
+              <td class="text-left" rowspan="1" colspan="1">eColabs</td>
+              <td class="text-left" rowspan="1" colspan="1">Provides LICET-specific baseline endorsement; scope <span class="bcp14">MUST NOT</span> be collapsed with device Endorser</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="attestation-models">
+<section id="section-4.3">
+        <h3 id="name-attestation-models">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-attestation-models" class="section-name selfRef">Attestation Models</a>
+        </h3>
+<p id="section-4.3-1">The LICET wearable supports both models defined in RFC 9334:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.3-2">
+          <dt id="section-4.3-2.1">Passport Model (RFC 9334 §5.1):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.3-2.2">
+            <p id="section-4.3-2.2.1">The Verifier appraises Evidence and produces an Attestation Result token that the
+Relying Party consumes without re-verifying raw Evidence. Suitable for low-latency
+authorization flows.<a href="#section-4.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.3-2.3">Background-Check Model (RFC 9334 §5.2):</dt>
+          <dd style="margin-left: 1.5em" id="section-4.3-2.4">
+            <p id="section-4.3-2.4.1">The Relying Party forwards Evidence to the Verifier at authorization time. Suitable
+for high-assurance flows where the Relying Party maintains its own appraisal policy.<a href="#section-4.3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="trust-hierarchy">
+<section id="section-5">
+      <h2 id="name-trust-hierarchy-l0l3">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-trust-hierarchy-l0l3" class="section-name selfRef">Trust Hierarchy: L0–L3</a>
+      </h2>
+<p id="section-5-1">Evidential weight follows attestation level. Higher levels require stronger
+attestation of the measurement environment and the credential chain.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="l0-uncertified-sensor">
+<section id="section-5.1">
+        <h3 id="name-l0-uncertified-sensor">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-l0-uncertified-sensor" class="section-name selfRef">L0: Uncertified Sensor</a>
+        </h3>
+<p id="section-5.1-1">A consumer wearable with no hardware attestation, no secure element, and no cert
+chain. The device reports measurements; there is no attestation of measurement
+integrity.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.1-2">
+          <dt id="section-5.1-2.1">Evidential weight:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.1-2.2">
+            <p id="section-5.1-2.2.1">Dimensionality. L0 contributes to the feature vector roughly what an inertial
+signal contributes — it adds a dimension that would cost an adversary effort to
+match, but it does not resist a software-layer attack on the measurement chain.<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.1-2.3">Supported claim:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.1-2.4">
+            <p id="section-5.1-2.4.1">"A device reported a measurement consistent with the claimed physiological state at
+the claimed time." The inference from measurement to intent depends entirely on the
+Relying Party's trust in the device model.<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="l1-software-attestation">
+<section id="section-5.2">
+        <h3 id="name-l1-software-attestation">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-l1-software-attestation" class="section-name selfRef">L1: Software Attestation</a>
+        </h3>
+<p id="section-5.2-1">The measurement software runs in an attested execution environment (e.g., Android
+StrongBox, iOS Secure Enclave application). The device produces a Platform
+Attestation Result that covers the measurement software.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.2-2">
+          <dt id="section-5.2-2.1">Evidential weight:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.2-2.2">
+            <p id="section-5.2-2.2.1">The measurement software is covered by a hardware root of trust, but the sensors
+themselves are not attested. A hardware attack on the sensor output is not detected.<a href="#section-5.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.2-2.3">Supported claim:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.2-2.4">
+            <p id="section-5.2-2.4.1">"Attested software on an attested platform reported a measurement consistent with
+the claimed physiological state." Software-layer forgery is detected; hardware-layer
+forgery is not.<a href="#section-5.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="l2">
+<section id="section-5.3">
+        <h3 id="name-l2-certified-device-with-at">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-l2-certified-device-with-at" class="section-name selfRef">L2: Certified Device with Attestation Chain</a>
+        </h3>
+<p id="section-5.3-1">A device with a manufacturer cert chain that a Verifier can actually verify. The
+Attester credential includes an x.509 cert chain rooted at an Endorser trusted by
+the Verifier. Evidence messages are signed with the Attester's private key; the
+chain is verifiable at appraisal time.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.3-2">
+          <dt id="section-5.3-2.1">Evidential weight:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-2.2">
+            <p id="section-5.3-2.2.1">This is where LICET Evidence starts carrying its own weight. A Verifier can confirm:
+device identity (manufacturer-issued cert, not self-signed), platform integrity
+(Platform Attestation Result over firmware), and key provenance (Attester key
+generated in and bound to a secure element). An adversary that cannot compromise
+the secure element cannot forge the Evidence message.<a href="#section-5.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.3-2.3">Supported claim:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.3-2.4">
+            <p id="section-5.3-2.4.1">"A certified device with a verifiable attestation chain reported a measurement
+consistent with the claimed physiological state."<a href="#section-5.3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="l3-hardware-attested-sensor">
+<section id="section-5.4">
+        <h3 id="name-l3-hardware-attested-sensor">
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-l3-hardware-attested-sensor" class="section-name selfRef">L3: Hardware-Attested Sensor</a>
+        </h3>
+<p id="section-5.4-1">Sensor-level hardware attestation. The sensor output itself is signed or bound to
+the secure element at the hardware layer — the analog-to-digital conversion falls
+within the hardware trust boundary.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5.4-2">
+          <dt id="section-5.4-2.1">Evidential weight:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.4-2.2">
+            <p id="section-5.4-2.2.1">The full chain — from analog biometric signal to ZKP — is covered by hardware
+attestation. This is the regime where LICET makes its strongest claim.<a href="#section-5.4-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-5.4-2.3">Supported claim:</dt>
+          <dd style="margin-left: 1.5em" id="section-5.4-2.4">
+            <p id="section-5.4-2.4.1">"A hardware-attested sensor on a certified device produced a measurement consistent
+with the claimed physiological state, with the measurement chain attested to the
+silicon boundary."<a href="#section-5.4-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-5.4-3">Note: No commercially available consumer wearable currently meets L3 as defined here.
+L3 is the target architecture for eColabs' hardware program. Current deployments
+operate at L0 (simulation mode) or L1 (platform attestation via mobile OS).<a href="#section-5.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="tier-mapping">
+<section id="section-5.5">
+        <h3 id="name-relationship-to-cpoe-attest">
+<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-relationship-to-cpoe-attest" class="section-name selfRef">Relationship to CPoE Attestation Tiers</a>
+        </h3>
+<p id="section-5.5-1">LICET L0–L3 is this document's label for the attestation assurance axis. The CPoE
+evidence-packet schema <span>[<a href="#CPoE-Protocol" class="cite xref">CPoE-Protocol</a>]</span> expresses the same axis through the
+<code>attestation-tier</code> field (evidence-packet key 7), where T1–T4 corresponds to
+increasing hardware trust anchoring strength. L0–L3 and T1–T4 are not orthogonal
+hierarchies; they name the same axis.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
+<p id="section-5.5-2">The value mapping to <code>attestation-tier</code> (key 7) is:<a href="#section-5.5-2" class="pilcrow">¶</a></p>
+<table class="center" id="table-3">
+          <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">LICET level</th>
+              <th class="text-left" rowspan="1" colspan="1">CPoE attestation-tier</th>
+              <th class="text-left" rowspan="1" colspan="1">Attestation strength</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L0</td>
+              <td class="text-left" rowspan="1" colspan="1">T1</td>
+              <td class="text-left" rowspan="1" colspan="1">Software-only; no hardware trust anchor</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L1</td>
+              <td class="text-left" rowspan="1" colspan="1">T2</td>
+              <td class="text-left" rowspan="1" colspan="1">Attested software; platform-bound key</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L2</td>
+              <td class="text-left" rowspan="1" colspan="1">T3</td>
+              <td class="text-left" rowspan="1" colspan="1">Hardware-bound; verifiable cert chain</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L3</td>
+              <td class="text-left" rowspan="1" colspan="1">T4</td>
+              <td class="text-left" rowspan="1" colspan="1">Silicon-boundary; sensor-to-TEE binding</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-5.5-4">An Evidence packet <span class="bcp14">MUST</span> encode the Attester trust level as <code>attestation-tier</code>
+(CPoE evidence-packet key 7). This field is informational: a Verifier <span class="bcp14">MUST</span> derive
+the effective tier independently from the actual attestation evidence present in
+the packet and <span class="bcp14">MUST NOT</span> grant a higher evidential weight than the evidence
+supports, even if the encoded <code>attestation-tier</code> claims a higher level. Evidential
+weight follows the verified tier, not the claimed value.<a href="#section-5.5-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="trust-hierarchy-summary">
+<section id="section-5.6">
+        <h3 id="name-trust-hierarchy-summary">
+<a href="#section-5.6" class="section-number selfRef">5.6. </a><a href="#name-trust-hierarchy-summary" class="section-name selfRef">Trust Hierarchy Summary</a>
+        </h3>
+<table class="center" id="table-4">
+          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Level</th>
+              <th class="text-left" rowspan="1" colspan="1">Sensor attestation</th>
+              <th class="text-left" rowspan="1" colspan="1">Cert chain</th>
+              <th class="text-left" rowspan="1" colspan="1">ZKP scope</th>
+              <th class="text-left" rowspan="1" colspan="1">Evidential weight</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L0</td>
+              <td class="text-left" rowspan="1" colspan="1">None</td>
+              <td class="text-left" rowspan="1" colspan="1">None</td>
+              <td class="text-left" rowspan="1" colspan="1">None / software hash</td>
+              <td class="text-left" rowspan="1" colspan="1">Dimensionality only</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L1</td>
+              <td class="text-left" rowspan="1" colspan="1">Software</td>
+              <td class="text-left" rowspan="1" colspan="1">Self-signed or none</td>
+              <td class="text-left" rowspan="1" colspan="1">Platform-attested software</td>
+              <td class="text-left" rowspan="1" colspan="1">Software-layer resistance</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L2</td>
+              <td class="text-left" rowspan="1" colspan="1">Software</td>
+              <td class="text-left" rowspan="1" colspan="1">Verifiable (x.509)</td>
+              <td class="text-left" rowspan="1" colspan="1">Attested device and software</td>
+              <td class="text-left" rowspan="1" colspan="1">Independent weight</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L3</td>
+              <td class="text-left" rowspan="1" colspan="1">Hardware</td>
+              <td class="text-left" rowspan="1" colspan="1">Verifiable (x.509)</td>
+              <td class="text-left" rowspan="1" colspan="1">Silicon-boundary attestation</td>
+              <td class="text-left" rowspan="1" colspan="1">Strongest available claim</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+</section>
+</div>
+<div id="appraisal">
+<section id="section-6">
+      <h2 id="name-appraisal-logic">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-appraisal-logic" class="section-name selfRef">Appraisal Logic</a>
+      </h2>
+<div id="appraisal-by-trust-level">
+<section id="section-6.1">
+        <h3 id="name-appraisal-by-trust-level">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-appraisal-by-trust-level" class="section-name selfRef">Appraisal by Trust Level</a>
+        </h3>
+<p id="section-6.1-1">The Verifier appraises Evidence packets according to the trust level of the Attester
+that produced them. Appraisal policy <span class="bcp14">MUST</span> be explicit about the minimum acceptable
+level. A high-assurance Relying Party (e.g., medical consent, high-value transaction)
+<span class="bcp14">SHOULD</span> require L2 (<a href="#l2" class="auto internal xref">Section 5.3</a>) minimum.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">Evidence from an Attester below the policy minimum <span class="bcp14">MUST NOT</span> be used to produce an
+Attestation Result that grants the requested authorization level.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="limitation-flags-in-attestation-results">
+<section id="section-6.2">
+        <h3 id="name-limitation-flags-in-attesta">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-limitation-flags-in-attesta" class="section-name selfRef">Limitation Flags in Attestation Results</a>
+        </h3>
+<p id="section-6.2-1">The following limitation flags <span class="bcp14">MUST</span> be surfaced in the Attestation Result when present:<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-5">
+          <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Flag</th>
+              <th class="text-left" rowspan="1" colspan="1">Source</th>
+              <th class="text-left" rowspan="1" colspan="1">Meaning</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>respiratory-periodicity-warning</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">Respiratory periodicity</td>
+              <td class="text-left" rowspan="1" colspan="1">Detected paced breathing; Mahalanobis distance may not reflect genuine calm</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>behavioral-self-report-only</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">Behavioral layer check</td>
+              <td class="text-left" rowspan="1" colspan="1">Behavioral corroboration layer active without concurrent physiological layer (L2/L3); weight is self-report only</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>baseline-immature</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">Baseline maturity check</td>
+              <td class="text-left" rowspan="1" colspan="1">Baseline below minimum session count; Mahalanobis reference is provisional</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>sensor-uncertified</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">Attester level check</td>
+              <td class="text-left" rowspan="1" colspan="1">L0 or L1 device; measurement chain is not hardware-attested</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="zkp-scope">
+<section id="section-6.3">
+        <h3 id="name-zkp-scope-claim">
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-zkp-scope-claim" class="section-name selfRef">ZKP Scope Claim</a>
+        </h3>
+<p id="section-6.3-1">Every Evidence message that includes a ZKP <span class="bcp14">MUST</span> include a <code>zkp-scope</code> claim that
+states explicitly what the proof covers. A Relying Party that receives a ZKP without
+a <code>zkp-scope</code> claim <span class="bcp14">MUST</span> treat the proof as covering measurement chain integrity only
+and <span class="bcp14">MUST NOT</span> infer absence of coercion.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<div class="lang-cddl sourcecode" id="section-6.3-2">
+<pre>
+zkp-scope = {
+  proves: [+ zkp-proven-property],
+  does-not-prove: [+ zkp-excluded-property]
+}
+
+zkp-proven-property = uint   ; registered CPoE claim key
+
+zkp-excluded-property = uint  ; registered CPoE claim key
+</pre><a href="#section-6.3-2" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="encoding">
+<section id="section-7">
+      <h2 id="name-evidence-encoding-deferred">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-evidence-encoding-deferred" class="section-name selfRef">Evidence Encoding (Deferred)</a>
+      </h2>
+<p id="section-7-1">Evidence encoding is deferred to a subsequent revision, pending review of the
+topology and appraisal logic in <a href="#attester-topology" class="auto internal xref">Section 4</a> through <a href="#appraisal" class="auto internal xref">Section 6</a>.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">The encoding will use the CPoE evidence-packet schema (CBOR tag 1129336645)
+<span>[<a href="#CPoE-Protocol" class="cite xref">CPoE-Protocol</a>]</span> with LICET-specific claim keys registered as extensions. No new
+base schema is defined here.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-3"><strong>Rationale for deferral:</strong> Fixing encoding before the L0–L3 chain is stable risks
+recutting CDDL each time the trust model shifts. Topology and appraisal logic are
+established first; encoding follows.<a href="#section-7-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="resolved-design-decisions">
+<section id="section-8">
+      <h2 id="name-resolved-design-decisions">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-resolved-design-decisions" class="section-name selfRef">Resolved Design Decisions</a>
+      </h2>
+<p id="section-8-1">The following items were raised as open questions in the initial draft and resolved
+during review with David Condrey (Writerslogic Inc.):<a href="#section-8-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-8-2">
+<li id="section-8-2.1">
+          <p id="section-8-2.1.1"><strong>L2 cert chain endorser model:</strong> Multi-endorser model adopted. The device
+manufacturer covers device identity and hardware calibration trust; eColabs covers
+the LICET-specific baseline endorsement. These two endorsement scopes <span class="bcp14">MUST NOT</span> be
+collapsed into a single Endorser.<a href="#section-8-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-2.2">
+          <p id="section-8-2.2.1"><strong>Composite Attester boundary:</strong> The sensor layer and processing layer remain
+separate sub-attesters. Merging them would collapse the per-layer distinction that
+the L1-vs-L3 evidential weight difference depends on.<a href="#section-8-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-2.3">
+          <p id="section-8-2.3.1"><strong>Limitation flags:</strong> The four flags defined in <a href="#appraisal" class="auto internal xref">Section 6</a> are the complete set
+for this revision. The <code>baseline-immature</code> flag covers the enrollment gap.
+No additional flags are required at this time.<a href="#section-8-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-2.4">
+          <p id="section-8-2.4.1"><strong>ZKP scope claim format:</strong> The <code>zkp-scope</code> claim <span class="bcp14">MUST</span> map to registered CPoE claim
+keys rather than free-form text. Extension key registration is deferred to the
+encoding revision (<a href="#encoding" class="auto internal xref">Section 7</a>); the CPoE specification will define the extension
+keys on the CPoE side.<a href="#section-8-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-2.5">
+          <p id="section-8-2.5.1"><strong>L3 definition:</strong> "Analog-to-digital conversion within the hardware trust boundary"
+is confirmed as the correct L3 criterion. This matches sensor-to-TEE binding as
+understood in RFC 9334 and is kept as written.<a href="#section-8-2.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-9">
+      <h2 id="name-privacy-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<p id="section-9-1">LICET Evidence contains measurements derived from heart rate variability,
+electrodermal activity, and related physiological signals. These measurements may
+constitute data concerning health under GDPR when they reveal health status, or
+protected health information (PHI) under HIPAA when they are individually
+identifiable and maintained or transmitted by a covered entity or business
+associate. Determination depends on jurisdiction, identifiability, processing
+purpose, and regulated-entity status.<a href="#section-9-1" class="pilcrow">¶</a></p>
+<p id="section-9-2">Implementations <span class="bcp14">MUST</span> choose one of the following two Evidence modes. The modes
+are mutually exclusive within a single Evidence message:<a href="#section-9-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9-3">
+        <dt id="section-9-3.1">Disclosure mode:</dt>
+        <dd style="margin-left: 1.5em" id="section-9-3.2">
+          <p id="section-9-3.2.1">Evidence carries the Mahalanobis distance from the subject's enrolled baseline.
+The Verifier learns whether the measurement is consistent with the enrolled
+pattern; it does not learn the baseline parameters or the raw timeseries that
+produced the distance value.<a href="#section-9-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-9-3.3">Zero-knowledge mode:</dt>
+        <dd style="margin-left: 1.5em" id="section-9-3.4">
+          <p id="section-9-3.4.1">Evidence carries a ZKP (<a href="#zkp-scope" class="auto internal xref">Section 6.3</a>) that proves a range claim over the
+Mahalanobis distance without disclosing the distance value itself. No distance
+value appears in the Evidence message or the Attestation Result.<a href="#section-9-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-9-4">In both modes, implementations <span class="bcp14">MUST NOT</span> transmit the enrolled baseline
+parameters, raw HRV timeseries, or raw EDA samples in Evidence messages or
+Attestation Results.<a href="#section-9-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-10">
+      <h2 id="name-security-considerations">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-10-1">The security properties of LICET Evidence are bounded by the trust level of the
+Attester (<a href="#trust-hierarchy" class="auto internal xref">Section 5</a>) and the hard bounds stated in <a href="#limitations" class="auto internal xref">Section 2</a>.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-10-2">Implementers <span class="bcp14">MUST NOT</span> represent LICET Evidence as proof of intent. The claim is
+corroboration (<a href="#claim" class="auto internal xref">Section 3</a>). Relying Party policy determines what corroboration level
+is sufficient for a given authorization decision.<a href="#section-10-2" class="pilcrow">¶</a></p>
+<p id="section-10-3">The <code>respiratory-periodicity-warning</code> flag (<a href="#appraisal" class="auto internal xref">Section 6</a>) <span class="bcp14">MUST</span> be checked before
+relying on Mahalanobis distance as the primary evidence for an authorization
+decision. A warning flag does not invalidate the Evidence; it bounds the claim.<a href="#section-10-3" class="pilcrow">¶</a></p>
+<p id="section-10-4">The <code>zkp-scope</code> claim (<a href="#zkp-scope" class="auto internal xref">Section 6.3</a>) <span class="bcp14">MUST</span> be present in every Evidence message
+that includes a ZKP. Its absence <span class="bcp14">MUST</span> be treated as equivalent to a scope limited
+to measurement chain integrity only.<a href="#section-10-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-11">
+      <h2 id="name-iana-considerations">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-11-1">This document has no IANA actions at this time. Claim key registration for
+LICET-specific extensions to the CPoE evidence-packet schema will be addressed in
+a subsequent revision once the encoding section (<a href="#encoding" class="auto internal xref">Section 7</a>) is finalized.<a href="#section-11-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-12">
+      <h2 id="name-references">
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-12.1">
+        <h3 id="name-normative-references">
+<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9334">[RFC9334]</dt>
+      <dd>
+<span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Thaler, D.</span>, <span class="refAuthor">Richardson, M.</span>, <span class="refAuthor">Smith, N.</span>, and <span class="refAuthor">W. Pan</span>, <span class="refTitle">"Remote ATtestation procedureS (RATS) Architecture"</span>, <span class="seriesInfo">RFC 9334</span>, <span class="seriesInfo">DOI 10.17487/RFC9334</span>, <time datetime="2023-01" class="refDate">January 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9334">https://www.rfc-editor.org/rfc/rfc9334</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-12.2">
+        <h3 id="name-informative-references">
+<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="CPoE-Protocol">[CPoE-Protocol]</dt>
+        <dd>
+<span class="refAuthor">Condrey, D.</span>, <span class="refTitle">"Cryptographic Proof of Effort (CPoE): Architecture and Evidence Format"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-condrey-cpoe-protocol-00</span>, <time datetime="2026-02" class="refDate">February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-condrey-cpoe-protocol-00">https://datatracker.ietf.org/doc/html/draft-condrey-cpoe-protocol-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="Laborde2022">[Laborde2022]</dt>
+        <dd>
+<span class="refAuthor">Laborde, S.</span>, <span class="refTitle">"Psychophysiological effects of slow-paced breathing at six cycles per minute with or without heart rate variability biofeedback"</span>, <span class="seriesInfo">Psychophysiology DOI 10.1111/psyp.13952</span>, <time datetime="2022" class="refDate">2022</time>. </dd>
+<dd class="break"></dd>
+<dt id="LICET-Spec">[LICET-Spec]</dt>
+      <dd>
+<span class="refAuthor">Pereira, C.</span>, <span class="refTitle">"LICET: Layered Intent Corroboration via Embedded Trust"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-pereira-licet-human-intent-01</span>, <time datetime="2026-04" class="refDate">April 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-pereira-licet-human-intent-01">https://datatracker.ietf.org/doc/html/draft-pereira-licet-human-intent-01</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-A">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-A-1">The author thanks David Condrey (Writerslogic Inc.) for identifying
+paced breathing as the primary limitation of the Mahalanobis design, for the
+correction of RFC 9334 composite Attester citations, and for guidance on the
+topology-first document structure that informed this draft.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Christian Rodrigues Pereira</span></div>
+<div dir="auto" class="left"><span class="org">eColabs</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:christian@licet.dev" class="email">christian@licet.dev</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>

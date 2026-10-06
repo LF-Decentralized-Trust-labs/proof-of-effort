@@ -1,0 +1,682 @@
+
+
+
+
+Individual Submission                                         C. Pereira
+Internet-Draft                                                   eColabs
+Intended status: Experimental                             September 2026
+Expires: 3 April 2027
+
+
+LICET Wearable Attester: Topology and Trust Hierarchy for Physiological
+                          Intent Corroboration
+              draft-pereira-licet-wearable-attester-latest
+
+Abstract
+
+   This document defines the Attester topology and trust hierarchy for
+   LICET (Layered Intent Corroboration via Embedded Trust) wearable
+   devices operating as composite Attesters under the RATS architecture.
+   A LICET wearable measures heart rate variability, electrodermal
+   activity, and derived features, and produces cryptographically bound
+   Evidence about a subject's physiological state at the time of an
+   authorization request.  This document establishes L0-L3 as a
+   graduated trust hierarchy in which evidential weight follows
+   attestation level, states the hard bounds on what physiological
+   corroboration can claim before any architecture is presented, and
+   defines the appraisal logic by which a Verifier carries those bounds
+   into Attestation Results.  Evidence encoding is deferred to a
+   subsequent revision and is expected to use the CPoE evidence-packet
+   schema with LICET-specific claim extensions rather than defining a
+   new schema.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 5 March 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.
+
+Table of Contents
+
+   1.  Introduction
+     1.1.  The Claim: Corroboration, Not Proof
+     1.2.  Conventions and Definitions
+   2.  Limitations
+     2.1.  Paced Breathing: Hard Bound on Mahalanobis Claims
+     2.2.  Behavioral Corroboration Layer Self-Report Gap
+   3.  The Claim Stated Precisely
+   4.  Attester Topology Under RFC 9334
+     4.1.  Composite Device Model (RFC 9334 §3.3)
+     4.2.  Roles (RFC 9334 §4.1)
+     4.3.  Attestation Models
+   5.  Trust Hierarchy: L0–L3
+     5.1.  L0: Uncertified Sensor
+     5.2.  L1: Software Attestation
+     5.3.  L2: Certified Device with Attestation Chain
+     5.4.  L3: Hardware-Attested Sensor
+     5.5.  Relationship to CPoE Attestation Tiers
+     5.6.  Trust Hierarchy Summary
+   6.  Appraisal Logic
+     6.1.  Appraisal by Trust Level
+     6.2.  Limitation Flags in Attestation Results
+     6.3.  ZKP Scope Claim
+   7.  Evidence Encoding (Deferred)
+   8.  Resolved Design Decisions
+   9.  Privacy Considerations
+   10. Security Considerations
+   11. IANA Considerations
+   12. References
+     12.1.  Normative References
+     12.2.  Informative References
+   Acknowledgments
+   Author's Address
+
+1.  Introduction
+
+   This document defines the Attester topology and trust hierarchy for
+   LICET wearable devices operating as composite Attesters under IETF
+   RFC 9334 [RFC9334].
+
+   LICET (Layered Intent Corroboration via Embedded Trust) [LICET-Spec]
+   is a protocol for physiological corroboration of human intent.  A
+   LICET wearable device measures biometric signals — primarily heart
+   rate variability (HRV), electrodermal activity (EDA), and derived
+   features — and produces cryptographically bound Evidence about the
+   subject's physiological state at the time of an authorization
+   request.
+
+   This document:
+
+   *  Establishes L0–L3 as a graduated trust hierarchy in which
+      evidential weight follows attestation level (Section 5)
+
+   *  Defines the composite Attester topology under RFC 9334 §3.3
+      (Section 4)
+
+   *  States hard bounds on claims before any architecture is presented
+      (Section 2)
+
+   *  Describes appraisal logic for Evidence packets (Section 6)
+
+   *  Defers encoding to a later revision once the topology is stable
+      (Section 7)
+
+   The encoding will use the CPoE evidence-packet schema (CBOR tag
+   1129336645) [CPoE-Protocol] with LICET-specific claim extensions.  No
+   new schema is defined here.
+
+1.1.  The Claim: Corroboration, Not Proof
+
+   *The claim throughout this document is corroboration, not proof.*
+
+   Physiological signals narrow the inference space; they do not
+   establish intent with certainty.  The limitations in Section 2 bound
+   this claim explicitly before any architecture is presented.  A
+   Relying Party that treats LICET Evidence as proof of intent, rather
+   than as corroborating evidence, is misapplying this specification.
+
+1.2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   The following terms are used as defined in RFC 9334 [RFC9334]:
+   Attester, Verifier, Relying Party, Endorser, Evidence, Attestation
+   Result, Claims, Reference Values.
+
+   Additional terms:
+
+   L0–L3:  The LICET trust hierarchy levels defined in Section 5.
+      Evidential weight follows attestation level.
+
+   Physiological calm fingerprint:  The multivariate baseline of a
+      subject's biometric signals (RMSSD, HF power, EDA, HR) under
+      genuine resting conditions, established through a personalized
+      baseline enrollment process.
+
+   Mahalanobis distance:  The distance of a current biometric
+      measurement from the subject's calm fingerprint, expressed in
+      units of standard deviations accounting for feature covariance.
+
+2.  Limitations
+
+   These limitations appear in this section, not in an appendix.  A
+   reviewer who reaches the architecture without understanding the hard
+   bounds will misread the system's claims.
+
+2.1.  Paced Breathing: Hard Bound on Mahalanobis Claims
+
+   *This is the limitation that genuinely breaks the Mahalanobis
+   design.*
+
+   A coerced subject trained in resonance-frequency breathing at
+   approximately 0.1 Hz (six cycles per minute) produces a
+   physiologically authentic calm vector — elevated RMSSD and HF power,
+   low EDA, low HR — that is internally consistent and matches the calm
+   fingerprint.  This is not a forgery of the baseline; it is the
+   baseline, volitionally manufactured [Laborde2022].
+
+   The Mahalanobis design measures distance from the calm fingerprint.
+   Paced breathing moves the subject to that fingerprint.  The distance
+   collapses to zero without producing any anomalous signal.  The system
+   cannot distinguish:
+
+   1.  Genuine calm under no coercion
+
+   2.  Volitional calm via paced breathing under coercion
+
+   *Consequence:* No claim derived from Mahalanobis distance alone
+   survives this scenario.  The Mahalanobis layer provides corroborating
+   evidence under adversarial assumptions that exclude trained
+   volitional vagal control.  This assumption MUST be stated wherever
+   the layer's output is interpreted.
+
+   A respiratory periodicity index based on RSA coefficient of variation
+   (RSA CV) can detect trained paced breathing by its characteristic
+   regularity signature.  Paced breathing at resonance frequency
+   produces highly regular inter-breath intervals (RSA CV in the order
+   of 0.03), whereas genuine resting HRV exhibits substantially higher
+   inter-breath variability (RSA CV in the order of 0.40); these are
+   illustrative values derived from the slow-paced breathing literature
+   [Laborde2022] and the authors' implementation measurements, not
+   normative thresholds.  This narrows the attack surface but does not
+   close it.  RSA CV is a discriminant, not a proof.  The respiratory-
+   periodicity-warning flag in the Evidence packet is a detector output,
+   not a falsification of the Mahalanobis claim.  Both MUST be surfaced;
+   interpretation is left to the Relying Party.
+
+2.2.  Behavioral Corroboration Layer Self-Report Gap
+
+   The LICET behavioral corroboration layer (distinct from the CPoE
+   attestation tier T2) relies on signals produced by the subject
+   asserting intent: typing dynamics, gaze entropy, and touchscreen
+   interaction patterns.  These signals cannot be independently verified
+   by the wearable Attester; they are self-reported by definition.
+
+   *Consequence:* Behavioral corroboration Evidence does not carry
+   evidential weight independent of a concurrently valid physiological
+   layer (L2 or L3).  A Relying Party policy that grants authorization
+   on behavioral signals alone accepts self-report as its primary
+   evidence.  This MUST be explicit in Relying Party policy.
+
+3.  The Claim Stated Precisely
+
+   A LICET ZKP (zero-knowledge proof) in an authorization bundle proves:
+
+   *  That a measurement was taken at a claimed time
+
+   *  That the measurement's Mahalanobis distance from the subject's
+      baseline falls within a claimed range
+
+   *  That the cryptographic chain from sensor to proof is intact
+
+   The ZKP does NOT prove:
+
+   *  That the physiological state reflects genuine uncoerced calm
+
+   *  That the subject was not performing volitional vagal enhancement
+      (Section 2.1)
+
+   *  That the behavioral corroboration layer reflects actual behavioral
+      state (Section 2.2)
+
+   *ZKP ≠ proof-of-measurement-of-intent.* The proof validates the
+   measurement chain.  The inference from measurement to intent is a
+   probabilistic claim bounded by Section 2.  Every Attestation Result
+   that includes a ZKP MUST include a zkp-scope claim (Section 6.3) that
+   states this explicitly.
+
+4.  Attester Topology Under RFC 9334
+
+4.1.  Composite Device Model (RFC 9334 §3.3)
+
+   A LICET wearable operates as a Composite Attester as defined in RFC
+   9334 §3.3 [RFC9334].  The composite device consists of sub-attesters
+   that each produce Claims.  The Composite Attester aggregates them
+   into a single Evidence message.  The trust level of the composite is
+   bounded by the weakest sub-attester in the chain.
+
+     +==============+=================+==============================+
+     | Sub-attester | Environment     | Produces                     |
+     +==============+=================+==============================+
+     | Sensor layer | TEE or hardware | Raw biometric measurements   |
+     |              | secure element  |                              |
+     +--------------+-----------------+------------------------------+
+     | Processing   | Application     | Derived features (RMSSD, HF  |
+     | layer        | environment     | power, Mahalanobis distance) |
+     +--------------+-----------------+------------------------------+
+     | Crypto layer | Secure enclave  | Authorization bundle and     |
+     |              | / ZKP prover    | proof                        |
+     +--------------+-----------------+------------------------------+
+     | Identity     | Attester        | Attestation cert chain (L2   |
+     | layer        | credentials     | and above)                   |
+     +--------------+-----------------+------------------------------+
+
+                                  Table 1
+
+4.2.  Roles (RFC 9334 §4.1)
+
+    +============+================+==================================+
+    | Role       | Entity         | Notes                            |
+    +============+================+==================================+
+    | Attester   | LICET wearable | Produces Evidence about          |
+    |            | device         | physiological state              |
+    +------------+----------------+----------------------------------+
+    | Verifier   | LICET Verifier | Appraises Evidence against       |
+    |            | service        | Endorsements                     |
+    +------------+----------------+----------------------------------+
+    | Relying    | Authorization  | Consumes Attestation Result;     |
+    | Party      | endpoint       | applies policy                   |
+    +------------+----------------+----------------------------------+
+    | Endorser   | Device         | Provides device identity cert    |
+    | (device)   | manufacturer   | and hardware calibration trust   |
+    +------------+----------------+----------------------------------+
+    | Endorser   | eColabs        | Provides LICET-specific baseline |
+    | (baseline) |                | endorsement; scope MUST NOT be   |
+    |            |                | collapsed with device Endorser   |
+    +------------+----------------+----------------------------------+
+
+                                 Table 2
+
+4.3.  Attestation Models
+
+   The LICET wearable supports both models defined in RFC 9334:
+
+   Passport Model (RFC 9334 §5.1):  The Verifier appraises Evidence and
+      produces an Attestation Result token that the Relying Party
+      consumes without re-verifying raw Evidence.  Suitable for low-
+      latency authorization flows.
+
+   Background-Check Model (RFC 9334 §5.2):  The Relying Party forwards
+      Evidence to the Verifier at authorization time.  Suitable for
+      high-assurance flows where the Relying Party maintains its own
+      appraisal policy.
+
+5.  Trust Hierarchy: L0–L3
+
+   Evidential weight follows attestation level.  Higher levels require
+   stronger attestation of the measurement environment and the
+   credential chain.
+
+5.1.  L0: Uncertified Sensor
+
+   A consumer wearable with no hardware attestation, no secure element,
+   and no cert chain.  The device reports measurements; there is no
+   attestation of measurement integrity.
+
+   Evidential weight:  Dimensionality.  L0 contributes to the feature
+      vector roughly what an inertial signal contributes — it adds a
+      dimension that would cost an adversary effort to match, but it
+      does not resist a software-layer attack on the measurement chain.
+
+   Supported claim:  "A device reported a measurement consistent with
+      the claimed physiological state at the claimed time."  The
+      inference from measurement to intent depends entirely on the
+      Relying Party's trust in the device model.
+
+5.2.  L1: Software Attestation
+
+   The measurement software runs in an attested execution environment
+   (e.g., Android StrongBox, iOS Secure Enclave application).  The
+   device produces a Platform Attestation Result that covers the
+   measurement software.
+
+   Evidential weight:  The measurement software is covered by a hardware
+      root of trust, but the sensors themselves are not attested.  A
+      hardware attack on the sensor output is not detected.
+
+   Supported claim:  "Attested software on an attested platform reported
+      a measurement consistent with the claimed physiological state."
+      Software-layer forgery is detected; hardware-layer forgery is not.
+
+5.3.  L2: Certified Device with Attestation Chain
+
+   A device with a manufacturer cert chain that a Verifier can actually
+   verify.  The Attester credential includes an x.509 cert chain rooted
+   at an Endorser trusted by the Verifier.  Evidence messages are signed
+   with the Attester's private key; the chain is verifiable at appraisal
+   time.
+
+   Evidential weight:  This is where LICET Evidence starts carrying its
+      own weight.  A Verifier can confirm: device identity
+      (manufacturer-issued cert, not self-signed), platform integrity
+      (Platform Attestation Result over firmware), and key provenance
+      (Attester key generated in and bound to a secure element).  An
+      adversary that cannot compromise the secure element cannot forge
+      the Evidence message.
+
+   Supported claim:  "A certified device with a verifiable attestation
+      chain reported a measurement consistent with the claimed
+      physiological state."
+
+5.4.  L3: Hardware-Attested Sensor
+
+   Sensor-level hardware attestation.  The sensor output itself is
+   signed or bound to the secure element at the hardware layer — the
+   analog-to-digital conversion falls within the hardware trust
+   boundary.
+
+   Evidential weight:  The full chain — from analog biometric signal to
+      ZKP — is covered by hardware attestation.  This is the regime
+      where LICET makes its strongest claim.
+
+   Supported claim:  "A hardware-attested sensor on a certified device
+      produced a measurement consistent with the claimed physiological
+      state, with the measurement chain attested to the silicon
+      boundary."
+
+   Note: No commercially available consumer wearable currently meets L3
+   as defined here.  L3 is the target architecture for eColabs' hardware
+   program.  Current deployments operate at L0 (simulation mode) or L1
+   (platform attestation via mobile OS).
+
+5.5.  Relationship to CPoE Attestation Tiers
+
+   LICET L0–L3 is this document's label for the attestation assurance
+   axis.  The CPoE evidence-packet schema [CPoE-Protocol] expresses the
+   same axis through the attestation-tier field (evidence-packet key 7),
+   where T1–T4 corresponds to increasing hardware trust anchoring
+   strength.  L0–L3 and T1–T4 are not orthogonal hierarchies; they name
+   the same axis.
+
+   The value mapping to attestation-tier (key 7) is:
+
+      +=============+=======================+=======================+
+      | LICET level | CPoE attestation-tier | Attestation strength  |
+      +=============+=======================+=======================+
+      | L0          | T1                    | Software-only; no     |
+      |             |                       | hardware trust anchor |
+      +-------------+-----------------------+-----------------------+
+      | L1          | T2                    | Attested software;    |
+      |             |                       | platform-bound key    |
+      +-------------+-----------------------+-----------------------+
+      | L2          | T3                    | Hardware-bound;       |
+      |             |                       | verifiable cert chain |
+      +-------------+-----------------------+-----------------------+
+      | L3          | T4                    | Silicon-boundary;     |
+      |             |                       | sensor-to-TEE binding |
+      +-------------+-----------------------+-----------------------+
+
+                                  Table 3
+
+   An Evidence packet MUST encode the Attester trust level as
+   attestation-tier (CPoE evidence-packet key 7).  This field is
+   informational: a Verifier MUST derive the effective tier
+   independently from the actual attestation evidence present in the
+   packet and MUST NOT grant a higher evidential weight than the
+   evidence supports, even if the encoded attestation-tier claims a
+   higher level.  Evidential weight follows the verified tier, not the
+   claimed value.
+
+5.6.  Trust Hierarchy Summary
+
+   +=====+===========+===========+===================+=================+
+   |Level|Sensor     |Cert chain | ZKP scope         | Evidential      |
+   |     |attestation|           |                   | weight          |
+   +=====+===========+===========+===================+=================+
+   |L0   |None       |None       | None / software   | Dimensionality  |
+   |     |           |           | hash              | only            |
+   +-----+-----------+-----------+-------------------+-----------------+
+   |L1   |Software   |Self-signed| Platform-attested | Software-layer  |
+   |     |           |or none    | software          | resistance      |
+   +-----+-----------+-----------+-------------------+-----------------+
+   |L2   |Software   |Verifiable | Attested device   | Independent     |
+   |     |           |(x.509)    | and software      | weight          |
+   +-----+-----------+-----------+-------------------+-----------------+
+   |L3   |Hardware   |Verifiable | Silicon-boundary  | Strongest       |
+   |     |           |(x.509)    | attestation       | available       |
+   |     |           |           |                   | claim           |
+   +-----+-----------+-----------+-------------------+-----------------+
+
+                                  Table 4
+
+6.  Appraisal Logic
+
+6.1.  Appraisal by Trust Level
+
+   The Verifier appraises Evidence packets according to the trust level
+   of the Attester that produced them.  Appraisal policy MUST be
+   explicit about the minimum acceptable level.  A high-assurance
+   Relying Party (e.g., medical consent, high-value transaction) SHOULD
+   require L2 (Section 5.3) minimum.
+
+   Evidence from an Attester below the policy minimum MUST NOT be used
+   to produce an Attestation Result that grants the requested
+   authorization level.
+
+6.2.  Limitation Flags in Attestation Results
+
+   The following limitation flags MUST be surfaced in the Attestation
+   Result when present:
+
+   +=================================+===========+=====================+
+   | Flag                            |Source     | Meaning             |
+   +=================================+===========+=====================+
+   | respiratory-periodicity-warning |Respiratory| Detected paced      |
+   |                                 |periodicity| breathing;          |
+   |                                 |           | Mahalanobis         |
+   |                                 |           | distance may not    |
+   |                                 |           | reflect genuine     |
+   |                                 |           | calm                |
+   +---------------------------------+-----------+---------------------+
+   | behavioral-self-report-only     |Behavioral | Behavioral          |
+   |                                 |layer check| corroboration       |
+   |                                 |           | layer active        |
+   |                                 |           | without concurrent  |
+   |                                 |           | physiological       |
+   |                                 |           | layer (L2/L3);      |
+   |                                 |           | weight is self-     |
+   |                                 |           | report only         |
+   +---------------------------------+-----------+---------------------+
+   | baseline-immature               |Baseline   | Baseline below      |
+   |                                 |maturity   | minimum session     |
+   |                                 |check      | count; Mahalanobis  |
+   |                                 |           | reference is        |
+   |                                 |           | provisional         |
+   +---------------------------------+-----------+---------------------+
+   | sensor-uncertified              |Attester   | L0 or L1 device;    |
+   |                                 |level check| measurement chain   |
+   |                                 |           | is not hardware-    |
+   |                                 |           | attested            |
+   +---------------------------------+-----------+---------------------+
+
+                                  Table 5
+
+6.3.  ZKP Scope Claim
+
+   Every Evidence message that includes a ZKP MUST include a zkp-scope
+   claim that states explicitly what the proof covers.  A Relying Party
+   that receives a ZKP without a zkp-scope claim MUST treat the proof as
+   covering measurement chain integrity only and MUST NOT infer absence
+   of coercion.
+
+   zkp-scope = {
+     proves: [+ zkp-proven-property],
+     does-not-prove: [+ zkp-excluded-property]
+   }
+
+   zkp-proven-property = uint   ; registered CPoE claim key
+
+   zkp-excluded-property = uint  ; registered CPoE claim key
+
+7.  Evidence Encoding (Deferred)
+
+   Evidence encoding is deferred to a subsequent revision, pending
+   review of the topology and appraisal logic in Section 4 through
+   Section 6.
+
+   The encoding will use the CPoE evidence-packet schema (CBOR tag
+   1129336645) [CPoE-Protocol] with LICET-specific claim keys registered
+   as extensions.  No new base schema is defined here.
+
+   *Rationale for deferral:* Fixing encoding before the L0–L3 chain is
+   stable risks recutting CDDL each time the trust model shifts.
+   Topology and appraisal logic are established first; encoding follows.
+
+8.  Resolved Design Decisions
+
+   The following items were raised as open questions in the initial
+   draft and resolved during review with David Condrey (Writerslogic
+   Inc.):
+
+   1.  *L2 cert chain endorser model:* Multi-endorser model adopted.
+       The device manufacturer covers device identity and hardware
+       calibration trust; eColabs covers the LICET-specific baseline
+       endorsement.  These two endorsement scopes MUST NOT be collapsed
+       into a single Endorser.
+
+   2.  *Composite Attester boundary:* The sensor layer and processing
+       layer remain separate sub-attesters.  Merging them would collapse
+       the per-layer distinction that the L1-vs-L3 evidential weight
+       difference depends on.
+
+   3.  *Limitation flags:* The four flags defined in Section 6 are the
+       complete set for this revision.  The baseline-immature flag
+       covers the enrollment gap.  No additional flags are required at
+       this time.
+
+   4.  *ZKP scope claim format:* The zkp-scope claim MUST map to
+       registered CPoE claim keys rather than free-form text.  Extension
+       key registration is deferred to the encoding revision
+       (Section 7); the CPoE specification will define the extension
+       keys on the CPoE side.
+
+   5.  *L3 definition:* "Analog-to-digital conversion within the
+       hardware trust boundary" is confirmed as the correct L3
+       criterion.  This matches sensor-to-TEE binding as understood in
+       RFC 9334 and is kept as written.
+
+9.  Privacy Considerations
+
+   LICET Evidence contains measurements derived from heart rate
+   variability, electrodermal activity, and related physiological
+   signals.  These measurements may constitute data concerning health
+   under GDPR when they reveal health status, or protected health
+   information (PHI) under HIPAA when they are individually identifiable
+   and maintained or transmitted by a covered entity or business
+   associate.  Determination depends on jurisdiction, identifiability,
+   processing purpose, and regulated-entity status.
+
+   Implementations MUST choose one of the following two Evidence modes.
+   The modes are mutually exclusive within a single Evidence message:
+
+   Disclosure mode:  Evidence carries the Mahalanobis distance from the
+      subject's enrolled baseline.  The Verifier learns whether the
+      measurement is consistent with the enrolled pattern; it does not
+      learn the baseline parameters or the raw timeseries that produced
+      the distance value.
+
+   Zero-knowledge mode:  Evidence carries a ZKP (Section 6.3) that
+      proves a range claim over the Mahalanobis distance without
+      disclosing the distance value itself.  No distance value appears
+      in the Evidence message or the Attestation Result.
+
+   In both modes, implementations MUST NOT transmit the enrolled
+   baseline parameters, raw HRV timeseries, or raw EDA samples in
+   Evidence messages or Attestation Results.
+
+10.  Security Considerations
+
+   The security properties of LICET Evidence are bounded by the trust
+   level of the Attester (Section 5) and the hard bounds stated in
+   Section 2.
+
+   Implementers MUST NOT represent LICET Evidence as proof of intent.
+   The claim is corroboration (Section 3).  Relying Party policy
+   determines what corroboration level is sufficient for a given
+   authorization decision.
+
+   The respiratory-periodicity-warning flag (Section 6) MUST be checked
+   before relying on Mahalanobis distance as the primary evidence for an
+   authorization decision.  A warning flag does not invalidate the
+   Evidence; it bounds the claim.
+
+   The zkp-scope claim (Section 6.3) MUST be present in every Evidence
+   message that includes a ZKP.  Its absence MUST be treated as
+   equivalent to a scope limited to measurement chain integrity only.
+
+11.  IANA Considerations
+
+   This document has no IANA actions at this time.  Claim key
+   registration for LICET-specific extensions to the CPoE evidence-
+   packet schema will be addressed in a subsequent revision once the
+   encoding section (Section 7) is finalized.
+
+12.  References
+
+12.1.  Normative References
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RFC9334]  Birkholz, H., Thaler, D., Richardson, M., Smith, N., and
+              W. Pan, "Remote ATtestation procedureS (RATS)
+              Architecture", RFC 9334, DOI 10.17487/RFC9334, January
+              2023, <https://www.rfc-editor.org/rfc/rfc9334>.
+
+12.2.  Informative References
+
+   [CPoE-Protocol]
+              Condrey, D., "Cryptographic Proof of Effort (CPoE):
+              Architecture and Evidence Format", Work in Progress,
+              Internet-Draft, draft-condrey-cpoe-protocol-00, February
+              2026, <https://datatracker.ietf.org/doc/html/draft-
+              condrey-cpoe-protocol-00>.
+
+   [Laborde2022]
+              Laborde, S., "Psychophysiological effects of slow-paced
+              breathing at six cycles per minute with or without heart
+              rate variability biofeedback", Psychophysiology DOI
+              10.1111/psyp.13952, 2022.
+
+   [LICET-Spec]
+              Pereira, C., "LICET: Layered Intent Corroboration via
+              Embedded Trust", Work in Progress, Internet-Draft, draft-
+              pereira-licet-human-intent-01, April 2026,
+              <https://datatracker.ietf.org/doc/html/draft-pereira-
+              licet-human-intent-01>.
+
+Acknowledgments
+
+   The author thanks David Condrey (Writerslogic Inc.) for identifying
+   paced breathing as the primary limitation of the Mahalanobis design,
+   for the correction of RFC 9334 composite Attester citations, and for
+   guidance on the topology-first document structure that informed this
+   draft.
+
+Author's Address
+
+   Christian Rodrigues Pereira
+   eColabs
+   Email: christian@licet.dev
