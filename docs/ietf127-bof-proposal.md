@@ -1,3 +1,5 @@
+> Status: not submitted. The IETF 127 deadline (2026-09-18) passed without a filing; this text is retained for a future meeting or side meeting.
+
 # Name: Cryptographic Proof of Effort for Content Creation (CPOE)
 
 ## Description

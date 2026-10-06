@@ -321,7 +321,7 @@ separates generation
 origin (which process produced which byte ranges) from legal
 authorship, binds prompts by hash rather than including their
 text, distinguishes a producer's self-reported acceptance
-claim from a verifier-observed one, and requires every
+claim from one a verifier re-executed, and requires every
 approval signature to cover its own approval record. Each of
 these carries over to prose and other content with
 addressable ranges, and CPoE's tool receipts, hash-only
@@ -392,6 +392,7 @@ academic institutions, journalism organizations, and legal
 practitioners. The authors thank the contributors to the CPoE
 open specification process for their feedback on real-world
 deployment requirements.
+
 The analysis of which process-evidence concepts generalize
 beyond software, and which do not, draws on review comments
 from the OpenFab project maintainers.
