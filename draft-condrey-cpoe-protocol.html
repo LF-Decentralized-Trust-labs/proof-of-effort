@@ -1469,7 +1469,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-problem-statement">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-problem-statement" class="section-name selfRef">Problem Statement</a>
       </h2>
-<p id="section-3-1">Digital documents lack creation-process provenance. Existing cryptographic mechanisms prove complementary properties -- COSE signatures <span>[<a href="#RFC9052" class="cite xref">RFC9052</a>]</span> prove key possession, trusted timestamps <span>[<a href="#RFC3161" class="cite xref">RFC3161</a>]</span> prove temporal existence, media provenance standards <span>[<a href="#C2PA" class="cite xref">C2PA</a>]</span> track post-creation custody -- but none reveals how a document was produced or evolved during authorship.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-1">Digital documents lack creation-process provenance. Existing cryptographic mechanisms prove complementary properties -- COSE signatures <span>[<a href="#RFC9052" class="cite xref">RFC9052</a>]</span> prove key possession, trusted timestamps <span>[<a href="#RFC3161" class="cite xref">RFC3161</a>]</span> prove temporal existence, media provenance standards <span>[<a href="#C2PA" class="cite xref">C2PA</a>]</span> track post-creation custody -- but none reveals how a document was produced or evolved during authorship. In the software domain, in-toto attestations such as the OpenFab Generation Predicate <span>[<a href="#OpenFab-Generation" class="cite xref">OpenFab-Generation</a>]</span> record which process (human or AI) produced which byte ranges of a source file; CPoE addresses the same question for content whose creation process is a human interacting with an editor rather than a build pipeline.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <p id="section-3-2">Non-cryptographic alternatives each carry fundamental limitations. Surveillance-based methods (screen recording, keystroke logging) are privacy-invasive, require trust in a third-party archive, and cannot be independently verified. Detection-based methods (stylometric classifiers, AI-content detectors) operate on finished output, are probabilistic, degrade as generative models improve, and exhibit systematic bias against non-native speakers <span>[<a href="#Liang2023" class="cite xref">Liang2023</a>]</span>. Proprietary solutions (e.g., <span>[<a href="#GPTZero" class="cite xref">GPTZero</a>]</span>, <span>[<a href="#AG-Human-Authored" class="cite xref">AG-Human-Authored</a>]</span>, <span>[<a href="#Amazon-KDP-AI" class="cite xref">Amazon-KDP-AI</a>]</span>) lack openness, independent verifiability, or both.<a href="#section-3-2" class="pilcrow">¶</a></p>
 <p id="section-3-3">The need spans sectors: clinical documentation <span>[<a href="#HHS-AI-RFI" class="cite xref">HHS-AI-RFI</a>]</span>, AI agent attribution <span>[<a href="#NIST-AI-Agents-RFI" class="cite xref">NIST-AI-Agents-RFI</a>]</span>, and publishing workflows all require a standardized, open mechanism to verify how content was produced. Such a mechanism must satisfy four properties:<a href="#section-3-3" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-3-4">
@@ -1569,14 +1569,23 @@ individual contributions. Mechanisms for partitioning
 authorship attribution in collaborative sessions (e.g.,
 per-author checkpoint streams, contribution-level Evidence)
 are deferred to future work.<a href="#section-5-3" class="pilcrow">¶</a></p>
-<p id="section-5-4">Whether any institution or platform requires CPoE evidence
+<p id="section-5-4">CPoE does not define an executable acceptance contract.
+Software process-evidence formats such as <span>[<a href="#OpenFab-Generation" class="cite xref">OpenFab-Generation</a>]</span>
+can embed re-runnable checks that a Verifier executes to
+confirm a producer's claim; there is no equivalent for prose,
+images, or other non-executable content, and executing
+producer-supplied code carries its own safety requirements.
+Verifiers evaluate CPoE Evidence by recomputing hashes and
+re-deriving behavioral metrics from the recorded data, never
+by executing content supplied by the Attester.<a href="#section-5-4" class="pilcrow">¶</a></p>
+<p id="section-5-5">Whether any institution or platform requires CPoE evidence
 as a condition of participation is a policy decision outside
 the scope of this protocol. CPoE provides a technical
 mechanism for producing verifiable evidence; it does not
 mandate that evidence be produced or consumed. Institutions
 deploying CPoE <span class="bcp14">SHOULD</span> ensure that requiring Evidence does
 not create barriers for users who rely on assistive
-technologies or non-standard input methods.<a href="#section-5-4" class="pilcrow">¶</a></p>
+technologies or non-standard input methods.<a href="#section-5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="system-model">
@@ -2451,7 +2460,8 @@ when contradicted by the evidence content.<a href="#section-14.1-4" class="pilcr
 <a href="#section-15" class="section-number selfRef">15. </a><a href="#name-evidence-format-and-cddl" class="section-name selfRef">Evidence Format and CDDL</a>
       </h2>
 <p id="section-15-1">Evidence Packets are CBOR-encoded <span>[<a href="#RFC8949" class="cite xref">RFC8949</a>]</span> and identified by semantic tag 1129336645. The CDDL notation <span>[<a href="#RFC8610" class="cite xref">RFC8610</a>]</span> is used to define the wire format.<a href="#section-15-1" class="pilcrow">¶</a></p>
-<div class="breakable lang-cddl sourcecode" id="section-15-2">
+<p id="section-15-2">Every CBOR structure defined in this document, whether transmitted, stored, or used as input to a hash or signature, <span class="bcp14">MUST</span> be encoded using Core Deterministic Encoding (<span>[<a href="#RFC8949" class="cite xref">RFC8949</a>]</span>, Section 4.2.1): shortest-form integer and length encoding, map keys sorted by their encoded bytes, no indefinite-length items, and no duplicate map keys. Decoders <span class="bcp14">MUST</span> reject an Evidence Packet containing a duplicate map key or a non-deterministic encoding of a structure that is hashed or signed. This requirement applies to the whole packet, not only to the structures whose hash computation below names deterministic encoding explicitly; interoperability failures between independent implementations of comparable formats have concentrated in key ordering, value domain, and duplicate-member handling, so this document states the rule once and does not rely on implementers inferring it.<a href="#section-15-2" class="pilcrow">¶</a></p>
+<div class="breakable lang-cddl sourcecode" id="section-15-3">
 <pre>
 ; CBOR tag wrappers
 cpoe-evidence = #6.1129336645(evidence-packet)
@@ -2736,30 +2746,30 @@ hash-algorithm = &amp;(
     sha384: 2,
     sha512: 3,
 )
-</pre><a href="#section-15-2" class="pilcrow">¶</a>
+</pre><a href="#section-15-3" class="pilcrow">¶</a>
 </div>
-<p id="section-15-3">The attestation-result type used in the cpoe-war tag wrapper is
+<p id="section-15-4">The attestation-result type used in the cpoe-war tag wrapper is
 defined as a stub above for CDDL completeness; the full
-definition appears in <span>[<a href="#CPoE-Appraisal" class="cite xref">CPoE-Appraisal</a>]</span>.<a href="#section-15-3" class="pilcrow">¶</a></p>
-<p id="section-15-4">To ensure cross-architecture determinism, all temporal and entropy measurements <span class="bcp14">MUST</span> be encoded as unsigned integers (<code>uint</code>). Timestamps and durations are expressed in milliseconds. Entropy estimates are expressed in centibits (1/100th of a bit).<a href="#section-15-4" class="pilcrow">¶</a></p>
-<p id="section-15-5">cpoe-timestamp is a bare unsigned integer representing milliseconds since
+definition appears in <span>[<a href="#CPoE-Appraisal" class="cite xref">CPoE-Appraisal</a>]</span>.<a href="#section-15-4" class="pilcrow">¶</a></p>
+<p id="section-15-5">To ensure cross-architecture determinism, all temporal and entropy measurements <span class="bcp14">MUST</span> be encoded as unsigned integers (<code>uint</code>). Timestamps and durations are expressed in milliseconds. Entropy estimates are expressed in centibits (1/100th of a bit).<a href="#section-15-5" class="pilcrow">¶</a></p>
+<p id="section-15-6">cpoe-timestamp is a bare unsigned integer representing milliseconds since
 the Unix epoch (1970-01-01T00:00:00Z). CBOR tag 1 is not used because
 RFC 8949 Section 3.4.2 defines it as epoch seconds; CPoE requires
 millisecond precision for IKI measurements and jitter-binding
 timestamps. cpoe-timestamp values <span class="bcp14">MUST</span> be positive (greater than zero).
 A cpoe-timestamp value of zero is invalid. Verifiers <span class="bcp14">MUST</span> reject
-Evidence Packets containing any zero-valued timestamp.<a href="#section-15-5" class="pilcrow">¶</a></p>
-<p id="section-15-6">When hash-salt-mode is author-salted (1), the author generates a
+Evidence Packets containing any zero-valued timestamp.<a href="#section-15-6" class="pilcrow">¶</a></p>
+<p id="section-15-7">When hash-salt-mode is author-salted (1), the author generates a
 random salt of at least 16 bytes. The salt-commitment field <span class="bcp14">MUST</span>
 contain H(salt). To verify content binding, the author discloses
 the salt to the Verifier, which checks that H(disclosed_salt)
-matches the salt-commitment.<a href="#section-15-6" class="pilcrow">¶</a></p>
-<p id="section-15-7">SHA-256 (value 1) is mandatory-to-implement. Conforming Attesters and Verifiers <span class="bcp14">MUST</span> support SHA-256. Support for SHA-384 and SHA-512 is <span class="bcp14">OPTIONAL</span>.<a href="#section-15-7" class="pilcrow">¶</a></p>
-<p id="section-15-8">The hash digest length <span class="bcp14">MUST</span> match the algorithm output length: 32 bytes for SHA-256, 48 bytes for SHA-384, and 64 bytes for SHA-512.<a href="#section-15-8" class="pilcrow">¶</a></p>
-<p id="section-15-9">All hash-value fields within a single Evidence Packet <span class="bcp14">MUST</span> use the
+matches the salt-commitment.<a href="#section-15-7" class="pilcrow">¶</a></p>
+<p id="section-15-8">SHA-256 (value 1) is mandatory-to-implement. Conforming Attesters and Verifiers <span class="bcp14">MUST</span> support SHA-256. Support for SHA-384 and SHA-512 is <span class="bcp14">OPTIONAL</span>.<a href="#section-15-8" class="pilcrow">¶</a></p>
+<p id="section-15-9">The hash digest length <span class="bcp14">MUST</span> match the algorithm output length: 32 bytes for SHA-256, 48 bytes for SHA-384, and 64 bytes for SHA-512.<a href="#section-15-9" class="pilcrow">¶</a></p>
+<p id="section-15-10">All hash-value fields within a single Evidence Packet <span class="bcp14">MUST</span> use the
 same hash algorithm. Verifiers <span class="bcp14">MUST</span> reject Evidence Packets
-containing mixed hash algorithms.<a href="#section-15-9" class="pilcrow">¶</a></p>
-<p id="section-15-10">Let H denote the hash function indicated by the hash-algorithm
+containing mixed hash algorithms.<a href="#section-15-10" class="pilcrow">¶</a></p>
+<p id="section-15-11">Let H denote the hash function indicated by the hash-algorithm
 field in the Evidence Packet. All internal hash computations in
 this specification -- including the SWF iteration loop, Merkle
 tree construction, seed derivation, checkpoint-hash computation,
@@ -2767,8 +2777,8 @@ Fiat-Shamir sampling, HMAC operations, and HKDF instantiation
 -- <span class="bcp14">MUST</span> use H. The Argon2id output length (<code>len</code>
 parameter) <span class="bcp14">MUST</span> equal the output length of H (32, 48, or 64
 bytes). When this document writes H(...) in formulas, the hash
-function used <span class="bcp14">MUST</span> be the one identified by hash-algorithm.<a href="#section-15-10" class="pilcrow">¶</a></p>
-<p id="section-15-11">Encoders <span class="bcp14">MUST</span> use CBOR unsigned integer (major type 0) or
+function used <span class="bcp14">MUST</span> be the one identified by hash-algorithm.<a href="#section-15-11" class="pilcrow">¶</a></p>
+<p id="section-15-12">Encoders <span class="bcp14">MUST</span> use CBOR unsigned integer (major type 0) or
 negative integer (major type 1) encoding for Evidence Packet
 fields typed as <code>uint</code> or <code>int</code> in the CDDL. Floating-point
 encodings (CBOR major type 7) <span class="bcp14">MUST NOT</span> be used for these
@@ -2779,8 +2789,8 @@ used, as it provides insufficient precision for streaming
 variance computations. These float32 fields appear in both
 Evidence Packet structures (streaming-stats,
 session-behavioral-summary) and Attestation Result structures
-(entropy-report, forgery-cost-estimate).<a href="#section-15-11" class="pilcrow">¶</a></p>
-<p id="section-15-12">The <code>compact-ref</code> type provides a space-efficient
+(entropy-report, forgery-cost-estimate).<a href="#section-15-12" class="pilcrow">¶</a></p>
+<p id="section-15-13">The <code>compact-ref</code> type provides a space-efficient
 alternative to full <code>hash-value</code> references in
 self-receipt structures. A compact-ref contains a truncated
 hash prefix (minimum 8 bytes, providing 64 bits of collision
@@ -2791,16 +2801,16 @@ prev-hash); they are permitted only in self-receipt fields
 where the referenced Evidence Packet can be independently
 retrieved and verified against the full hash. Verifiers
 encountering a compact-ref <span class="bcp14">MUST</span> resolve it to a full hash-value
-before performing integrity checks.<a href="#section-15-12" class="pilcrow">¶</a></p>
-<p id="section-15-13">Checkpoint key 13 accepts two receipt types, distinguished by the
-presence of key 5 (tool-signature):<a href="#section-15-13" class="pilcrow">¶</a></p>
-<p id="section-15-14">A <code>self-receipt</code> records cross-tool composition where content
+before performing integrity checks.<a href="#section-15-13" class="pilcrow">¶</a></p>
+<p id="section-15-14">Checkpoint key 13 accepts two receipt types, distinguished by the
+presence of key 5 (tool-signature):<a href="#section-15-14" class="pilcrow">¶</a></p>
+<p id="section-15-15">A <code>self-receipt</code> records cross-tool composition where content
 originates from another CPoE-enabled authoring environment. The
 tool-id identifies the source environment, output-commit binds
 the pasted content, and evidence-ref references the source
 Evidence Packet. Self-receipt verification is specified in
-<span>[<a href="#CPoE-Appraisal" class="cite xref">CPoE-Appraisal</a>]</span>.<a href="#section-15-14" class="pilcrow">¶</a></p>
-<p id="section-15-15">A <code>tool-receipt</code> records content contributed by an external tool
+<span>[<a href="#CPoE-Appraisal" class="cite xref">CPoE-Appraisal</a>]</span>.<a href="#section-15-15" class="pilcrow">¶</a></p>
+<p id="section-15-16">A <code>tool-receipt</code> records content contributed by an external tool
 (e.g., a large language model) that is not itself a CPoE Attester.
 The tool-id <span class="bcp14">MUST</span> be a URI under the tool provider's control. The
 output-commit field contains a hash-value of the tool's generated
@@ -2814,29 +2824,29 @@ is the tool provider's, not the Attester's. The Verifier validates
 tool-signatures against trusted tool provider public keys.
 The optional output-char-count field records the character count
 of the tool's generated output, enabling effort attribution
-without requiring the Verifier to access the generated content.<a href="#section-15-15" class="pilcrow">¶</a></p>
-<p id="section-15-16">Compact references (compact-ref) <span class="bcp14">MUST NOT</span> be used in tool-receipt
+without requiring the Verifier to access the generated content.<a href="#section-15-16" class="pilcrow">¶</a></p>
+<p id="section-15-17">Compact references (compact-ref) <span class="bcp14">MUST NOT</span> be used in tool-receipt
 fields. All hash-value fields in a tool-receipt <span class="bcp14">MUST</span> use the
 Evidence Packet's hash algorithm per the consistency requirement
-above.<a href="#section-15-16" class="pilcrow">¶</a></p>
-<p id="section-15-17">The mechanism by which tool providers generate and sign receipts,
+above.<a href="#section-15-17" class="pilcrow">¶</a></p>
+<p id="section-15-18">The mechanism by which tool providers generate and sign receipts,
 including key discovery and trust establishment, will be specified
 in a companion document. Until a companion specification defines
 tool provider key discovery, Verifiers <span class="bcp14">MUST</span> treat tool-receipts
 with unresolvable tool-id URIs as unverified. Unverified
 tool-receipts <span class="bcp14">MUST NOT</span> contribute to an authentic verdict but <span class="bcp14">MAY</span>
-be included in the Evidence Packet for informational purposes.<a href="#section-15-17" class="pilcrow">¶</a></p>
-<p id="section-15-18">Extension keys in evidence-packet and checkpoint structures <span class="bcp14">MUST</span>
+be included in the Evidence Packet for informational purposes.<a href="#section-15-18" class="pilcrow">¶</a></p>
+<p id="section-15-19">Extension keys in evidence-packet and checkpoint structures <span class="bcp14">MUST</span>
 use integer values 100 or greater. Keys 0-99 are reserved for use
-by this specification and future revisions.<a href="#section-15-18" class="pilcrow">¶</a></p>
-<p id="section-15-19">The op-count field in edit-delta counts the number of discrete
+by this specification and future revisions.<a href="#section-15-19" class="pilcrow">¶</a></p>
+<p id="section-15-20">The op-count field in edit-delta counts the number of discrete
 editing operations (insertions, deletions, and replacements)
 during the checkpoint interval. A single paste operation counts
-as one operation regardless of character count.<a href="#section-15-19" class="pilcrow">¶</a></p>
-<p id="section-15-20">In edit-position entries, the change value <span class="bcp14">MUST</span> be non-zero.
+as one operation regardless of character count.<a href="#section-15-20" class="pilcrow">¶</a></p>
+<p id="section-15-21">In edit-position entries, the change value <span class="bcp14">MUST</span> be non-zero.
 Positive values indicate insertion of characters at the offset;
 negative values indicate deletion. A zero change value is
-semantically meaningless and <span class="bcp14">MUST NOT</span> appear.<a href="#section-15-20" class="pilcrow">¶</a></p>
+semantically meaningless and <span class="bcp14">MUST NOT</span> appear.<a href="#section-15-21" class="pilcrow">¶</a></p>
 <div id="edit-graph-hash">
 <section id="section-15.1">
         <h3 id="name-edit-graph-hash">
@@ -4438,6 +4448,10 @@ minimizing the behavioral data emitted.<a href="#section-20.5-2.8.1" class="pilc
         <dd>
 <span class="refAuthor">National Institute of Standards and Technology</span>, <span class="refTitle">"Request for Information Regarding Security Considerations for Artificial Intelligence Agents"</span>, <span class="seriesInfo">Federal Register 2026-00206</span>, <time datetime="2026-01" class="refDate">January 2026</time>, <span>&lt;<a href="https://www.regulations.gov/docket/NIST-2025-0035">https://www.regulations.gov/docket/NIST-2025-0035</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="OpenFab-Generation">[OpenFab-Generation]</dt>
+        <dd>
+<span class="refAuthor">OpenFab Project</span>, <span class="refTitle">"OpenFab Generation Predicate, Version 0.1"</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://open-fab.ai/attestation/generation/v0.1/">https://open-fab.ai/attestation/generation/v0.1/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="Orden2003">[Orden2003]</dt>
         <dd>
 <span class="refAuthor">Van Orden, G.C.</span>, <span class="refAuthor">Holden, J.G.</span>, and <span class="refAuthor">M.T. Turvey</span>, <span class="refTitle">"Self-Organization of Cognitive Performance"</span>, <span class="seriesInfo">Journal of Experimental Psychology: General 132(3), 331-350</span>, <time datetime="2003" class="refDate">2003</time>, <span>&lt;<a href="https://doi.org/10.1037/0096-3445.132.3.331">https://doi.org/10.1037/0096-3445.132.3.331</a>&gt;</span>. </dd>
@@ -4613,6 +4627,10 @@ Intermediate States:
 <p id="appendix-B-1">The author thanks the participants of the RATS working group for
 their ongoing work on remote attestation architecture and security
 considerations that informed this specification.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-2">The OpenFab project maintainers reviewed the relationship between
+CPoE and software process-evidence formats; their experience with
+envelope canonicalization in independent implementations motivated
+the packet-wide deterministic encoding requirement in <a href="#wire-format" class="auto internal xref">Section 15</a>.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">

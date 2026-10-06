@@ -1427,6 +1427,24 @@ do not prove that undisclosed AI tools were not used. Relying
 Parties SHOULD consider the absence of tool receipts when
 evaluating Attestation Results, as specified in
 <span>[<a href="#CPoE-Appraisal" class="cite xref">CPoE-Appraisal</a>]</span>.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">The software supply-chain community has reached similar
+conclusions independently. The OpenFab Generation Predicate
+<span>[<a href="#OpenFab-Generation" class="cite xref">OpenFab-Generation</a>]</span>, an in-toto statement recording human
+and AI contributions to source code, with reference
+implementations and conformance vectors in <span>[<a href="#OpenFab-Impl" class="cite xref">OpenFab-Impl</a>]</span>,
+separates generation
+origin (which process produced which byte ranges) from legal
+authorship, binds prompts by hash rather than including their
+text, distinguishes a producer's self-reported acceptance
+claim from one a verifier re-executed, and requires every
+approval signature to cover its own approval record. Each of
+these carries over to prose and other content with
+addressable ranges, and CPoE's tool receipts, hash-only
+evidence, and Attestation Result semantics are intended to
+preserve the same distinctions. OpenFab's embedded,
+re-executable acceptance contract does not carry over: there
+is no analogue of "re-run the tests" for an essay or an
+image, and CPoE does not attempt one.<a href="#section-3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security-considerations">
@@ -1524,8 +1542,16 @@ editorial requirements.<a href="#section-6-4" class="pilcrow">¶</a></p>
         </h3>
 <dl class="references">
 <dt id="Liang2023">[Liang2023]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Liang, W.</span>, <span class="refAuthor">Yuksekgonul, M.</span>, <span class="refAuthor">Mao, Y.</span>, <span class="refAuthor">Wu, E.</span>, and <span class="refAuthor">J. Zou</span>, <span class="refTitle">"GPT Detectors Are Biased Against Non-Native English Writers"</span>, <span class="seriesInfo">Patterns 4(7)</span>, <time datetime="2023" class="refDate">2023</time>, <span>&lt;<a href="https://doi.org/10.1016/j.patter.2023.100779">https://doi.org/10.1016/j.patter.2023.100779</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OpenFab-Generation">[OpenFab-Generation]</dt>
+        <dd>
+<span class="refAuthor">OpenFab Project</span>, <span class="refTitle">"OpenFab Generation Predicate, Version 0.1"</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://open-fab.ai/attestation/generation/v0.1/">https://open-fab.ai/attestation/generation/v0.1/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OpenFab-Impl">[OpenFab-Impl]</dt>
+      <dd>
+<span class="refAuthor">OpenFab Project</span>, <span class="refTitle">"OpenFab: Reference Implementations and Conformance Vectors"</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://github.com/Open-fab-ai/openfab">https://github.com/Open-fab-ai/openfab</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1543,6 +1569,9 @@ academic institutions, journalism organizations, and legal
 practitioners. The authors thank the contributors to the CPoE
 open specification process for their feedback on real-world
 deployment requirements.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-2">The analysis of which process-evidence concepts generalize
+beyond software, and which do not, draws on review comments
+from the OpenFab project maintainers.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
