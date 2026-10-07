@@ -61,8 +61,10 @@ are drawn from the [Incubation Entry Considerations][entry].
 
 <!-- lifecycle:release-count -->
 - [ ] **At least one release** — published artifacts exist
-  - Current: none. Two git tags (`cpop-jitter-v0.2.1`, `cpop-protocol-v0.1.1`) point at a
-    single commit; no crate of either name is published, and there are no GitHub Releases
+  - Current: none. This repository holds specifications and schemas and does not publish
+    versioned artifacts of its own; the two stray `cpop-*` tags (commit `86b18c1`, no code) were
+    removed. Release artifacts belong to the separately maintained reference implementation, and
+    this criterion is assessed against that repository.
 <!-- /lifecycle:release-count -->
 
 - [x] **CI/CD pipeline** — automated build, test, and release ([6 workflows](.github/workflows/))

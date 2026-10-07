@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 - Added the LICET Evidence encoding (`cddl/licet.cddl`, example) to draft-pereira-licet-wearable-attester.
+- Checkpoint hash now covers the whole checkpoint map (DST `CPoE-Checkpoint-v2`); unwrapped packets treat packet-level fields as unauthenticated (#129).
 
 ## 2026-03-17
 
