@@ -1,0 +1,93 @@
+; SPDX-License-Identifier: Apache-2.0
+;
+; LICET Wearable Attester -- CDDL extension to the CPoE evidence packet
+; Canonical definition for draft-pereira-licet-wearable-attester
+;
+; licet-evidence is carried at evidence-packet key 100 and licet-sample at
+; checkpoint key 100 (see cddl/cpoe.cddl; keys >= 100 are extension keys).
+; The rules in the "Mirrored from cpoe.cddl" block are copies so that this
+; file compiles on its own; cpoe.cddl is authoritative.
+
+licet-evidence = {
+    1 => uint,                    ; licet-version (MUST be 1)
+    2 => hash-value,              ; calm-fingerprint-ref
+    ? 3 => uint,                  ; distance (milli-sigma), Disclosure only
+    4 => confidence-tier,         ; baseline-maturity
+    ? 5 => uint,                  ; rsa-cv (milli-units)
+    ? 6 => [1*8 licet-signal],    ; per-modality summaries
+    ? 7 => zkp-scope,             ; REQUIRED when key 9 is present
+    ? 8 => hash-value,            ; sensor-attestation-ref (tier 4)
+    ? 9 => zkp-proof,             ; Zero-knowledge mode only
+}
+
+licet-signal = {
+    1 => signal-modality,
+    2 => streaming-stats,
+    ? 3 => uint,                  ; sample-count
+}
+
+signal-modality = &(
+    hrv-rmssd:   1,
+    hrv-hf:      2,
+    hr:          3,
+    eda:         4,
+    respiration: 5,
+)
+
+licet-sample = {
+    1 => cpoe-timestamp,
+    ? 2 => uint,                  ; distance (milli-sigma), Disclosure only
+    ? 3 => uint,                  ; rsa-cv (milli-units)
+}
+
+zkp-proof = {
+    1 => tstr,                    ; proof-system identifier
+    2 => bstr,                    ; proof
+}
+
+zkp-scope = {
+    1 => [+ zkp-property],        ; proves
+    2 => [+ zkp-property],        ; does-not-prove
+}
+
+zkp-property = &(
+    measurement-chain-integrity:             1,
+    mahalanobis-range:                       2,
+    measurement-timestamp:                   3,
+    sensor-attestation:                      4,
+    intent:                                100,
+    absence-of-coercion:                   101,
+    absence-of-volitional-vagal-enhancement: 102,
+)
+
+; ============================================================
+; Mirrored from cpoe.cddl
+; ============================================================
+
+cpoe-timestamp = uint .gt 0
+
+hash-value = {
+    1 => hash-algorithm,
+    2 => bstr,
+}
+
+hash-algorithm = &(
+    sha-256: 1,
+    sha-384: 2,
+    sha-512: 3,
+)
+
+streaming-stats = {
+    1 => uint,
+    2 => float32,
+    3 => float32,
+    4 => float32,
+    5 => float32,
+}
+
+confidence-tier = &(
+    population-reference: 1,
+    emerging:             2,
+    established:          3,
+    mature:               4,
+)
