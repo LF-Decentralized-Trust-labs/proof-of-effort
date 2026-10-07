@@ -16,10 +16,9 @@ state at the time of an authorization request. This document establishes L0-L3
 as a graduated trust hierarchy in which evidential weight follows attestation
 level, states the hard bounds on what physiological corroboration can claim
 before any architecture is presented, and defines the appraisal logic by which a
-Verifier carries those bounds into Attestation Results. Evidence encoding is
-deferred to a subsequent revision and is expected to use the CPoE
-evidence-packet schema with LICET-specific claim extensions rather than defining
-a new schema. 
+Verifier carries those bounds into Attestation Results. Evidence is encoded
+as a CPoE evidence packet with LICET-specific extension keys; no new schema is
+defined. 
     " name="description">
 <meta content="xml2rfc 3.34.1" name="generator">
 <meta content="attestation" name="keyword">
@@ -1103,10 +1102,9 @@ state at the time of an authorization request. This document establishes L0-L3
 as a graduated trust hierarchy in which evidential weight follows attestation
 level, states the hard bounds on what physiological corroboration can claim
 before any architecture is presented, and defines the appraisal logic by which a
-Verifier carries those bounds into Attestation Results. Evidence encoding is
-deferred to a subsequent revision and is expected to use the CPoE
-evidence-packet schema with LICET-specific claim extensions rather than defining
-a new schema.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+Verifier carries those bounds into Attestation Results. Evidence is encoded
+as a CPoE evidence packet with LICET-specific extension keys; no new schema is
+defined.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1230,36 +1228,49 @@ a new schema.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-evidence-encoding-deferred" class="internal xref">Evidence Encoding (Deferred)</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-resolved-design-decisions" class="internal xref">Resolved Design Decisions</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-references" class="internal xref">References</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-evidence-encoding" class="internal xref">Evidence Encoding</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
-                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-attestation-level-is-not-se" class="internal xref">Attestation Level Is Not Separately Encoded</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
-                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-licet-physiological-evidenc" class="internal xref">LICET Physiological Evidence (evidence-packet key 100)</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2.2.1">
+                    <p id="section-toc.1-1.7.2.2.2.1.1"><a href="#section-7.2.1" class="auto internal xref">7.2.1</a>.  <a href="#name-per-checkpoint-samples-chec" class="internal xref">Per-Checkpoint Samples (checkpoint key 100)</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-zkp-scope-claim-encoding" class="internal xref">ZKP Scope Claim Encoding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-limitation-flags" class="internal xref">Limitation Flags</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.5">
+                <p id="section-toc.1-1.7.2.5.1"><a href="#section-7.5" class="auto internal xref">7.5</a>.  <a href="#name-privacy-of-the-encoded-evid" class="internal xref">Privacy of the Encoded Evidence</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.6">
+                <p id="section-toc.1-1.7.2.6.1"><a href="#section-7.6" class="auto internal xref">7.6</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
-            <p id="section-toc.1-1.13.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
 </li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
-            <p id="section-toc.1-1.14.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1293,10 +1304,10 @@ attestation level (<a href="#trust-hierarchy" class="auto internal xref">Section
           <p id="section-1-4.4.1">Describes appraisal logic for Evidence packets (<a href="#appraisal" class="auto internal xref">Section 6</a>)<a href="#section-1-4.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-1-4.5">
-          <p id="section-1-4.5.1">Defers encoding to a later revision once the topology is stable (<a href="#encoding" class="auto internal xref">Section 7</a>)<a href="#section-1-4.5.1" class="pilcrow">¶</a></p>
+          <p id="section-1-4.5.1">Defines the Evidence encoding as extension keys on the CPoE evidence packet (<a href="#encoding" class="auto internal xref">Section 7</a>)<a href="#section-1-4.5.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-5">The encoding will use the CPoE evidence-packet schema (CBOR tag 1129336645)
+<p id="section-1-5">The encoding uses the CPoE evidence-packet schema (CBOR tag 1129336645)
 <span>[<a href="#CPoE-Protocol" class="cite xref">CPoE-Protocol</a>]</span> with LICET-specific claim extensions. No new schema is defined here.<a href="#section-1-5" class="pilcrow">¶</a></p>
 <div id="the-claim-corroboration-not-proof">
 <section id="section-1.1">
@@ -1845,6 +1856,7 @@ Attestation Result that grants the requested authorization level.<a href="#secti
             </tr>
           </tbody>
         </table>
+<p id="section-6.2-3">The encoding of these flags is defined in <a href="#flag-encoding" class="auto internal xref">Section 7.4</a>.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="zkp-scope">
@@ -1856,148 +1868,322 @@ Attestation Result that grants the requested authorization level.<a href="#secti
 states explicitly what the proof covers. A Relying Party that receives a ZKP without
 a <code>zkp-scope</code> claim <span class="bcp14">MUST</span> treat the proof as covering measurement chain integrity only
 and <span class="bcp14">MUST NOT</span> infer absence of coercion.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
-<div class="lang-cddl sourcecode" id="section-6.3-2">
-<pre>
-zkp-scope = {
-  proves: [+ zkp-proven-property],
-  does-not-prove: [+ zkp-excluded-property]
-}
-
-zkp-proven-property = uint   ; registered CPoE claim key
-
-zkp-excluded-property = uint  ; registered CPoE claim key
-</pre><a href="#section-6.3-2" class="pilcrow">¶</a>
-</div>
+<p id="section-6.3-2">The encoding of the claim is defined in <a href="#zkp-scope-encoding" class="auto internal xref">Section 7.3</a>.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="encoding">
 <section id="section-7">
-      <h2 id="name-evidence-encoding-deferred">
-<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-evidence-encoding-deferred" class="section-name selfRef">Evidence Encoding (Deferred)</a>
+      <h2 id="name-evidence-encoding">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-evidence-encoding" class="section-name selfRef">Evidence Encoding</a>
       </h2>
-<p id="section-7-1">Evidence encoding is deferred to a subsequent revision, pending review of the
-topology and appraisal logic in <a href="#attester-topology" class="auto internal xref">Section 4</a> through <a href="#appraisal" class="auto internal xref">Section 6</a>.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<p id="section-7-2">The encoding will use the CPoE evidence-packet schema (CBOR tag 1129336645)
-<span>[<a href="#CPoE-Protocol" class="cite xref">CPoE-Protocol</a>]</span> with LICET-specific claim keys registered as extensions. No new
-base schema is defined here.<a href="#section-7-2" class="pilcrow">¶</a></p>
-<p id="section-7-3"><strong>Rationale for deferral:</strong> Fixing encoding before the L0–L3 chain is stable risks
-recutting CDDL each time the trust model shifts. Topology and appraisal logic are
-established first; encoding follows.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-1">LICET Evidence is carried as a CPoE Evidence Packet <span>[<a href="#CPoE-Protocol" class="cite xref">CPoE-Protocol</a>]</span> (CBOR tag
+1129336645) with LICET-specific extension keys. This document defines no base
+schema, no new CBOR tag, and no new media type.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">CPoE reserves evidence-packet and checkpoint keys 0-99 for its own use and
+requires Verifiers to ignore unrecognized keys with values 100 or greater. Every
+LICET extension defined here therefore uses a key at or above 100, and a CPoE
+Verifier with no LICET support appraises the packet as ordinary CPoE Evidence
+rather than rejecting it.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<div id="level-encoding">
+<section id="section-7.1">
+        <h3 id="name-attestation-level-is-not-se">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-attestation-level-is-not-se" class="section-name selfRef">Attestation Level Is Not Separately Encoded</a>
+        </h3>
+<p id="section-7.1-1">The L0-L3 hierarchy of <a href="#trust-hierarchy" class="auto internal xref">Section 5</a> and the CPoE attestation tier T1-T4
+are the same axis. Both grade the strength of the hardware trust anchoring
+beneath a measurement; neither describes the kind of signal measured. CPoE's
+orthogonal axis is the Evidence Content Tier (CORE, ENHANCED, MAXIMUM), which
+governs collection depth.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">A LICET Attester therefore <span class="bcp14">MUST NOT</span> encode its attestation level in an extension
+key. It <span class="bcp14">MUST</span> set the CPoE <code>attestation-tier</code> field (evidence-packet key 7) to the
+corresponding value:<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<table class="center" id="table-6">
+          <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">LICET level</th>
+              <th class="text-left" rowspan="1" colspan="1">CPoE attestation-tier</th>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L0</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>software-only</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">1</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L1</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>attested-software</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">2</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L2</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>hardware-bound</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">3</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">L3</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>hardware-hardened</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">4</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-7.1-4">The appraisal rule of <a href="#tier-mapping" class="auto internal xref">Section 5.5</a> follows from this identity rather than
+from a comparison between two hierarchies: there is one attestation axis, and the
+Verifier appraises against it. Where <a href="#trust-hierarchy" class="auto internal xref">Section 5</a> and CPoE describe the
+same level in different words, the CPoE definition governs the encoding and the
+LICET text governs the evidential interpretation.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+<p id="section-7.1-5">An Attester that cannot substantiate a tier <span class="bcp14">MUST</span> omit key 7 rather than assert a
+lower one; CPoE requires the Verifier to derive the tier from evidence content in
+that case.<a href="#section-7.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="resolved-design-decisions">
-<section id="section-8">
-      <h2 id="name-resolved-design-decisions">
-<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-resolved-design-decisions" class="section-name selfRef">Resolved Design Decisions</a>
-      </h2>
-<p id="section-8-1">The following items were raised as open questions in the initial draft and resolved
-during review with David Condrey (Writerslogic Inc.):<a href="#section-8-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-8-2">
-<li id="section-8-2.1">
-          <p id="section-8-2.1.1"><strong>L2 cert chain endorser model:</strong> Multi-endorser model adopted. The device
-manufacturer covers device identity and hardware calibration trust; eColabs covers
-the LICET-specific baseline endorsement. These two endorsement scopes <span class="bcp14">MUST NOT</span> be
-collapsed into a single Endorser.<a href="#section-8-2.1.1" class="pilcrow">¶</a></p>
-</li>
-        <li id="section-8-2.2">
-          <p id="section-8-2.2.1"><strong>Composite Attester boundary:</strong> The sensor layer and processing layer remain
-separate sub-attesters. Merging them would collapse the per-layer distinction that
-the L1-vs-L3 evidential weight difference depends on.<a href="#section-8-2.2.1" class="pilcrow">¶</a></p>
-</li>
-        <li id="section-8-2.3">
-          <p id="section-8-2.3.1"><strong>Limitation flags:</strong> The four flags defined in <a href="#appraisal" class="auto internal xref">Section 6</a> are the complete set
-for this revision. The <code>baseline-immature</code> flag covers the enrollment gap.
-No additional flags are required at this time.<a href="#section-8-2.3.1" class="pilcrow">¶</a></p>
-</li>
-        <li id="section-8-2.4">
-          <p id="section-8-2.4.1"><strong>ZKP scope claim format:</strong> The <code>zkp-scope</code> claim <span class="bcp14">MUST</span> map to registered CPoE claim
-keys rather than free-form text. Extension key registration is deferred to the
-encoding revision (<a href="#encoding" class="auto internal xref">Section 7</a>); the CPoE specification will define the extension
-keys on the CPoE side.<a href="#section-8-2.4.1" class="pilcrow">¶</a></p>
-</li>
-        <li id="section-8-2.5">
-          <p id="section-8-2.5.1"><strong>L3 definition:</strong> "Analog-to-digital conversion within the hardware trust boundary"
-is confirmed as the correct L3 criterion. This matches sensor-to-TEE binding as
-understood in RFC 9334 and is kept as written.<a href="#section-8-2.5.1" class="pilcrow">¶</a></p>
-</li>
-      </ol>
+<div id="licet-evidence">
+<section id="section-7.2">
+        <h3 id="name-licet-physiological-evidenc">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-licet-physiological-evidenc" class="section-name selfRef">LICET Physiological Evidence (evidence-packet key 100)</a>
+        </h3>
+<div class="lang-cddl sourcecode" id="section-7.2-1">
+<pre>
+licet-evidence = {
+    1 =&gt; uint,                    ; licet-version (MUST be 1)
+    2 =&gt; hash-value,              ; calm-fingerprint-ref
+    ? 3 =&gt; uint,                  ; distance (milli-sigma), Disclosure only
+    4 =&gt; confidence-tier,         ; baseline-maturity
+    ? 5 =&gt; uint,                  ; rsa-cv (milli-units)
+    ? 6 =&gt; [1*8 licet-signal],    ; per-modality summaries
+    ? 7 =&gt; zkp-scope,             ; REQUIRED when key 9 is present
+    ? 8 =&gt; hash-value,            ; sensor-attestation-ref (tier 4)
+    ? 9 =&gt; zkp-proof,             ; Zero-knowledge mode only
+}
+
+licet-signal = {
+    1 =&gt; signal-modality,
+    2 =&gt; streaming-stats,
+    ? 3 =&gt; uint,                  ; sample-count
+}
+
+signal-modality = &amp;(
+    hrv-rmssd:   1,
+    hrv-hf:      2,
+    hr:          3,
+    eda:         4,
+    respiration: 5,
+)
+</pre><a href="#section-7.2-1" class="pilcrow">¶</a>
+</div>
+<p id="section-7.2-2">The two Evidence modes of the Privacy Considerations section map to the encoding
+as follows. In Disclosure mode, key 3 <span class="bcp14">MUST</span> be present and key 9 <span class="bcp14">MUST</span> be absent.
+In Zero-knowledge mode, key 9 and key 7 <span class="bcp14">MUST</span> be present and key 3 <span class="bcp14">MUST</span> be absent,
+and no <code>licet-sample</code> in a checkpoint may carry key 2. A packet that carries both
+key 3 and key 9, or neither, <span class="bcp14">MUST</span> be rejected.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-3"><code>zkp-proof</code> carries the proof system identifier and the opaque proof. The proof
+system and its verification are outside this document.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+<p id="section-7.2-4"><code>calm-fingerprint-ref</code> is a digest of the enrolled baseline, not the baseline
+itself. The baseline never leaves the Attester. A Verifier confirms that the
+distance in key 3 was computed against an endorsed baseline by matching this
+digest against the Endorser's record; it does not reconstruct the baseline.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+<p id="section-7.2-5"><code>mahalanobis-distance</code> is expressed in milli-sigma (thousandths of a standard
+deviation) as an unsigned integer, following the integer-scaling convention CPoE
+uses for thermal (millidegrees) and inertial (micro-g) samples. Floating-point
+encoding <span class="bcp14">MUST NOT</span> be used for this field: appraisal compares it against a policy
+threshold, and the comparison has to be reproducible across implementations.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
+<p id="section-7.2-6"><code>rsa-cv</code> is the respiratory sinus arrhythmia coefficient of variation in
+milli-units. The illustrative values of <a href="#paced-breathing" class="auto internal xref">Section 2.1</a> encode as 30 and 400.
+Its presence is what allows a Verifier to raise
+<code>licet.respiratory-periodicity-warning</code>; an Attester that cannot compute it <span class="bcp14">MUST</span>
+omit key 5 rather than encode a sentinel.<a href="#section-7.2-6" class="pilcrow">¶</a></p>
+<p id="section-7.2-7"><code>baseline-maturity</code> reuses the CPoE <code>confidence-tier</code> enumeration
+(<code>population-reference</code>, <code>emerging</code>, <code>established</code>, <code>mature</code>) rather than
+defining a parallel scale.<a href="#section-7.2-7" class="pilcrow">¶</a></p>
+<p id="section-7.2-8"><code>sensor-attestation-ref</code> is a digest of the sensor-layer attestation evidence and
+<span class="bcp14">MUST</span> be present when <code>attestation-tier</code> is 4 (L3). At L3 the claim is that the
+measurement chain is attested to the silicon boundary, and that claim is not
+verifiable without a reference to the sensor attestation that carries it.<a href="#section-7.2-8" class="pilcrow">¶</a></p>
+<div id="per-checkpoint-samples-checkpoint-key-100">
+<section id="section-7.2.1">
+          <h4 id="name-per-checkpoint-samples-chec">
+<a href="#section-7.2.1" class="section-number selfRef">7.2.1. </a><a href="#name-per-checkpoint-samples-chec" class="section-name selfRef">Per-Checkpoint Samples (checkpoint key 100)</a>
+          </h4>
+<p id="section-7.2.1-1">Where a LICET measurement accompanies a CPoE session rather than a single
+authorization request, each checkpoint <span class="bcp14">MAY</span> carry one sample:<a href="#section-7.2.1-1" class="pilcrow">¶</a></p>
+<div class="lang-cddl sourcecode" id="section-7.2.1-2">
+<pre>
+licet-sample = {
+    1 =&gt; cpoe-timestamp,
+    ? 2 =&gt; uint,                  ; distance (milli-sigma), Disclosure only
+    ? 3 =&gt; uint,                  ; rsa-cv (milli-units)
+}
+</pre><a href="#section-7.2.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-7.2.1-3">In Zero-knowledge mode samples carry no distance, so only <code>rsa-cv</code> and the
+timestamp appear. A trajectory of samples across checkpoints is what distinguishes a sustained
+physiological state from a single favourable reading. A Verifier that receives
+per-checkpoint samples <span class="bcp14">MUST</span> appraise the trajectory, not only the packet-level
+value in <a href="#licet-evidence" class="auto internal xref">Section 7.2</a> key 3, where present.<a href="#section-7.2.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="privacy-considerations">
-<section id="section-9">
-      <h2 id="name-privacy-considerations">
-<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
-      </h2>
-<p id="section-9-1">LICET Evidence contains measurements derived from heart rate variability,
-electrodermal activity, and related physiological signals. These measurements may
-constitute data concerning health under GDPR when they reveal health status, or
-protected health information (PHI) under HIPAA when they are individually
-identifiable and maintained or transmitted by a covered entity or business
-associate. Determination depends on jurisdiction, identifiability, processing
-purpose, and regulated-entity status.<a href="#section-9-1" class="pilcrow">¶</a></p>
-<p id="section-9-2">Implementations <span class="bcp14">MUST</span> choose one of the following two Evidence modes. The modes
-are mutually exclusive within a single Evidence message:<a href="#section-9-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9-3">
-        <dt id="section-9-3.1">Disclosure mode:</dt>
-        <dd style="margin-left: 1.5em" id="section-9-3.2">
-          <p id="section-9-3.2.1">Evidence carries the Mahalanobis distance from the subject's enrolled baseline.
-The Verifier learns whether the measurement is consistent with the enrolled
-pattern; it does not learn the baseline parameters or the raw timeseries that
-produced the distance value.<a href="#section-9-3.2.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-<dt id="section-9-3.3">Zero-knowledge mode:</dt>
-        <dd style="margin-left: 1.5em" id="section-9-3.4">
-          <p id="section-9-3.4.1">Evidence carries a ZKP (<a href="#zkp-scope" class="auto internal xref">Section 6.3</a>) that proves a range claim over the
-Mahalanobis distance without disclosing the distance value itself. No distance
-value appears in the Evidence message or the Attestation Result.<a href="#section-9-3.4.1" class="pilcrow">¶</a></p>
-</dd>
-      <dd class="break"></dd>
-</dl>
-<p id="section-9-4">In both modes, implementations <span class="bcp14">MUST NOT</span> transmit the enrolled baseline
-parameters, raw HRV timeseries, or raw EDA samples in Evidence messages or
-Attestation Results.<a href="#section-9-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="security-considerations">
-<section id="section-10">
-      <h2 id="name-security-considerations">
-<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
-      </h2>
-<p id="section-10-1">The security properties of LICET Evidence are bounded by the trust level of the
-Attester (<a href="#trust-hierarchy" class="auto internal xref">Section 5</a>) and the hard bounds stated in <a href="#limitations" class="auto internal xref">Section 2</a>.<a href="#section-10-1" class="pilcrow">¶</a></p>
-<p id="section-10-2">Implementers <span class="bcp14">MUST NOT</span> represent LICET Evidence as proof of intent. The claim is
-corroboration (<a href="#claim" class="auto internal xref">Section 3</a>). Relying Party policy determines what corroboration level
-is sufficient for a given authorization decision.<a href="#section-10-2" class="pilcrow">¶</a></p>
-<p id="section-10-3">The <code>respiratory-periodicity-warning</code> flag (<a href="#appraisal" class="auto internal xref">Section 6</a>) <span class="bcp14">MUST</span> be checked before
-relying on Mahalanobis distance as the primary evidence for an authorization
-decision. A warning flag does not invalidate the Evidence; it bounds the claim.<a href="#section-10-3" class="pilcrow">¶</a></p>
-<p id="section-10-4">The <code>zkp-scope</code> claim (<a href="#zkp-scope" class="auto internal xref">Section 6.3</a>) <span class="bcp14">MUST</span> be present in every Evidence message
-that includes a ZKP. Its absence <span class="bcp14">MUST</span> be treated as equivalent to a scope limited
-to measurement chain integrity only.<a href="#section-10-4" class="pilcrow">¶</a></p>
+<div id="zkp-scope-encoding">
+<section id="section-7.3">
+        <h3 id="name-zkp-scope-claim-encoding">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-zkp-scope-claim-encoding" class="section-name selfRef">ZKP Scope Claim Encoding</a>
+        </h3>
+<p id="section-7.3-1"><a href="#zkp-scope" class="auto internal xref">Section 6.3</a> requires a scope claim on every Evidence message carrying a ZKP.
+Free-form text does not survive appraisal: two Attesters can describe the same
+exclusion in different words, and a Verifier cannot compare them. The claim is
+therefore encoded with registered integer properties.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<div class="lang-cddl sourcecode" id="section-7.3-2">
+<pre>
+zkp-scope = {
+  1 =&gt; [+ zkp-property],        ; proves
+  2 =&gt; [+ zkp-property],        ; does-not-prove
+}
+
+zkp-property = &amp;(
+  measurement-chain-integrity:             1,
+  mahalanobis-range:                       2,
+  measurement-timestamp:                   3,
+  sensor-attestation:                      4,
+  intent:                                100,
+  absence-of-coercion:                   101,
+  absence-of-volitional-vagal-enhancement: 102,
+)
+</pre><a href="#section-7.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-7.3-3">Properties 1-4 are the measurement-chain properties a LICET proof can establish.
+Properties 100-102 are the inferential properties it cannot. An Attester <span class="bcp14">MUST</span>
+list <code>intent</code> and <code>absence-of-coercion</code> in key 2 whenever a ZKP is present, and
+<span class="bcp14">MUST</span> list <code>absence-of-volitional-vagal-enhancement</code> in key 2 whenever the proof
+covers <code>mahalanobis-range</code>. A property <span class="bcp14">MUST NOT</span> appear in both arrays.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+<p id="section-7.3-4">A Verifier that receives a ZKP without a <code>zkp-scope</code> claim <span class="bcp14">MUST</span> appraise it as if
+key 1 contained only <code>measurement-chain-integrity</code> and key 2 contained
+<code>intent</code>, <code>absence-of-coercion</code>, and
+<code>absence-of-volitional-vagal-enhancement</code>, per <a href="#zkp-scope" class="auto internal xref">Section 6.3</a>.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="flag-encoding">
+<section id="section-7.4">
+        <h3 id="name-limitation-flags">
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-limitation-flags" class="section-name selfRef">Limitation Flags</a>
+        </h3>
+<p id="section-7.4-1">The flags of <a href="#appraisal" class="auto internal xref">Section 6</a> are carried in the existing CPoE <code>limitations</code> field
+(evidence-packet key 8, an array of text strings), not in a LICET extension key.
+CPoE already defines that field as the place an Attester records conditions
+bounding its own Evidence, and a Verifier that surfaces CPoE limitations will
+surface these without LICET-specific code.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+<p id="section-7.4-2">Flag values are namespaced:<a href="#section-7.4-2" class="pilcrow">¶</a></p>
+<table class="center" id="table-7">
+          <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Flag value</th>
+              <th class="text-left" rowspan="1" colspan="1">Condition</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>licet.respiratory-periodicity-warning</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">Paced breathing detected via <code>rsa-cv</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>licet.behavioral-self-report-only</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">Behavioral layer without concurrent T3/T4</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>licet.baseline-immature</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>baseline-maturity</code> below <code>established</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>licet.sensor-uncertified</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>attestation-tier</code> is 1 or 2</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-7.4-4">The hyphenated form matches <code>zkp-scope</code> and the CDDL naming used throughout this
+document.<a href="#section-7.4-4" class="pilcrow">¶</a></p>
+<p id="section-7.4-5">An Attester <span class="bcp14">MUST</span> emit <code>licet.sensor-uncertified</code> whenever <code>attestation-tier</code> is 1
+or 2, and <code>licet.baseline-immature</code> whenever <code>baseline-maturity</code> is
+<code>population-reference</code> or <code>emerging</code>. These two are derivable by the Verifier
+from the packet, and requiring them of the Attester keeps a Relying Party that
+reads only the limitations array from having to re-derive them.<a href="#section-7.4-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="encoding-privacy">
+<section id="section-7.5">
+        <h3 id="name-privacy-of-the-encoded-evid">
+<a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-privacy-of-the-encoded-evid" class="section-name selfRef">Privacy of the Encoded Evidence</a>
+        </h3>
+<p id="section-7.5-1">The encoding excludes raw physiological samples. An Evidence Packet carries the
+distance of a measurement from an enrolled baseline, a digest of that baseline,
+and optionally per-modality summary statistics. It does not carry the timeseries
+or the baseline itself, so an arrhythmia, a stress response, or any other pattern
+that lives in the shape of a signal over time cannot be recovered from it.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+<p id="section-7.5-2">The summary statistics of <a href="#licet-evidence" class="auto internal xref">Section 7.2</a> key 6 are the exception, and this
+section does not claim otherwise. A <code>licet-signal</code> for the <code>hr</code> or <code>hrv-rmssd</code>
+modality carries a mean, a minimum, and a maximum, and those are physiological
+values in the ordinary sense: a mean heart rate is a heart rate. Key 6 is
+<span class="bcp14">OPTIONAL</span> for exactly this reason.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
+<p id="section-7.5-3">This is a constraint on implementations, not only a description. An Attester <span class="bcp14">MUST NOT</span> place raw samples in a LICET extension key, and <span class="bcp14">MUST NOT</span> use the CPoE
+extension range to reintroduce them under another name. Heart rate variability
+and electrodermal activity are health data in most jurisdictions; an
+authorization decision needs the distance, not the signal.<a href="#section-7.5-3" class="pilcrow">¶</a></p>
+<p id="section-7.5-4">Of the five <code>streaming-stats</code> fields, the minimum and maximum are the most
+identifying across repeated sessions, since they track the extremes of a
+subject's range rather than its centre. An appraisal policy that thresholds on
+Mahalanobis distance alone does not need key 6 at all, and a profile in that
+position <span class="bcp14">SHOULD</span> omit it rather than populate it. Key 6 earns its place only where
+a Verifier appraises per-modality plausibility, and a profile that includes it
+<span class="bcp14">MUST</span> say which modalities it requires and why.<a href="#section-7.5-4" class="pilcrow">¶</a></p>
+<p id="section-7.5-5">The privacy considerations of <span>[<a href="#CPoE-Protocol" class="cite xref">CPoE-Protocol</a>]</span> apply to the enclosing Evidence
+Packet unchanged.<a href="#section-7.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-11">
-      <h2 id="name-iana-considerations">
-<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
-      </h2>
-<p id="section-11-1">This document has no IANA actions at this time. Claim key registration for
-LICET-specific extensions to the CPoE evidence-packet schema will be addressed in
-a subsequent revision once the encoding section (<a href="#encoding" class="auto internal xref">Section 7</a>) is finalized.<a href="#section-11-1" class="pilcrow">¶</a></p>
+<section id="section-7.6">
+        <h3 id="name-iana-considerations">
+<a href="#section-7.6" class="section-number selfRef">7.6. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+        </h3>
+<p id="section-7.6-1">This document has no IANA actions. The code points listed in <a href="#encoding" class="auto internal xref">Section 7</a> are
+extension values within CPoE's extension range and are to be registered on the CPoE
+side once that registry exists.<a href="#section-7.6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="sec-combined-references">
-<section id="section-12">
+<section id="section-8">
       <h2 id="name-references">
-<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-references" class="section-name selfRef">References</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
 <div id="sec-normative-references">
-<section id="section-12.1">
+<section id="section-8.1">
         <h3 id="name-normative-references">
-<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
 <dt id="RFC2119">[RFC2119]</dt>
@@ -2016,9 +2202,9 @@ a subsequent revision once the encoding section (<a href="#encoding" class="auto
 </section>
 </div>
 <div id="sec-informative-references">
-<section id="section-12.2">
+<section id="section-8.2">
         <h3 id="name-informative-references">
-<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
 <dt id="CPoE-Protocol">[CPoE-Protocol]</dt>
