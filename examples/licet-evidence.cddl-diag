@@ -1,0 +1,13 @@
+/ LICET extension values carried in a CPoE evidence packet (synthetic) /
+/ Disclosure mode, L2 device: evidence-packet key 7 = 3 (hardware-bound) /
+{
+  7: 3,
+  100: {
+    1: 1,
+    2: {1: 1, 2: h'000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f'},
+    3: 1850,
+    4: 2,
+    5: 400
+  },
+  8: ["licet.baseline-immature"]
+}

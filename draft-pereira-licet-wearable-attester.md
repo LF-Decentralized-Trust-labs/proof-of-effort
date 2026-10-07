@@ -72,10 +72,9 @@ state at the time of an authorization request. This document establishes L0-L3
 as a graduated trust hierarchy in which evidential weight follows attestation
 level, states the hard bounds on what physiological corroboration can claim
 before any architecture is presented, and defines the appraisal logic by which a
-Verifier carries those bounds into Attestation Results. Evidence encoding is
-deferred to a subsequent revision and is expected to use the CPoE
-evidence-packet schema with LICET-specific claim extensions rather than defining
-a new schema.
+Verifier carries those bounds into Attestation Results. Evidence is encoded
+as a CPoE evidence packet with LICET-specific extension keys; no new schema is
+defined.
 
 --- middle
 
@@ -97,9 +96,9 @@ This document:
 - Defines the composite Attester topology under RFC 9334 §3.3 ({{attester-topology}})
 - States hard bounds on claims before any architecture is presented ({{limitations}})
 - Describes appraisal logic for Evidence packets ({{appraisal}})
-- Defers encoding to a later revision once the topology is stable ({{encoding}})
+- Defines the Evidence encoding as extension keys on the CPoE evidence packet ({{encoding}})
 
-The encoding will use the CPoE evidence-packet schema (CBOR tag 1129336645)
+The encoding uses the CPoE evidence-packet schema (CBOR tag 1129336645)
 {{CPoE-Protocol}} with LICET-specific claim extensions. No new schema is defined here.
 
 ## The Claim: Corroboration, Not Proof
@@ -379,6 +378,8 @@ The following limitation flags MUST be surfaced in the Attestation Result when p
 | `baseline-immature`              | Baseline maturity check   | Baseline below minimum session count; Mahalanobis reference is provisional          |
 | `sensor-uncertified`             | Attester level check      | L0 or L1 device; measurement chain is not hardware-attested                         |
 
+The encoding of these flags is defined in {{flag-encoding}}.
+
 ## ZKP Scope Claim {#zkp-scope}
 
 Every Evidence message that includes a ZKP MUST include a `zkp-scope` claim that
@@ -386,112 +387,231 @@ states explicitly what the proof covers. A Relying Party that receives a ZKP wit
 a `zkp-scope` claim MUST treat the proof as covering measurement chain integrity only
 and MUST NOT infer absence of coercion.
 
+The encoding of the claim is defined in {{zkp-scope-encoding}}.
+
+
+# Evidence Encoding {#encoding}
+
+LICET Evidence is carried as a CPoE Evidence Packet {{CPoE-Protocol}} (CBOR tag
+1129336645) with LICET-specific extension keys. This document defines no base
+schema, no new CBOR tag, and no new media type.
+
+CPoE reserves evidence-packet and checkpoint keys 0-99 for its own use and
+requires Verifiers to ignore unrecognized keys with values 100 or greater. Every
+LICET extension defined here therefore uses a key at or above 100, and a CPoE
+Verifier with no LICET support appraises the packet as ordinary CPoE Evidence
+rather than rejecting it.
+
+## Attestation Level Is Not Separately Encoded {#level-encoding}
+
+The L0-L3 hierarchy of {{trust-hierarchy}} and the CPoE attestation tier T1-T4
+are the same axis. Both grade the strength of the hardware trust anchoring
+beneath a measurement; neither describes the kind of signal measured. CPoE's
+orthogonal axis is the Evidence Content Tier (CORE, ENHANCED, MAXIMUM), which
+governs collection depth.
+
+A LICET Attester therefore MUST NOT encode its attestation level in an extension
+key. It MUST set the CPoE `attestation-tier` field (evidence-packet key 7) to the
+corresponding value:
+
+| LICET level | CPoE attestation-tier | Value |
+|-------------|-----------------------|-------|
+| L0          | `software-only`       | 1     |
+| L1          | `attested-software`   | 2     |
+| L2          | `hardware-bound`      | 3     |
+| L3          | `hardware-hardened`   | 4     |
+
+The appraisal rule of {{tier-mapping}} follows from this identity rather than
+from a comparison between two hierarchies: there is one attestation axis, and the
+Verifier appraises against it. Where {{trust-hierarchy}} and CPoE describe the
+same level in different words, the CPoE definition governs the encoding and the
+LICET text governs the evidential interpretation.
+
+An Attester that cannot substantiate a tier MUST omit key 7 rather than assert a
+lower one; CPoE requires the Verifier to derive the tier from evidence content in
+that case.
+
+## LICET Physiological Evidence (evidence-packet key 100) {#licet-evidence}
+
 ~~~ cddl
-zkp-scope = {
-  proves: [+ zkp-proven-property],
-  does-not-prove: [+ zkp-excluded-property]
+licet-evidence = {
+    1 => uint,                    ; licet-version (MUST be 1)
+    2 => hash-value,              ; calm-fingerprint-ref
+    ? 3 => uint,                  ; mahalanobis-distance (milli-sigma); Disclosure mode only
+    4 => confidence-tier,         ; baseline-maturity
+    ? 5 => uint,                  ; rsa-cv (milli-units)
+    ? 6 => [1*8 licet-signal],    ; per-modality summaries
+    ? 7 => zkp-scope,             ; REQUIRED when key 9 is present
+    ? 8 => hash-value,            ; sensor-attestation-ref (REQUIRED at tier 4)
+    ? 9 => zkp-proof,             ; Zero-knowledge mode only
 }
 
-zkp-proven-property = uint   ; registered CPoE claim key
+licet-signal = {
+    1 => signal-modality,
+    2 => streaming-stats,
+    ? 3 => uint,                  ; sample-count
+}
 
-zkp-excluded-property = uint  ; registered CPoE claim key
+signal-modality = &(
+    hrv-rmssd:   1,
+    hrv-hf:      2,
+    hr:          3,
+    eda:         4,
+    respiration: 5,
+)
 ~~~
 
+The two Evidence modes of the Privacy Considerations section map to the encoding
+as follows. In Disclosure mode, key 3 MUST be present and key 9 MUST be absent.
+In Zero-knowledge mode, key 9 and key 7 MUST be present and key 3 MUST be absent,
+and no `licet-sample` in a checkpoint may carry key 2. A packet that carries both
+key 3 and key 9, or neither, MUST be rejected.
 
-# Evidence Encoding (Deferred) {#encoding}
+`zkp-proof` carries the proof system identifier and the opaque proof. The proof
+system and its verification are outside this document.
 
-Evidence encoding is deferred to a subsequent revision, pending review of the
-topology and appraisal logic in {{attester-topology}} through {{appraisal}}.
+`calm-fingerprint-ref` is a digest of the enrolled baseline, not the baseline
+itself. The baseline never leaves the Attester. A Verifier confirms that the
+distance in key 3 was computed against an endorsed baseline by matching this
+digest against the Endorser's record; it does not reconstruct the baseline.
 
-The encoding will use the CPoE evidence-packet schema (CBOR tag 1129336645)
-{{CPoE-Protocol}} with LICET-specific claim keys registered as extensions. No new
-base schema is defined here.
+`mahalanobis-distance` is expressed in milli-sigma (thousandths of a standard
+deviation) as an unsigned integer, following the integer-scaling convention CPoE
+uses for thermal (millidegrees) and inertial (micro-g) samples. Floating-point
+encoding MUST NOT be used for this field: appraisal compares it against a policy
+threshold, and the comparison has to be reproducible across implementations.
 
-**Rationale for deferral:** Fixing encoding before the L0–L3 chain is stable risks
-recutting CDDL each time the trust model shifts. Topology and appraisal logic are
-established first; encoding follows.
+`rsa-cv` is the respiratory sinus arrhythmia coefficient of variation in
+milli-units. The illustrative values of {{paced-breathing}} encode as 30 and 400.
+Its presence is what allows a Verifier to raise
+`licet.respiratory-periodicity-warning`; an Attester that cannot compute it MUST
+omit key 5 rather than encode a sentinel.
 
+`baseline-maturity` reuses the CPoE `confidence-tier` enumeration
+(`population-reference`, `emerging`, `established`, `mature`) rather than
+defining a parallel scale.
 
-# Resolved Design Decisions {#resolved-design-decisions}
+`sensor-attestation-ref` is a digest of the sensor-layer attestation evidence and
+MUST be present when `attestation-tier` is 4 (L3). At L3 the claim is that the
+measurement chain is attested to the silicon boundary, and that claim is not
+verifiable without a reference to the sensor attestation that carries it.
 
-The following items were raised as open questions in the initial draft and resolved
-during review with David Condrey (Writerslogic Inc.):
+### Per-Checkpoint Samples (checkpoint key 100)
 
-1. **L2 cert chain endorser model:** Multi-endorser model adopted. The device
-   manufacturer covers device identity and hardware calibration trust; eColabs covers
-   the LICET-specific baseline endorsement. These two endorsement scopes MUST NOT be
-   collapsed into a single Endorser.
+Where a LICET measurement accompanies a CPoE session rather than a single
+authorization request, each checkpoint MAY carry one sample:
 
-2. **Composite Attester boundary:** The sensor layer and processing layer remain
-   separate sub-attesters. Merging them would collapse the per-layer distinction that
-   the L1-vs-L3 evidential weight difference depends on.
+~~~ cddl
+licet-sample = {
+    1 => cpoe-timestamp,
+    ? 2 => uint,                  ; mahalanobis-distance (milli-sigma); Disclosure mode only
+    ? 3 => uint,                  ; rsa-cv (milli-units)
+}
+~~~
 
-3. **Limitation flags:** The four flags defined in {{appraisal}} are the complete set
-   for this revision. The `baseline-immature` flag covers the enrollment gap.
-   No additional flags are required at this time.
+In Zero-knowledge mode samples carry no distance, so only `rsa-cv` and the
+timestamp appear. A trajectory of samples across checkpoints is what distinguishes a sustained
+physiological state from a single favourable reading. A Verifier that receives
+per-checkpoint samples MUST appraise the trajectory, not only the packet-level
+value in {{licet-evidence}} key 3, where present.
 
-4. **ZKP scope claim format:** The `zkp-scope` claim MUST map to registered CPoE claim
-   keys rather than free-form text. Extension key registration is deferred to the
-   encoding revision ({{encoding}}); the CPoE specification will define the extension
-   keys on the CPoE side.
+## ZKP Scope Claim Encoding {#zkp-scope-encoding}
 
-5. **L3 definition:** "Analog-to-digital conversion within the hardware trust boundary"
-   is confirmed as the correct L3 criterion. This matches sensor-to-TEE binding as
-   understood in RFC 9334 and is kept as written.
+{{zkp-scope}} requires a scope claim on every Evidence message carrying a ZKP.
+Free-form text does not survive appraisal: two Attesters can describe the same
+exclusion in different words, and a Verifier cannot compare them. The claim is
+therefore encoded with registered integer properties.
 
+~~~ cddl
+zkp-scope = {
+  1 => [+ zkp-property],        ; proves
+  2 => [+ zkp-property],        ; does-not-prove
+}
 
-# Privacy Considerations
+zkp-property = &(
+  measurement-chain-integrity:             1,
+  mahalanobis-range:                       2,
+  measurement-timestamp:                   3,
+  sensor-attestation:                      4,
+  intent:                                100,
+  absence-of-coercion:                   101,
+  absence-of-volitional-vagal-enhancement: 102,
+)
+~~~
 
-LICET Evidence contains measurements derived from heart rate variability,
-electrodermal activity, and related physiological signals. These measurements may
-constitute data concerning health under GDPR when they reveal health status, or
-protected health information (PHI) under HIPAA when they are individually
-identifiable and maintained or transmitted by a covered entity or business
-associate. Determination depends on jurisdiction, identifiability, processing
-purpose, and regulated-entity status.
+Properties 1-4 are the measurement-chain properties a LICET proof can establish.
+Properties 100-102 are the inferential properties it cannot. An Attester MUST
+list `intent` and `absence-of-coercion` in key 2 whenever a ZKP is present, and
+MUST list `absence-of-volitional-vagal-enhancement` in key 2 whenever the proof
+covers `mahalanobis-range`. A property MUST NOT appear in both arrays.
 
-Implementations MUST choose one of the following two Evidence modes. The modes
-are mutually exclusive within a single Evidence message:
+A Verifier that receives a ZKP without a `zkp-scope` claim MUST appraise it as if
+key 1 contained only `measurement-chain-integrity` and key 2 contained
+`intent`, `absence-of-coercion`, and
+`absence-of-volitional-vagal-enhancement`, per {{zkp-scope}}.
 
-Disclosure mode:
-: Evidence carries the Mahalanobis distance from the subject's enrolled baseline.
-  The Verifier learns whether the measurement is consistent with the enrolled
-  pattern; it does not learn the baseline parameters or the raw timeseries that
-  produced the distance value.
+## Limitation Flags {#flag-encoding}
 
-Zero-knowledge mode:
-: Evidence carries a ZKP ({{zkp-scope}}) that proves a range claim over the
-  Mahalanobis distance without disclosing the distance value itself. No distance
-  value appears in the Evidence message or the Attestation Result.
+The flags of {{appraisal}} are carried in the existing CPoE `limitations` field
+(evidence-packet key 8, an array of text strings), not in a LICET extension key.
+CPoE already defines that field as the place an Attester records conditions
+bounding its own Evidence, and a Verifier that surfaces CPoE limitations will
+surface these without LICET-specific code.
 
-In both modes, implementations MUST NOT transmit the enrolled baseline
-parameters, raw HRV timeseries, or raw EDA samples in Evidence messages or
-Attestation Results.
+Flag values are namespaced:
 
+| Flag value                              | Condition                                     |
+|-----------------------------------------|-----------------------------------------------|
+| `licet.respiratory-periodicity-warning` | Paced breathing detected via `rsa-cv`         |
+| `licet.behavioral-self-report-only`     | Behavioral layer without concurrent T3/T4      |
+| `licet.baseline-immature`               | `baseline-maturity` below `established`       |
+| `licet.sensor-uncertified`              | `attestation-tier` is 1 or 2                  |
 
-# Security Considerations
+The hyphenated form matches `zkp-scope` and the CDDL naming used throughout this
+document.
 
-The security properties of LICET Evidence are bounded by the trust level of the
-Attester ({{trust-hierarchy}}) and the hard bounds stated in {{limitations}}.
+An Attester MUST emit `licet.sensor-uncertified` whenever `attestation-tier` is 1
+or 2, and `licet.baseline-immature` whenever `baseline-maturity` is
+`population-reference` or `emerging`. These two are derivable by the Verifier
+from the packet, and requiring them of the Attester keeps a Relying Party that
+reads only the limitations array from having to re-derive them.
 
-Implementers MUST NOT represent LICET Evidence as proof of intent. The claim is
-corroboration ({{claim}}). Relying Party policy determines what corroboration level
-is sufficient for a given authorization decision.
+## Privacy of the Encoded Evidence {#encoding-privacy}
 
-The `respiratory-periodicity-warning` flag ({{appraisal}}) MUST be checked before
-relying on Mahalanobis distance as the primary evidence for an authorization
-decision. A warning flag does not invalidate the Evidence; it bounds the claim.
+The encoding excludes raw physiological samples. An Evidence Packet carries the
+distance of a measurement from an enrolled baseline, a digest of that baseline,
+and optionally per-modality summary statistics. It does not carry the timeseries
+or the baseline itself, so an arrhythmia, a stress response, or any other pattern
+that lives in the shape of a signal over time cannot be recovered from it.
 
-The `zkp-scope` claim ({{zkp-scope}}) MUST be present in every Evidence message
-that includes a ZKP. Its absence MUST be treated as equivalent to a scope limited
-to measurement chain integrity only.
+The summary statistics of {{licet-evidence}} key 6 are the exception, and this
+section does not claim otherwise. A `licet-signal` for the `hr` or `hrv-rmssd`
+modality carries a mean, a minimum, and a maximum, and those are physiological
+values in the ordinary sense: a mean heart rate is a heart rate. Key 6 is
+OPTIONAL for exactly this reason.
 
+This is a constraint on implementations, not only a description. An Attester MUST
+NOT place raw samples in a LICET extension key, and MUST NOT use the CPoE
+extension range to reintroduce them under another name. Heart rate variability
+and electrodermal activity are health data in most jurisdictions; an
+authorization decision needs the distance, not the signal.
 
-# IANA Considerations
+Of the five `streaming-stats` fields, the minimum and maximum are the most
+identifying across repeated sessions, since they track the extremes of a
+subject's range rather than its centre. An appraisal policy that thresholds on
+Mahalanobis distance alone does not need key 6 at all, and a profile in that
+position SHOULD omit it rather than populate it. Key 6 earns its place only where
+a Verifier appraises per-modality plausibility, and a profile that includes it
+MUST say which modalities it requires and why.
 
-This document has no IANA actions at this time. Claim key registration for
-LICET-specific extensions to the CPoE evidence-packet schema will be addressed in
-a subsequent revision once the encoding section ({{encoding}}) is finalized.
+The privacy considerations of {{CPoE-Protocol}} apply to the enclosing Evidence
+Packet unchanged.
+
+## IANA Considerations
+
+This document has no IANA actions. The code points listed in {{encoding}} are
+extension values within CPoE's extension range and are to be registered on the CPoE
+side once that registry exists.
 
 
 --- back

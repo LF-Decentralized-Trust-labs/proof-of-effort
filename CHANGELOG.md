@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Added the LICET Evidence encoding (`cddl/licet.cddl`, example) to draft-pereira-licet-wearable-attester.
+
 ## 2026-03-17
 
 ### Added

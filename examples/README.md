@@ -10,6 +10,7 @@ as implementation references and are **not** real evidence.
 | ---- | --------- | -------- | ----------- |
 | `evidence-packet.cddl-diag` | `evidence-packet` | 1129336645 (`CPoE`) | T2 (attested-software) Evidence Packet with 3 checkpoints, jitter proof, behavioral metrics, and physical state |
 | `writers-authenticity-report.cddl-diag` | `attestation-result` | 1129791826 (`CWAR`) | Written Authorship Report with an "authentic" verdict, entropy report, forgery cost estimate, and forensic summary |
+| `licet-evidence.cddl-diag` | LICET extension values | n/a | Disclosure-mode LICET evidence at evidence-packet key 100 (L2 device, emerging baseline), with the corresponding limitation flag |
 
 All hash digests, UUIDs, signatures, and timestamps are synthetic
 placeholder values.  Integer map keys follow the schema in
