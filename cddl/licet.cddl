@@ -11,12 +11,12 @@
 licet-evidence = {
     1 => uint,                    ; licet-version (MUST be 1)
     2 => hash-value,              ; calm-fingerprint-ref
-    ? 3 => uint,                  ; mahalanobis-distance (milli-sigma); Disclosure mode only
+    ? 3 => uint,                  ; distance (milli-sigma), Disclosure only
     4 => confidence-tier,         ; baseline-maturity
     ? 5 => uint,                  ; rsa-cv (milli-units)
     ? 6 => [1*8 licet-signal],    ; per-modality summaries
     ? 7 => zkp-scope,             ; REQUIRED when key 9 is present
-    ? 8 => hash-value,            ; sensor-attestation-ref (REQUIRED at tier 4)
+    ? 8 => hash-value,            ; sensor-attestation-ref (tier 4)
     ? 9 => zkp-proof,             ; Zero-knowledge mode only
 }
 
@@ -36,7 +36,7 @@ signal-modality = &(
 
 licet-sample = {
     1 => cpoe-timestamp,
-    ? 2 => uint,                  ; mahalanobis-distance (milli-sigma); Disclosure mode only
+    ? 2 => uint,                  ; distance (milli-sigma), Disclosure only
     ? 3 => uint,                  ; rsa-cv (milli-units)
 }
 
