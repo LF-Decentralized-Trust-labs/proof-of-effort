@@ -8,6 +8,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+- Checkpoint hash now covers the whole checkpoint map (DST `CPoE-Checkpoint-v2`); unwrapped packets treat packet-level fields as unauthenticated (#129).
+
 ## 2026-03-17
 
 ### Added

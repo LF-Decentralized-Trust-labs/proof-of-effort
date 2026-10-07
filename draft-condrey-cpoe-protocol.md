@@ -1542,25 +1542,20 @@ Appraisal of baseline-verification data is specified in
 
 ## Checkpoint Hash Computation {#checkpoint-hash-computation}
 
-The checkpoint-hash field MUST be computed as follows:
+The checkpoint-hash field MUST be computed over the entire checkpoint, so that no checkpoint field lies outside the hash chain:
 
 ~~~ pseudocode
 checkpoint-hash = H(
-    "CPoE-Checkpoint-v1" ||
-    prev-hash ||
-    content-hash ||
-    CBOR-encode(edit-delta) ||
-    CBOR-encode(jitter-binding) ||
-    CBOR-encode(physical-state) ||
-    process-proof.merkle-root
+    "CPoE-Checkpoint-v2" ||
+    CBOR-encode(checkpoint without key 8)
 )
 ~~~
 
-Where H is the Evidence Packet's selected hash function, \|\| denotes concatenation, and CBOR-encode produces deterministic CBOR per Section 4.2.1 of {{RFC8949}}. The UTF-8 Domain Separation Tag (DST) prefix "CPoE-Checkpoint-v1" MUST be prepended as the first input to prevent cross-context hash collisions. When edit-graph-hash (edit-delta key 5) is present, it is already included within the CBOR-encoded edit-delta and requires no separate term in the checkpoint-hash computation.
+Where H is the Evidence Packet's selected hash function, \|\| denotes concatenation, and CBOR-encode produces deterministic CBOR per Section 4.2.1 of {{RFC8949}}. "checkpoint without key 8" is the checkpoint map with the checkpoint-hash entry removed and every other entry present, including prev-hash (key 7), receipts (key 13), active probes (key 14), and any extension keys. The UTF-8 Domain Separation Tag (DST) prefix "CPoE-Checkpoint-v2" MUST be prepended as the first input to prevent cross-context hash collisions. Fields that are absent (for example jitter-binding and physical-state in the CORE profile) are simply absent from the encoded map.
+
+A checkpoint entry whose value is itself computed from the checkpoint-hash (for example a temporal proof anchored to it) cannot be included in the hash. Such an entry MUST be authenticated by the COSE_Sign1 envelope of {{evidence-protection}}, and the Verifier MUST NOT rely on it when the packet is unwrapped.
 
 For the first checkpoint in the initial Evidence Packet of a series (or a standalone packet), prev-hash MUST be set to H(CBOR-encode(document-ref)). This anchors the chain to the document identity. For the first checkpoint in a continuation packet (previous-packet-ref present), prev-hash MUST be set to the final checkpoint-hash of the preceding Evidence Packet (see {{session-continuation}}).
-
-When jitter-binding and physical-state fields are absent (CORE profile), the checkpoint-hash MUST be computed without those terms: checkpoint-hash = H("CPoE-Checkpoint-v1" \|\| prev-hash \|\| content-hash \|\| CBOR-encode(edit-delta) \|\| process-proof.merkle-root).
 
 ## Checkpoint Computation Order {#checkpoint-computation-order}
 
@@ -1571,7 +1566,7 @@ The fields within a checkpoint MUST be computed in the following order:
 3. Derive the shared PRK and per-field keys via the two-stage HKDF hierarchy ({{key-derivation-hierarchy}}).
 4. Compute the jitter-tag using the tag-key and jitter-binding.intervals as HMAC input. Assemble the jitter-binding structure (intervals, entropy-estimate, jitter-tag).
 5. Compute the entangled-binding using the binding-key and prev-hash, content-hash, jitter-binding, and physical-state as HMAC input.
-6. Compute the checkpoint-hash over the DST "CPoE-Checkpoint-v1", prev-hash, content-hash, edit-delta, jitter-binding, physical-state, and merkle-root.
+6. Populate every remaining checkpoint field (receipts, active probes, anchors, and extension keys), then compute the checkpoint-hash over the DST "CPoE-Checkpoint-v2" and the complete checkpoint map without key 8.
 
 This ordering ensures that each subsequent computation can reference the outputs of prior steps. Implementations MUST follow this order to produce interoperable checkpoints.
 
@@ -1589,8 +1584,16 @@ software-managed key is acceptable.
 
 When COSE_Sign1 wrapping is not used (e.g., offline file-based
 conveyance), the Evidence Packet's integrity relies solely on
-the internal hash chain. Relying Parties MUST evaluate the
-trust implications of unwrapped Evidence.
+the internal hash chain. The hash chain covers every checkpoint
+field ({{checkpoint-hash-computation}}) but no packet-level field:
+attestation-tier, content-tier, limitations, profile-declaration,
+baseline-verification, channel-binding, and extension keys can be
+altered without breaking it. A Verifier MUST treat those fields of
+an unwrapped packet as unauthenticated, MUST NOT assign an
+assurance tier above T1 on the basis of them, and MUST NOT treat
+a limitation as resolved because it is absent from an unwrapped
+packet. Relying Parties MUST evaluate the trust implications of
+unwrapped Evidence.
 
 For online conveyance, COSE_Sign1-wrapped Evidence Packets can be encapsulated within a Conceptual Message Wrapper (CMW) for transport via the SEAT cmw_attestation TLS extension {{SEAT-EXPAT}}. This enables CPoE Evidence to be delivered alongside platform attestation evidence in a single post-handshake authentication exchange, which is the preferred attestation timing model {{SEAT-Timing}}. The SEAT use cases {{SEAT-UseCases}} identify runtime attestation and operation-triggered re-attestation as key requirements, both of which CPoE's continuous checkpoint model satisfies.
 
