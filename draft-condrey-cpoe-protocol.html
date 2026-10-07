@@ -2954,23 +2954,18 @@ Appraisal of baseline-verification data is specified in
         <h3 id="name-checkpoint-hash-computation">
 <a href="#section-15.3" class="section-number selfRef">15.3. </a><a href="#name-checkpoint-hash-computation" class="section-name selfRef">Checkpoint Hash Computation</a>
         </h3>
-<p id="section-15.3-1">The checkpoint-hash field <span class="bcp14">MUST</span> be computed as follows:<a href="#section-15.3-1" class="pilcrow">¶</a></p>
+<p id="section-15.3-1">The checkpoint-hash field <span class="bcp14">MUST</span> be computed over the entire checkpoint, so that no checkpoint field lies outside the hash chain:<a href="#section-15.3-1" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-15.3-2">
 <pre>
 checkpoint-hash = H(
-    "CPoE-Checkpoint-v1" ||
-    prev-hash ||
-    content-hash ||
-    CBOR-encode(edit-delta) ||
-    CBOR-encode(jitter-binding) ||
-    CBOR-encode(physical-state) ||
-    process-proof.merkle-root
+    "CPoE-Checkpoint-v2" ||
+    CBOR-encode(checkpoint without key 8)
 )
 </pre><a href="#section-15.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-15.3-3">Where H is the Evidence Packet's selected hash function, || denotes concatenation, and CBOR-encode produces deterministic CBOR per Section 4.2.1 of <span>[<a href="#RFC8949" class="cite xref">RFC8949</a>]</span>. The UTF-8 Domain Separation Tag (DST) prefix "CPoE-Checkpoint-v1" <span class="bcp14">MUST</span> be prepended as the first input to prevent cross-context hash collisions. When edit-graph-hash (edit-delta key 5) is present, it is already included within the CBOR-encoded edit-delta and requires no separate term in the checkpoint-hash computation.<a href="#section-15.3-3" class="pilcrow">¶</a></p>
-<p id="section-15.3-4">For the first checkpoint in the initial Evidence Packet of a series (or a standalone packet), prev-hash <span class="bcp14">MUST</span> be set to H(CBOR-encode(document-ref)). This anchors the chain to the document identity. For the first checkpoint in a continuation packet (previous-packet-ref present), prev-hash <span class="bcp14">MUST</span> be set to the final checkpoint-hash of the preceding Evidence Packet (see <a href="#session-continuation" class="auto internal xref">Section 7.3</a>).<a href="#section-15.3-4" class="pilcrow">¶</a></p>
-<p id="section-15.3-5">When jitter-binding and physical-state fields are absent (CORE profile), the checkpoint-hash <span class="bcp14">MUST</span> be computed without those terms: checkpoint-hash = H("CPoE-Checkpoint-v1" || prev-hash || content-hash || CBOR-encode(edit-delta) || process-proof.merkle-root).<a href="#section-15.3-5" class="pilcrow">¶</a></p>
+<p id="section-15.3-3">Where H is the Evidence Packet's selected hash function, || denotes concatenation, and CBOR-encode produces deterministic CBOR per Section 4.2.1 of <span>[<a href="#RFC8949" class="cite xref">RFC8949</a>]</span>. "checkpoint without key 8" is the checkpoint map with the checkpoint-hash entry removed and every other entry present, including prev-hash (key 7), receipts (key 13), active probes (key 14), and any extension keys. The UTF-8 Domain Separation Tag (DST) prefix "CPoE-Checkpoint-v2" <span class="bcp14">MUST</span> be prepended as the first input to prevent cross-context hash collisions. Fields that are absent (for example jitter-binding and physical-state in the CORE profile) are simply absent from the encoded map.<a href="#section-15.3-3" class="pilcrow">¶</a></p>
+<p id="section-15.3-4">A checkpoint entry whose value is itself computed from the checkpoint-hash (for example a temporal proof anchored to it) cannot be included in the hash. Such an entry <span class="bcp14">MUST</span> be authenticated by the COSE_Sign1 envelope of <a href="#evidence-protection" class="auto internal xref">Section 15.5</a>, and the Verifier <span class="bcp14">MUST NOT</span> rely on it when the packet is unwrapped.<a href="#section-15.3-4" class="pilcrow">¶</a></p>
+<p id="section-15.3-5">For the first checkpoint in the initial Evidence Packet of a series (or a standalone packet), prev-hash <span class="bcp14">MUST</span> be set to H(CBOR-encode(document-ref)). This anchors the chain to the document identity. For the first checkpoint in a continuation packet (previous-packet-ref present), prev-hash <span class="bcp14">MUST</span> be set to the final checkpoint-hash of the preceding Evidence Packet (see <a href="#session-continuation" class="auto internal xref">Section 7.3</a>).<a href="#section-15.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="checkpoint-computation-order">
@@ -2996,7 +2991,7 @@ checkpoint-hash = H(
             <p id="section-15.4-2.5.1">Compute the entangled-binding using the binding-key and prev-hash, content-hash, jitter-binding, and physical-state as HMAC input.<a href="#section-15.4-2.5.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-15.4-2.6">
-            <p id="section-15.4-2.6.1">Compute the checkpoint-hash over the DST "CPoE-Checkpoint-v1", prev-hash, content-hash, edit-delta, jitter-binding, physical-state, and merkle-root.<a href="#section-15.4-2.6.1" class="pilcrow">¶</a></p>
+            <p id="section-15.4-2.6.1">Populate every remaining checkpoint field (receipts, active probes, anchors, and extension keys), then compute the checkpoint-hash over the DST "CPoE-Checkpoint-v2" and the complete checkpoint map without key 8.<a href="#section-15.4-2.6.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-15.4-3">This ordering ensures that each subsequent computation can reference the outputs of prior steps. Implementations <span class="bcp14">MUST</span> follow this order to produce interoperable checkpoints.<a href="#section-15.4-3" class="pilcrow">¶</a></p>
@@ -3017,8 +3012,16 @@ Secure Element (TPM or platform SE). For T1/T2 tiers, a
 software-managed key is acceptable.<a href="#section-15.5-2" class="pilcrow">¶</a></p>
 <p id="section-15.5-3">When COSE_Sign1 wrapping is not used (e.g., offline file-based
 conveyance), the Evidence Packet's integrity relies solely on
-the internal hash chain. Relying Parties <span class="bcp14">MUST</span> evaluate the
-trust implications of unwrapped Evidence.<a href="#section-15.5-3" class="pilcrow">¶</a></p>
+the internal hash chain. The hash chain covers every checkpoint
+field (<a href="#checkpoint-hash-computation" class="auto internal xref">Section 15.3</a>) but no packet-level field:
+attestation-tier, content-tier, limitations, profile-declaration,
+baseline-verification, channel-binding, and extension keys can be
+altered without breaking it. A Verifier <span class="bcp14">MUST</span> treat those fields of
+an unwrapped packet as unauthenticated, <span class="bcp14">MUST NOT</span> assign an
+assurance tier above T1 on the basis of them, and <span class="bcp14">MUST NOT</span> treat
+a limitation as resolved because it is absent from an unwrapped
+packet. Relying Parties <span class="bcp14">MUST</span> evaluate the trust implications of
+unwrapped Evidence.<a href="#section-15.5-3" class="pilcrow">¶</a></p>
 <p id="section-15.5-4">For online conveyance, COSE_Sign1-wrapped Evidence Packets can be encapsulated within a Conceptual Message Wrapper (CMW) for transport via the SEAT cmw_attestation TLS extension <span>[<a href="#SEAT-EXPAT" class="cite xref">SEAT-EXPAT</a>]</span>. This enables CPoE Evidence to be delivered alongside platform attestation evidence in a single post-handshake authentication exchange, which is the preferred attestation timing model <span>[<a href="#SEAT-Timing" class="cite xref">SEAT-Timing</a>]</span>. The SEAT use cases <span>[<a href="#SEAT-UseCases" class="cite xref">SEAT-UseCases</a>]</span> identify runtime attestation and operation-triggered re-attestation as key requirements, both of which CPoE's continuous checkpoint model satisfies.<a href="#section-15.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
