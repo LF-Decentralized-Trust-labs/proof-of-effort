@@ -121,11 +121,5 @@ Verifiable Credentials, CAWG, and EU AI Act compliance frameworks.
 
 ## Reference Implementation
 
-The Rust reference implementation lives in `impl/posme/` (core library)
-and `impl/posme-ref/` (CLI reference binary). The core library provides:
-
-- Sequential Work Function (SWF) with BLAKE3-based pointer chasing
-- Merkle tree commitment and Fiat-Shamir sampled proof generation
-- Proof verification against seed and parameters
-
-See `impl/posme/src/lib.rs` for the main API entry points.
+The Sequential Work Function (PoSME) and its Rust reference implementation are maintained in
+https://github.com/dcondrey/posme-draft (`impl/`).
