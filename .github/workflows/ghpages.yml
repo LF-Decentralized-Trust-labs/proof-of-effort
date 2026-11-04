@@ -78,6 +78,30 @@ jobs:
         make: gh-pages
         token: ${{ github.token }}
 
+    # profiles/ holds dereferenceable identifiers (EAT profile documents). The
+    # i-d-template cleanup prunes gh-pages directories that match no branch, so
+    # main is the source of truth and every push copies the directory back.
+    - name: "Publish Profiles"
+      if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+      env:
+        GH_TOKEN: ${{ github.token }}
+      # A fresh clone, because the container steps above can leave root-owned
+      # objects in the workspace repository.
+      run: |
+        set -eu
+        git clone -q --depth=1 --branch gh-pages \
+          "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+          "$RUNNER_TEMP/gh-pages"
+        rm -rf "$RUNNER_TEMP/gh-pages/profiles"
+        cp -R profiles "$RUNNER_TEMP/gh-pages/profiles"
+        cd "$RUNNER_TEMP/gh-pages"
+        git add -A profiles
+        if git diff --cached --quiet; then exit 0; fi
+        git -c user.name="github-actions[bot]" \
+            -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Publish profiles from ${GITHUB_SHA}"
+        git push origin HEAD:gh-pages
+
     - name: "Archive Built Drafts"
       if: always()
       uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

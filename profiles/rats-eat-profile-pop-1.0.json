@@ -1,0 +1,14 @@
+{
+  "profile": "https://lf-decentralized-trust-labs.github.io/proof-of-effort/profiles/rats-eat-profile-pop-1.0.json",
+  "name": "Proof of Process (PoP) EAT Profile",
+  "version": "1.0",
+  "description": "IETF RATS Entity Attestation Token (EAT) profile for CPoE proof-of-process authorship attestation results, named by CWT/EAT claim key 265 (eat_profile).",
+  "basedOn": "draft-condrey-rats-pop (individual submission, expired 2026-08-15, not yet WG-adopted)",
+  "wireFormat": "CWT (RFC 8392), COSE_Sign1 (RFC 9052)",
+  "specification": "https://github.com/LF-Decentralized-Trust-labs/proof-of-effort",
+  "supersedes": [
+    "https://writerslogic.com/.well-known/rats-eat-profile-pop-1.0.json",
+    "urn:ietf:params:rats:eat:profile:pop:1.0"
+  ],
+  "notes": "Published by the LF Decentralized Trust proof-of-effort project so the profile has a vendor-neutral home. urn:ietf:params: is IANA-controlled and this profile was never IETF-WG-adopted, so the URN form is not used."
+}
